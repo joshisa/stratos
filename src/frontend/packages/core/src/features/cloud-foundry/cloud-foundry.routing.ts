@@ -35,6 +35,9 @@ import {
   CloudFoundryOrganizationBaseComponent,
 } from './tabs/cloud-foundry-organizations/cloud-foundry-organization-base/cloud-foundry-organization-base.component';
 import {
+  CloudFoundryOrganizationSpaceQuotasComponent,
+} from './tabs/cloud-foundry-organizations/cloud-foundry-organization-space-quotas/cloud-foundry-organization-space-quotas.component';
+import {
   CloudFoundryOrganizationSpacesComponent,
 } from './tabs/cloud-foundry-organizations/cloud-foundry-organization-spaces/cloud-foundry-organization-spaces.component';
 import {
@@ -67,6 +70,7 @@ import {
 import {
   CloudFoundryOrganizationsComponent,
 } from './tabs/cloud-foundry-organizations/cloud-foundry-organizations.component';
+import { CloudFoundryQuotasComponent } from './tabs/cloud-foundry-quotas/cloud-foundry-quotas.component';
 import { CloudFoundryRoutesComponent } from './tabs/cloud-foundry-routes/cloud-foundry-routes.component';
 import {
   CloudFoundrySecurityGroupsComponent,
@@ -211,6 +215,10 @@ const cloudFoundry: Routes = [{
               component: CloudFoundryRoutesComponent
             },
             {
+              path: 'quotas',
+              component: CloudFoundryQuotasComponent
+            },
+            {
               path: '**',
               component: PageNotFoundComponentComponent,
               canActivate: [DynamicExtensionRoutes],
@@ -274,6 +282,10 @@ const cloudFoundry: Routes = [{
                 {
                   path: 'quota',
                   component: QuotaDefinitionComponent
+                },
+                {
+                  path: 'space-quotas',
+                  component: CloudFoundryOrganizationSpaceQuotasComponent
                 },
                 {
                   path: '**',
