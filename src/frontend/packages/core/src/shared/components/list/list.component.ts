@@ -16,7 +16,6 @@ import {
 import { NgForm, NgModel } from '@angular/forms';
 import { MatPaginator, PageEvent, SortDirection } from '@angular/material';
 import { Store } from '@ngrx/store';
-import { schema as normalizrSchema } from 'normalizr';
 import {
   asapScheduler,
   BehaviorSubject,
@@ -53,8 +52,9 @@ import { SetPage } from '../../../../../store/src/actions/pagination.actions';
 import { CFAppState } from '../../../../../store/src/app-state';
 import { ActionState } from '../../../../../store/src/reducers/api-request-reducer/types';
 import { getListStateObservables } from '../../../../../store/src/reducers/list.reducer';
+import { entityCatalogue } from '../../../core/entity-catalogue/entity-catalogue.service';
+import { EntityCatalogueEntityConfig } from '../../../core/entity-catalogue/entity-catalogue.types';
 import { safeUnsubscribe } from '../../../core/utils.service';
-import { EntityMonitor } from '../../monitors/entity-monitor';
 import {
   EntitySelectConfig,
   getDefaultRowState,
@@ -74,9 +74,6 @@ import {
   ListViewTypes,
   MultiFilterManager,
 } from './list.component.types';
-import { entityCatalogue } from '../../../core/entity-catalogue/entity-catalogue.service';
-import { EntitySchema } from '../../../../../store/src/helpers/entity-schema';
-import { EntityCatalogueEntityConfig } from '../../../core/entity-catalogue/entity-catalogue.types';
 
 @Component({
   selector: 'app-list',
@@ -296,6 +293,7 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
       this.dataSource.getRowState = this.getRowStateFromRowsState;
     } else if (!this.dataSource.getRowState) {
       const catalogueEntity = entityCatalogue.getEntity(this.dataSource.endpointType, this.dataSource.entityType);
+      // Get the core schema with it's core key, rather than the schema that might be associated with the action
       const schema = catalogueEntity.getSchema();
       this.dataSource.getRowState = this.getRowStateGeneratorFromEntityMonitor(schema, this.dataSource);
     }

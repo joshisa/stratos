@@ -78,7 +78,7 @@ export class AppDeleteServiceInstancesListConfigService extends AppServiceBindin
           action,
           paginationMonitor: this.paginationMonitorFactory.create(
             action.paginationKey,
-            catalogueEntity.getSchema()
+            catalogueEntity.getSchemaFromActionEntity(action.entity)
           )
         });
         this.obsCache[serviceBinding.entity.service_instance_guid] = pagObs.pagination$.pipe(

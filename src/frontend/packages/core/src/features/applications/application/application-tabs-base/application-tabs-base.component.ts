@@ -67,7 +67,7 @@ export class ApplicationTabsBaseComponent implements OnInit, OnDestroy {
 
   ) {
     const catalogueEntity = entityCatalogue.getEntity(CF_ENDPOINT_TYPE, applicationEntityType);
-    this.schema = catalogueEntity.getSchema();
+    this.schema = catalogueEntity.getSchemaFromActionEntity(applicationService.action.entity);
     const endpoints$ = store.select(endpointEntitiesSelector);
     this.breadcrumbs$ = applicationService.waitForAppEntity$.pipe(
       withLatestFrom(

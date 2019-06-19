@@ -83,6 +83,7 @@ export interface ApplicationData {
 @Injectable()
 export class ApplicationService {
 
+  public action: GetApplication;
   private appEntityService: EntityService<APIResource<IApp>>;
   private appSummaryEntityService: EntityService<APIResource<IAppSummary>>;
 
@@ -95,9 +96,10 @@ export class ApplicationService {
     private appEnvVarsService: ApplicationEnvVarsHelper,
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
+    this.action = createGetApplicationAction(appGuid, cfGuid)
     this.appEntityService = this.entityServiceFactory.create<APIResource<IApp>>(
       appGuid,
-      createGetApplicationAction(appGuid, cfGuid)
+      this.action
     );
     this.appSummaryEntityService = this.entityServiceFactory.create<APIResource<IAppSummary>>(
       appGuid,

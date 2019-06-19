@@ -28,6 +28,7 @@ import { ListFilter, ListSort } from '../../../../../../store/src/actions/list.a
 import { MetricsAction } from '../../../../../../store/src/actions/metrics.actions';
 import { SetResultCount } from '../../../../../../store/src/actions/pagination.actions';
 import { CFAppState } from '../../../../../../store/src/app-state';
+import { EntitySchema } from '../../../../../../store/src/helpers/entity-schema';
 import { getPaginationObservables } from '../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import {
   PaginatedAction,
@@ -35,6 +36,9 @@ import {
   PaginationParam,
   QParam,
 } from '../../../../../../store/src/types/pagination.types';
+import { EntityCatalogueHelpers } from '../../../../core/entity-catalogue/entity-catalogue.helper';
+import { entityCatalogue } from '../../../../core/entity-catalogue/entity-catalogue.service';
+import { EntityCatalogueEntityConfig } from '../../../../core/entity-catalogue/entity-catalogue.types';
 import { PaginationMonitor } from '../../../monitors/pagination-monitor';
 import { IListDataSourceConfig, MultiActionConfig } from './list-data-source-config';
 import {
@@ -49,8 +53,6 @@ import {
 import { getDataFunctionList } from './local-filtering-sorting';
 import { LocalListController } from './local-list-controller';
 import { LocalPaginationHelpers } from './local-list.helpers';
-import { entityCatalogue } from '../../../../core/entity-catalogue/entity-catalogue.service';
-import { EntitySchema } from '../../../../../../store/src/helpers/entity-schema';
 
 export class DataFunctionDefinition {
   type: 'sort' | 'filter';
@@ -76,7 +78,7 @@ const services: {
 
 } = {
   entityCatalogue: null
-}
+};
 export type DataFunction<T> = ((entities: T[], paginationState: PaginationEntityState) => T[]);
 export abstract class ListDataSource<T, A = T> extends DataSource<T> implements IListDataSource<T> {
 
@@ -120,7 +122,8 @@ export abstract class ListDataSource<T, A = T> extends DataSource<T> implements 
   protected store: Store<CFAppState>;
   public action: PaginatedAction | PaginatedAction[];
   public masterAction: PaginatedAction;
-  protected sourceScheme: EntitySchema;
+  // private sourceScheme: EntitySchema;
+  private sourceEntityConfig: EntityCatalogueEntityConfig;
   public getRowUniqueId: getRowUniqueId<T>;
   private getEmptyType: () => T;
   public paginationKey: string;
@@ -148,7 +151,7 @@ export abstract class ListDataSource<T, A = T> extends DataSource<T> implements 
     const paginationMonitor = new PaginationMonitor(
       this.store,
       this.paginationKey,
-      this.sourceScheme,
+      this.sourceEntityConfig,
       this.isLocal
     );
     const { pagination$, entities$ } = getPaginationObservables({
@@ -220,7 +223,7 @@ export abstract class ListDataSource<T, A = T> extends DataSource<T> implements 
     this.store = config.store;
     this.action = config.action;
     this.refresh = this.getRefreshFunction(config);
-    this.sourceScheme = this.getSourceSchema(config.schema);
+    this.sourceEntityConfig = this.getSourceEntityConfig(config.schema)
     this.getRowUniqueId = config.getRowUniqueId;
     this.getEmptyType = config.getEmptyType ? config.getEmptyType : () => ({} as T);
     this.paginationKey = config.paginationKey;
@@ -231,7 +234,7 @@ export abstract class ListDataSource<T, A = T> extends DataSource<T> implements 
     this.getRowState = config.getRowState;
     this.externalDestroy = config.destroy || (() => { });
     this.addItem = this.getEmptyType();
-    this.entityKey = this.sourceScheme.key;
+    this.entityKey = EntityCatalogueHelpers.buildEntityKey(this.sourceEntityConfig.entityType, this.sourceEntityConfig.endpointType);
     this.entityType = this.action.entityType;
     this.endpointType = this.action.endpointType;
     this.masterAction = this.action as PaginatedAction;
@@ -306,11 +309,11 @@ export abstract class ListDataSource<T, A = T> extends DataSource<T> implements 
     };
   }
 
-  private getSourceSchema(schema: EntitySchema | MultiActionConfig) {
+  private getSourceEntityConfig(schema: EntitySchema | MultiActionConfig): EntityCatalogueEntityConfig {
     if (schema instanceof MultiActionConfig) {
       const { paginationAction } = schema.schemaConfigs[0];
       const catalogueEntity = entityCatalogue.getEntity(paginationAction.endpointType, paginationAction.entityType);
-      return catalogueEntity.getSchema(paginationAction.schemaKey);
+      return catalogueEntity.getSchemaFromActionEntity(paginationAction.entity, paginationAction.schemaKey);
     }
     return schema;
   }

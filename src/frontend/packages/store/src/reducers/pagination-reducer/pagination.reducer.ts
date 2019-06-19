@@ -1,3 +1,4 @@
+import { getDefaultStateFromEntityCatalogue } from '../../../../core/src/core/entity-catalogue/entity-catalogue.store-setup';
 import {
   CONNECT_ENDPOINTS_SUCCESS,
   DISCONNECT_ENDPOINTS_SUCCESS,
@@ -44,8 +45,6 @@ import { paginationSuccess } from './pagination-reducer-success';
 import { paginationPageBusy } from './pagination-reducer-update';
 import { paginationFailure } from './pagination-reducer.failure';
 import { getActionPaginationEntityKey, getActionType, getPaginationKeyFromAction } from './pagination-reducer.helper';
-import { REGISTER_ENTITY_ACTION } from '../../../../core/src/core/entity-catalogue/entity-catalogue.actions';
-import { getDefaultStateFromEntityCatalogue } from '../../../../core/src/core/entity-catalogue/entity-catalogue.store-setup';
 
 const getPaginationUpdater = (types: [string, string, string]) => {
   const [requestType, successType, failureType] = types;

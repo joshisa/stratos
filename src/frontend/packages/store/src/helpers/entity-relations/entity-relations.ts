@@ -331,6 +331,7 @@ function associateChildWithParent(store: Store<GeneralEntityAppState>, action: E
         };
         const parentAction: IRequestAction = {
           endpointGuid: action.endpointGuid,
+          // TODO: RC schemaKey ever populated?
           entity: catalogueEntity.getSchema(action.parentEntityConfig.schemaKey),
           entityLocation: RequestEntityLocation.OBJECT,
           guid: action.parentGuid,
@@ -414,6 +415,7 @@ export function validateEntityRelations(config: ValidateEntityRelationsConfig): 
   if (!!pAction && pAction.__forcedPageEntityConfig__) {
     const entityConfig = pAction.__forcedPageEntityConfig__;
     const catalogueEntity = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType);
+    // const forcedSchema = catalogueEntity.getSchemaFromActionEntity(entityConfig.schemaKey);
     const forcedSchema = catalogueEntity.getSchema(entityConfig.schemaKey);
     config.action = {
       ...config.action,
@@ -447,7 +449,7 @@ function getRelationAction(action: IRequestAction): EntityInlineParentAction {
   const pagAction = action as PaginatedAction;
   if (pagAction.__forcedPageEntityConfig__) {
     const entityConfig = pagAction.__forcedPageEntityConfig__;
-    const entity = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType).getSchema(entityConfig.schemaKey);
+    const entity = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType).getSchemaFromActionEntity(pagAction.__forcedPageEntityConfig__.entity, entityConfig.schemaKey);
     return {
       ...action,
       entityType: entityConfig.entityType,
@@ -524,7 +526,7 @@ export function populatePaginationFromParent(store: Store<GeneralEntityAppState>
           const catalogueEntity = entityCatalogue.getEntity(eicAction);
           const entityKey = catalogueEntity.entityKey;
           const normedEntities = entity.entity[paramName].reduce((normedEntities, entity) => {
-            const guid = typeof(entity) === 'string' ? entity : catalogueEntity.getGuidFromEntity(entity);
+            const guid = typeof (entity) === 'string' ? entity : catalogueEntity.getGuidFromEntity(entity);
             normedEntities[entityKey][guid] = entity;
             return normedEntities;
           }, { [entityKey]: {} });

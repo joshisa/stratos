@@ -46,7 +46,7 @@ export class ApplicationEnvVarsHelper {
       action,
       paginationMonitor: this.paginationMonitorFactory.create(
         action.paginationKey,
-        catalogueEntity.getSchema()
+        catalogueEntity.getSchemaFromActionEntity(action.entity)
       )
     }, true);
   }

@@ -3,7 +3,6 @@ import { Action } from '@ngrx/store';
 
 import { ListActionState } from '../reducers/api-request-reducer/types';
 import { IRequestAction } from './request.types';
-import { EntityCatalogueEntityConfig } from '../../../core/src/core/entity-catalogue/entity-catalogue.types';
 
 export class QParam {
   constructor(
@@ -88,8 +87,9 @@ export interface PaginatedAction extends BasePaginatedAction, IRequestAction {
   skipValidation?: boolean;
   // Internal, used for local multi action lists
   __forcedPageNumber__?: number;
-  // TODO this should be of type entityConfig 
-  __forcedPageEntityConfig__?: EntityCatalogueEntityConfig;
+  // TODO this should be of type entityConfig
+  // TODO: RC rename
+  __forcedPageEntityConfig__?: PaginatedAction;
 }
 
 export interface PaginationEntityTypeState {

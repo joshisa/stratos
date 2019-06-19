@@ -81,6 +81,7 @@ export class APIEffect {
     const catalogueEntity = entityCatalogue.getEntity(action.endpointType, action.entityType);
     if (this.shouldRecursivelyDelete(requestType, apiAction)) {
       this.store.dispatch(
+        // Get the core schema with it's core key, rather than the schema that might be associated with the action
         new RecursiveDelete(apiAction.guid, catalogueEntity.getSchema()),
       );
     }
@@ -200,6 +201,7 @@ export class APIEffect {
               new RecursiveDeleteFailed(
                 apiAction.guid,
                 apiAction.endpointGuid,
+                // Get the core schema with it's core key, rather than the schema that might be associated with the action
                 catalogueEntity.getSchema()
               ),
             );
@@ -266,6 +268,7 @@ export class APIEffect {
           this.store.dispatch(new RecursiveDeleteFailed(
             apiAction.guid,
             apiAction.endpointGuid,
+            // Get the core schema with it's core key, rather than the schema that might be associated with the action
             catalogueEntity.getSchema(),
           ));
         }
@@ -452,7 +455,7 @@ export class APIEffect {
     const pagAction = apiAction as PaginatedAction;
     if (pagAction.__forcedPageEntityConfig__) {
       const entityConfig = pagAction.__forcedPageEntityConfig__;
-      const schema = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType).getSchema(entityConfig.schemaKey);
+      const schema = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType).getSchemaFromActionEntity(entityConfig.entity, entityConfig.schemaKey);
       entityArray = [schema];
     } else {
       // No need to do this, use Array.isArray - nj
@@ -584,7 +587,7 @@ export class APIEffect {
     if (action.__forcedPageEntityConfig__) {
       const entityConfig = action.__forcedPageEntityConfig__ as EntityCatalogueEntityConfig;
       const catalogueEntity = entityCatalogue.getEntity(entityConfig.endpointType, entityConfig.entityType);
-      const forcedSchema = catalogueEntity.getSchema(entityConfig.schemaKey);
+      const forcedSchema = catalogueEntity.getSchemaFromActionEntity(action.__forcedPageEntityConfig__.entity, entityConfig.schemaKey);
       return listEntityRelations(
         {
           ...action,

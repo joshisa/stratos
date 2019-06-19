@@ -1,21 +1,23 @@
-import {
-  IEntityMetadata,
-  IStratosEntityDefinition,
-  EntityCatalogueSchemas,
-  IStratosEndpointDefinition,
-  IStratosEntityBuilder,
-  IStratosEndpointWithoutSchemaDefinition,
-  IStratosBaseEntityDefinition
-} from './entity-catalogue.types';
 import { Store } from '@ngrx/store';
-import { GeneralEntityAppState, AppState } from '../../../../store/src/app-state';
-import { EntityCatalogueHelpers } from './entity-catalogue.helper';
-import { IEndpointFavMetadata } from '../../../../store/src/types/user-favorites.types';
-import { EndpointModel } from '../../../../store/src/types/endpoint.types';
-import { getFullEndpointApiUrl } from '../../features/endpoints/endpoint-helpers';
-import { endpointEntitySchema } from '../../base-entity-schemas';
+
+import { AppState } from '../../../../store/src/app-state';
 import { EntitySchema } from '../../../../store/src/helpers/entity-schema';
+import { EndpointModel } from '../../../../store/src/types/endpoint.types';
+import { IRequestActionEntity } from '../../../../store/src/types/request.types';
+import { IEndpointFavMetadata } from '../../../../store/src/types/user-favorites.types';
+import { endpointEntitySchema } from '../../base-entity-schemas';
+import { getFullEndpointApiUrl } from '../../features/endpoints/endpoint-helpers';
 import { EntityMonitor } from '../../shared/monitors/entity-monitor';
+import { EntityCatalogueHelpers } from './entity-catalogue.helper';
+import {
+  EntityCatalogueSchemas,
+  IEntityMetadata,
+  IStratosBaseEntityDefinition,
+  IStratosEndpointDefinition,
+  IStratosEndpointWithoutSchemaDefinition,
+  IStratosEntityBuilder,
+  IStratosEntityDefinition,
+} from './entity-catalogue.types';
 
 export class StratosBaseCatalogueEntity<T extends IEntityMetadata = IEntityMetadata, Y = any> {
   public readonly entityKey: string;
@@ -51,11 +53,23 @@ export class StratosBaseCatalogueEntity<T extends IEntityMetadata = IEntityMetad
       schema
     };
   }
+
+  /**
+   * // TODO: Entity Schema Overrides... This could probably be removed once the actions are in the entity itself, just need a way to pick
+   * the non-default schema key
+   * 
+   * Gets the schema associated with a request action's entity/s. This could be different from the action's schema key.
+   * For instance serviceInstancesEntityType and serviceInstancesWithSpaceEntityType/serviceInstancesWithNoBindingsEntityType
+   */
+  public getSchemaFromActionEntity(actionEntity: IRequestActionEntity, fallBackSchema?: string): EntitySchema {
+    return Array.isArray(actionEntity) && !!actionEntity[0] ? actionEntity[0] : this.getSchema(fallBackSchema);
+  }
+
   /**
    * Gets the schema associated with the entity type.
    * If no schemaKey is provided then the default schema will be returned
    */
-  public getSchema(schemaKey?: string) {
+  public getSchema(schemaKey?: string): EntitySchema {
     // TODO(NJ) We should do a better job at typeing schemax
     // schema always gets changed to a EntityCatalogueSchamas.
     const catalogueSchema = (this.definition.schema as EntityCatalogueSchemas);
