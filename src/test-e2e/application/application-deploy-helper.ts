@@ -43,7 +43,7 @@ export function createApplicationDeployTests(appUrl: boolean = false): {
   // Might take a bit longer to deploy the app than the global default timeout allows
   extendE2ETestTime(120000);
 
-  fdescribe(`Should deploy app from ${sourceText}`, () => {
+  describe(`Should deploy app from ${sourceText}`, () => {
 
     const loggingPrefix = `Application Deploy: Deploy from ${sourceText}:`;
     let deployApp;
