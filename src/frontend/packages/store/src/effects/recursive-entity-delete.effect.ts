@@ -3,13 +3,12 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Action, Store } from '@ngrx/store';
 import { map, mergeMap, withLatestFrom } from 'rxjs/operators';
 
-import { DELETE_SUCCESS, DeleteApplication } from '../actions/application.actions';
+import { DELETE_SUCCESS, DeleteApplication } from '../../../cloud-foundry/src/actions/application.actions';
 import { ClearPaginationOfType } from '../actions/pagination.actions';
-import { AppState } from '../app-state';
-import { EntitySchema } from '../helpers/entity-factory';
+import { GeneralEntityAppState, GeneralRequestDataState } from '../app-state';
+import { EntitySchema } from '../helpers/entity-schema';
 import { EntitySchemaTreeBuilder, IFlatTree } from '../helpers/schema-tree-traverse';
 import { getAPIRequestDataState } from '../selectors/api.selectors';
-import { IRequestDataState } from '../types/entity.types';
 import { APISuccessOrFailedAction, ICFAction } from '../types/request.types';
 
 
@@ -61,7 +60,7 @@ export class RecursiveDeleteEffect {
   private entityTreeCache: { [guid: string]: IFlatTree } = {};
   constructor(
     private actions$: Actions,
-    private store: Store<AppState>
+    private store: Store<GeneralEntityAppState>
   ) { }
 
   private deleteSuccessApiActionGenerators = {
@@ -91,7 +90,7 @@ export class RecursiveDeleteEffect {
         if (this.deleteSuccessApiActionGenerators[key]) {
           keyActions.push(this.deleteSuccessApiActionGenerators[key](action.guid, action.endpointGuid));
         }
-        keyActions.push(new ClearPaginationOfType(key));
+        keyActions.push(new ClearPaginationOfType(action.schema));
         return keyActions;
       }));
       actions.unshift(new SetTreeDeleted(action.guid, tree));
@@ -109,7 +108,7 @@ export class RecursiveDeleteEffect {
     })
   );
 
-  private getTree(action: IRecursiveDelete, state: IRequestDataState) {
+  private getTree(action: IRecursiveDelete, state: GeneralRequestDataState) {
     const tree = this.entityTreeCache[action.guid] ?
       this.entityTreeCache[action.guid] :
       new EntitySchemaTreeBuilder().getFlatTree(action, state);

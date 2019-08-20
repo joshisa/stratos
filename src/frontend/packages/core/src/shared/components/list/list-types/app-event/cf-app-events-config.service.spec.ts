@@ -2,25 +2,27 @@ import { CommonModule } from '@angular/common';
 import { inject, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { CoreModule } from '../../../../../core/core.module';
-import { EntityServiceFactory } from '../../../../../core/entity-service-factory.service';
-import { ApplicationsModule } from '../../../../../features/applications/applications.module';
+import { GetApplication } from '../../../../../../../cloud-foundry/src/actions/application.actions';
+import { applicationEntityType, cfEntityFactory } from '../../../../../../../cloud-foundry/src/cf-entity-factory';
 import { generateTestApplicationServiceProvider } from '../../../../../../test-framework/application-service-helper';
 import { generateTestEntityServiceProvider } from '../../../../../../test-framework/entity-service.helper';
 import { createBasicStoreModule, getInitialTestStoreState } from '../../../../../../test-framework/store-test-helper';
+import { endpointEntitySchema } from '../../../../../base-entity-schemas';
+import { CoreModule } from '../../../../../core/core.module';
+import { entityCatalogue } from '../../../../../core/entity-catalogue/entity-catalogue.service';
+import { EntityServiceFactory } from '../../../../../core/entity-service-factory.service';
+import { CustomImportModule } from '../../../../../custom-import.module';
+import { ApplicationsModule } from '../../../../../features/applications/applications.module';
 import { SharedModule } from '../../../../shared.module';
 import { CfAppEventsConfigService } from './cf-app-events-config.service';
-import { endpointStoreNames } from '../../../../../../../store/src/types/endpoint.types';
-import { entityFactory, applicationSchemaKey } from '../../../../../../../store/src/helpers/entity-factory';
-import { GetApplication } from '../../../../../../../store/src/actions/application.actions';
-import { CustomImportModule } from '../../../../../custom-import.module';
 
 
 describe('CfAppEventsConfigService', () => {
   const initialState = getInitialTestStoreState();
 
-  const cfGuid = Object.keys(initialState.requestData[endpointStoreNames.type])[0];
-  const appGuid = Object.keys(initialState.requestData.application)[0];
+  const endpointEntity = entityCatalogue.getEntity(endpointEntitySchema);
+  const cfGuid = Object.keys(initialState.requestData[endpointEntity.entityKey])[0];
+  const appGuid = Object.keys(initialState.requestData.cfApplication)[0];
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -28,7 +30,7 @@ describe('CfAppEventsConfigService', () => {
         EntityServiceFactory,
         generateTestEntityServiceProvider(
           appGuid,
-          entityFactory(applicationSchemaKey),
+          cfEntityFactory(applicationEntityType),
           new GetApplication(appGuid, cfGuid)
         ),
         generateTestApplicationServiceProvider(appGuid, cfGuid)

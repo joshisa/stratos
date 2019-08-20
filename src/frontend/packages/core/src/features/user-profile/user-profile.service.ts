@@ -3,20 +3,28 @@ import { Store } from '@ngrx/store';
 import { combineLatest, Observable, of as observableOf } from 'rxjs';
 import { filter, first, map } from 'rxjs/operators';
 
-import { EntityMonitor } from '../../shared/monitors/entity-monitor';
-import { EntityMonitorFactory } from '../../shared/monitors/entity-monitor.factory.service';
-import { UserProfileInfo, UserProfileInfoEmail, UserProfileInfoUpdates } from '../../../../store/src/types/user-profile.types';
-import { AppState } from '../../../../store/src/app-state';
-import { UserProfileEffect, userProfilePasswordUpdatingKey } from '../../../../store/src/effects/user-profile.effects';
-import { userProfileSchemaKey, entityFactory } from '../../../../store/src/helpers/entity-factory';
-import { AuthState } from '../../../../store/src/reducers/auth.reducer';
 import {
   FetchUserProfileAction,
   UpdateUserPasswordAction,
   UpdateUserProfileAction,
 } from '../../../../store/src/actions/user-profile.actions';
-import { ActionState, getDefaultActionState, rootUpdatingKey } from '../../../../store/src/reducers/api-request-reducer/types';
+import { AppState } from '../../../../store/src/app-state';
+import { UserProfileEffect, userProfilePasswordUpdatingKey } from '../../../../store/src/effects/user-profile.effects';
+import {
+  ActionState,
+  getDefaultActionState,
+  rootUpdatingKey,
+} from '../../../../store/src/reducers/api-request-reducer/types';
+import { AuthState } from '../../../../store/src/reducers/auth.reducer';
 import { selectUpdateInfo } from '../../../../store/src/selectors/api.selectors';
+import {
+  UserProfileInfo,
+  UserProfileInfoEmail,
+  UserProfileInfoUpdates,
+} from '../../../../store/src/types/user-profile.types';
+import { userProfileEntitySchema } from '../../base-entity-schemas';
+import { entityCatalogue } from '../../core/entity-catalogue/entity-catalogue.service';
+import { EntityMonitor } from '../../shared/monitors/entity-monitor';
 
 
 @Injectable()
@@ -28,12 +36,11 @@ export class UserProfileService {
 
   userProfile$: Observable<UserProfileInfo>;
 
-  constructor(
-    private store: Store<AppState>,
-    private entityMonitorFactory: EntityMonitorFactory
-  ) {
-    this.entityMonitor = this.entityMonitorFactory.create<UserProfileInfo>(UserProfileEffect.guid,
-      userProfileSchemaKey, entityFactory(userProfileSchemaKey));
+  private stratosUserConfig = entityCatalogue.getEntity(userProfileEntitySchema.endpointType, userProfileEntitySchema.entityType);
+
+  constructor(private store: Store<AppState>) {
+
+    this.entityMonitor = this.stratosUserConfig.getEntityMonitor(this.store, UserProfileEffect.guid);
 
     this.userProfile$ = this.entityMonitor.entity$.pipe(
       filter(data => data && !!data.id)
@@ -99,7 +106,7 @@ export class UserProfileService {
       this.setPrimaryEmailAddress(updatedProfile, profileChanges.emailAddress);
     }
     this.store.dispatch(new UpdateUserProfileAction(updatedProfile, profileChanges.currentPassword));
-    const actionState = selectUpdateInfo(userProfileSchemaKey,
+    const actionState = selectUpdateInfo(this.stratosUserConfig.entityKey,
       UserProfileEffect.guid,
       rootUpdatingKey);
     return this.store.select(actionState).pipe(
@@ -113,7 +120,7 @@ export class UserProfileService {
       password: profileChanges.newPassword
     };
     this.store.dispatch(new UpdateUserPasswordAction(profile.id, passwordUpdates));
-    const actionState = selectUpdateInfo(userProfileSchemaKey,
+    const actionState = selectUpdateInfo(this.stratosUserConfig.entityKey,
       UserProfileEffect.guid,
       userProfilePasswordUpdatingKey);
     return this.store.select(actionState).pipe(

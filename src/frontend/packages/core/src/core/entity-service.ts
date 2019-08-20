@@ -3,7 +3,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { filter, first, map, publishReplay, refCount, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 
 import { ValidateEntitiesStart } from '../../../store/src/actions/request.actions';
-import { AppState } from '../../../store/src/app-state';
+import { GeneralEntityAppState } from '../../../store/src/app-state';
 import {
   RequestInfoState,
   RequestSectionKeys,
@@ -12,7 +12,7 @@ import {
 } from '../../../store/src/reducers/api-request-reducer/types';
 import { getEntityUpdateSections, getUpdateSectionById } from '../../../store/src/selectors/api.selectors';
 import { EntityInfo } from '../../../store/src/types/api.types';
-import { ICFAction, IRequestAction } from '../../../store/src/types/request.types';
+import { EntityRequestAction, ICFAction } from '../../../store/src/types/request.types';
 import { EntityMonitor } from '../shared/monitors/entity-monitor';
 
 export function isEntityBlocked(entityRequestInfo: RequestInfoState) {
@@ -22,8 +22,8 @@ export function isEntityBlocked(entityRequestInfo: RequestInfoState) {
   return entityRequestInfo.fetching ||
     entityRequestInfo.error ||
     entityRequestInfo.deleting.busy ||
-    entityRequestInfo.deleting.deleted ||
-    entityRequestInfo.updating._root_.busy;
+    entityRequestInfo.deleting.deleted;
+  // TODO: RC test removal of updating._root_.busy
 }
 
 /**
@@ -32,9 +32,9 @@ export function isEntityBlocked(entityRequestInfo: RequestInfoState) {
 export class EntityService<T = any> {
 
   constructor(
-    private store: Store<AppState>,
+    private store: Store<GeneralEntityAppState>,
     public entityMonitor: EntityMonitor<T>,
-    public action: IRequestAction,
+    public action: EntityRequestAction,
     public validateRelations = true,
     public entitySection: TRequestTypeKeys = RequestSectionKeys.CF,
   ) {
@@ -127,13 +127,15 @@ export class EntityService<T = any> {
       }),
       map(([entityRequestInfo, entity]) => ({
         entityRequestInfo,
-        entity
+        // If the entity is deleted ensure that we don't pass through a stale state
+        entity: entityRequestInfo.deleting && entityRequestInfo.deleting.deleted ? null : entity
       }))
     );
   }
 
   private isEntityAvailable(entity, entityRequestInfo: RequestInfoState) {
-    return entity && !isEntityBlocked(entityRequestInfo);
+    const isBlocked = isEntityBlocked(entityRequestInfo);
+    return entity && !isBlocked;
   }
 
   private shouldCallAction(entityRequestInfo: RequestInfoState, entity: T) {

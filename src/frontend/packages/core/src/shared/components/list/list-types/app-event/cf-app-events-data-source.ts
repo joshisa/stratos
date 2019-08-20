@@ -1,40 +1,47 @@
 import { Store } from '@ngrx/store';
 
-import { GetAllAppEvents } from '../../../../../../../store/src/actions/app-event.actions';
-import { AddParams, RemoveParams } from '../../../../../../../store/src/actions/pagination.actions';
-import { AppState } from '../../../../../../../store/src/app-state';
-import { appEventSchemaKey, entityFactory } from '../../../../../../../store/src/helpers/entity-factory';
-import { EntityInfo } from '../../../../../../../store/src/types/api.types';
-import { PaginationEntityState, QParam } from '../../../../../../../store/src/types/pagination.types';
+import { CF_ENDPOINT_TYPE } from '../../../../../../../cloud-foundry/cf-types';
+import { GetAllAppEvents } from '../../../../../../../cloud-foundry/src/actions/app-event.actions';
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
+import { APIResource } from '../../../../../../../store/src/types/api.types';
+import { PaginationEntityState } from '../../../../../../../store/src/types/pagination.types';
 import { ListDataSource } from '../../data-sources-controllers/list-data-source';
+import { QParam, QParamJoiners } from '../../../../../../../store/src/q-param';
+import { AddParams, RemoveParams } from '../../../../../../../store/src/actions/pagination.actions';
+import { IListConfig } from '../../list.component.types';
+import { cfEntityFactory, appEventEntityType } from '../../../../../../../cloud-foundry/src/cf-entity-factory';
+import { getRowMetadata } from '../../../../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 
-export class CfAppEventsDataSource extends ListDataSource<EntityInfo> {
+export class CfAppEventsDataSource extends ListDataSource<APIResource> {
 
   public getFilterFromParams(pag: PaginationEntityState) {
-    const qParams = pag.params.q;
+    const qParams = pag.params.q as string[];
     if (qParams) {
-      const qParam = qParams.find((q: QParam) => {
-        return q.key === 'type';
+      const qParamString = qParams.find((q: string) => {
+        return QParam.fromString(q).key === 'type';
       });
-      return qParam ? qParam.value as string : '';
+      return qParamString ? QParam.fromString(qParamString).value as string : '';
     }
   }
   public setFilterParam(filterString: string, pag: PaginationEntityState) {
+    const config = { entityType: this.entityKey, endpointType: CF_ENDPOINT_TYPE };
+    const qParams = pag.params.q as string[];
     if (filterString && filterString.length) {
-      this.store.dispatch(new AddParams(this.entityKey, this.paginationKey, {
+      this.store.dispatch(new AddParams(config, this.paginationKey, {
         q: [
-          new QParam('type', filterString, ' IN '),
+          new QParam('type', filterString, QParamJoiners.in).toString(),
         ]
       }));
-    } else if (pag.params.q.find((q: QParam) => q.key === 'type')) {
-      this.store.dispatch(new RemoveParams(this.entityKey, this.paginationKey, [], ['type']));
+    } else if (qParams.find((q: string) => QParam.fromString(q).key === 'type')) {
+      this.store.dispatch(new RemoveParams(config, this.paginationKey, [], ['type']));
     }
   }
 
   constructor(
-    store: Store<AppState>,
+    store: Store<CFAppState>,
     cfGuid: string,
     appGuid: string,
+    listConfig: IListConfig<APIResource>
   ) {
     const paginationKey = `app-events:${cfGuid}${appGuid}`;
     const action = new GetAllAppEvents(paginationKey, appGuid, cfGuid);
@@ -43,11 +50,10 @@ export class CfAppEventsDataSource extends ListDataSource<EntityInfo> {
       {
         store,
         action,
-        schema: entityFactory(appEventSchemaKey),
-        getRowUniqueId: (object: EntityInfo) => {
-          return object.entity.metadata ? object.entity.metadata.guid : null;
-        },
+        schema: cfEntityFactory(appEventEntityType),
+        getRowUniqueId: getRowMetadata,
         paginationKey,
+        listConfig
       }
     );
 

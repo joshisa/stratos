@@ -1,18 +1,17 @@
 import { Injectable } from '@angular/core';
 
-import { CardStatus } from '../../shared.types';
-
-
+import { StratosStatus } from '../../shared.types';
+import { AppStat } from '../../../../../cloud-foundry/src/store/types/app-metadata.types';
 
 export interface ApplicationStateData {
   label: string;
   subLabel?: string;
-  indicator: CardStatus;
+  indicator: StratosStatus;
   actions: {
     [key: string]: boolean
   };
 }
-
+// TODO: NJ The typing here is bad and needs to be fixed.
 @Injectable()
 export class ApplicationStateService {
 
@@ -33,37 +32,37 @@ export class ApplicationStateService {
     '?': {
       FAILED: {
         label: 'Staging Failed',
-        indicator: CardStatus.ERROR,
+        indicator: StratosStatus.ERROR,
         actions: 'delete,restage'
       }
     },
     PENDING: {
       '?': {
         label: 'Pending',
-        indicator: CardStatus.BUSY,
+        indicator: StratosStatus.BUSY,
         actions: 'delete'
       }
     },
     LOADING: {
       '?': {
         label: 'Loading',
-        indicator: CardStatus.BUSY
+        indicator: StratosStatus.BUSY
       }
     },
     STOPPED: {
       PENDING: {
         label: 'Offline while Updating',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'start, delete'
       },
       STAGED: {
         label: 'Offline',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'start,delete,cli,restage'
       },
       '*NONE*': {
         label: 'Incomplete',
-        indicator: CardStatus.INCOMPLETE,
+        indicator: StratosStatus.INCOMPLETE,
         actions: 'delete,cli,restage'
       }
     },
@@ -71,89 +70,89 @@ export class ApplicationStateService {
       NO_INSTANCES: {
         label: 'Deployed',
         subLabel: 'No Instances',
-        indicator: CardStatus.OK,
+        indicator: StratosStatus.OK,
         actions: 'stop,restart,cli,restage'
       },
       PENDING: {
         label: 'Staging App',
-        indicator: CardStatus.BUSY,
+        indicator: StratosStatus.BUSY,
         actions: 'delete'
       },
       'STAGED(?,?,?)': {
         label: 'Deployed',
-        indicator: CardStatus.TENTATIVE,
+        indicator: StratosStatus.TENTATIVE,
         actions: 'stop,restart,cli,restage'
       },
       'STAGED(0,0,0)': {
         label: 'Deployed',
         subLabel: 'Starting App',
-        indicator: CardStatus.BUSY,
+        indicator: StratosStatus.BUSY,
         actions: 'stop,restart,cli'
       },
       'STAGED(N,0,0,N)': {
         label: 'Deployed',
         subLabel: 'Scaling App',
-        indicator: CardStatus.OK,
+        indicator: StratosStatus.OK,
         actions: 'stop,restart,launch,cli'
       },
       'STAGED(0,0,0,N)': {
         label: 'Deployed',
         subLabel: 'Starting App',
-        indicator: CardStatus.BUSY,
+        indicator: StratosStatus.BUSY,
         actions: 'stop,restart,cli'
       },
       'STAGED(N,0,0)': {
         label: 'Deployed',
         subLabel: 'Online',
-        indicator: CardStatus.OK,
+        indicator: StratosStatus.OK,
         actions: 'stop,restart,launch,cli,restage'
       },
       'STAGED(0,N,0)': {
         label: 'Deployed',
         subLabel: 'Crashed',
-        indicator: CardStatus.ERROR,
+        indicator: StratosStatus.ERROR,
         actions: 'stop,restart,cli,restage'
       },
       'STAGED(0,0,N)': {
         label: 'Deployed',
         subLabel: 'Starting App',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'stop,restart,cli'
       },
       'STAGED(0,N,N)': {
         label: 'Deployed',
         subLabel: 'Crashed',
-        indicator: CardStatus.ERROR,
+        indicator: StratosStatus.ERROR,
         actions: 'stop,restart,cli,restage'
       },
       'STAGED(0,N,N,N)': {
         label: 'Deployed',
         subLabel: 'Crashed',
-        indicator: CardStatus.ERROR,
+        indicator: StratosStatus.ERROR,
         actions: 'stop,restart,cli,restage'
       },
       CRASHING: {
         label: 'Deployed',
         subLabel: 'Crashing',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'stop,restart,cli,restage'
       },
       'STAGED(N,N,0)': {
         label: 'Deployed',
         subLabel: 'Crashing',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'stop,restart,launch,cli,restage'
       },
       'STAGED(N,N,N)': {
         label: 'Deployed',
         subLabel: 'Crashing',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'stop,restart,launch,cli,restage'
       },
       'STAGED(N,0,N)': {
         label: 'Deployed',
         subLabel: 'Partially Online',
-        indicator: CardStatus.WARNING,
+        indicator: StratosStatus.WARNING,
         actions: 'stop,restart,launch,cli,restage'
       }
     }
@@ -192,7 +191,7 @@ export class ApplicationStateService {
    * @param summary - the application summary metadata (either from summary or entity)
    * @param appInstances - the application instances metadata (from the app stats API call)
    */
-  get(summary: any, appInstances: any): ApplicationStateData {
+  get(summary: any, appInstances: AppStat[]): ApplicationStateData {
     const appState: string = summary ? summary.state : 'UNKNOWN';
     const pkgState = this.getPackageState(appState, summary);
     const wildcard = this.stateMetadata['?'];
@@ -243,7 +242,7 @@ export class ApplicationStateService {
     // No match against the state table, so return unknown
     return {
       label: 'Unknown',
-      indicator: CardStatus.ERROR,
+      indicator: StratosStatus.ERROR,
       actions: null
     };
   }
@@ -280,7 +279,7 @@ export class ApplicationStateService {
    * @param appInstances - the application instances metadata (from the app stats API call)
    * @returns Object with instance count metadata
    */
-  private getCounts(summary, appInstances) {
+  private getCounts(summary, appInstances: AppStat[]) {
     const counts: any = {};
     // Need to check based on additional state
     // Note that the app summary returned when we are getting all apps does not report running_instances
@@ -315,7 +314,7 @@ export class ApplicationStateService {
    * @param appInstances - the application instances metadata (from the app stats API call)
    * @param instanceState - the instance state to use when filtering the app instance metadata
    */
-  private getCount(value: number, appInstances: any, instanceState: string): number {
+  private getCount(value: number, appInstances: AppStat[], instanceState: string): number {
     // Use a value if one available
     if (value) {
       return value;
@@ -347,23 +346,23 @@ export class ApplicationStateService {
    * @param summary - the application summary metadata (either from summary or entity)
    * @param appInstances - the application instances metadata (from the app stats API call)
    */
-  getInstanceState(summary: any, appInstances: any): ApplicationStateData {
+  getInstanceState(summary: any, appInstances: AppStat[]): ApplicationStateData {
     const appState: string = summary ? summary.state : 'UNKNOWN';
     if (appState !== 'STARTED') {
-      return this.getStateForIndicator(CardStatus.TENTATIVE);
+      return this.getStateForIndicator(StratosStatus.TENTATIVE);
     } else {
       const running = this.getCount(undefined, appInstances, 'RUNNING');
       if (running === summary.instances) {
-        return this.getStateForIndicator(CardStatus.OK);
+        return this.getStateForIndicator(StratosStatus.OK);
       } else if (running > 0) {
-        return this.getStateForIndicator(CardStatus.WARNING);
+        return this.getStateForIndicator(StratosStatus.WARNING);
       }
 
-      return this.getStateForIndicator(CardStatus.ERROR);
+      return this.getStateForIndicator(StratosStatus.ERROR);
     }
   }
 
-  private getStateForIndicator(indicator: CardStatus): ApplicationStateData {
+  private getStateForIndicator(indicator: StratosStatus): ApplicationStateData {
     return {
       indicator,
       label: '-',

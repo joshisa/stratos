@@ -1,25 +1,26 @@
 import { denormalize } from 'normalizr';
 
-import { IRecursiveDelete } from '../effects/recursive-entity-delete.effect';
-import { IRequestDataState } from '../types/entity.types';
 import {
-  applicationSchemaKey,
-  appStatsSchemaKey,
-  cfUserSchemaKey,
-  domainSchemaKey,
-  EntitySchema,
-  organizationSchemaKey,
-  privateDomainsSchemaKey,
-  quotaDefinitionSchemaKey,
-  routeSchemaKey,
-  serviceBindingSchemaKey,
-  serviceInstancesSchemaKey,
-  servicePlanSchemaKey,
-  serviceSchemaKey,
-  spaceSchemaKey,
-  stackSchemaKey,
-  userProvidedServiceInstanceSchemaKey,
-} from './entity-factory';
+  applicationEntityType,
+  appStatsEntityType,
+  cfUserEntityType,
+  domainEntityType,
+  organizationEntityType,
+  privateDomainsEntityType,
+  quotaDefinitionEntityType,
+  routeEntityType,
+  serviceBindingEntityType,
+  serviceEntityType,
+  serviceInstancesEntityType,
+  servicePlanEntityType,
+  spaceEntityType,
+  stackEntityType,
+  userProvidedServiceInstanceEntityType,
+} from '../../../cloud-foundry/src/cf-entity-factory';
+import { getCFEntityKey } from '../../../cloud-foundry/src/cf-entity-helpers';
+import { IRequestTypeState } from '../app-state';
+import { IRecursiveDelete } from '../effects/recursive-entity-delete.effect';
+import { EntitySchema } from './entity-schema';
 
 export interface IFlatTree {
   [entityKey: string]: Set<string>;
@@ -31,70 +32,70 @@ interface IExcludes {
 export class EntitySchemaTreeBuilder {
   constructor(private excludes: IExcludes = {
     // Delete org
-    [organizationSchemaKey]: [
-      domainSchemaKey,
-      quotaDefinitionSchemaKey,
-      privateDomainsSchemaKey,
+    [organizationEntityType]: [
+      domainEntityType,
+      quotaDefinitionEntityType,
+      privateDomainsEntityType,
     ],
     // Delete space
-    [spaceSchemaKey]: [
-      domainSchemaKey,
+    [spaceEntityType]: [
+      domainEntityType,
       // Service instance related
-      serviceSchemaKey,
-      servicePlanSchemaKey,
+      serviceEntityType,
+      servicePlanEntityType,
       // App Related
-      stackSchemaKey
+      stackEntityType
     ],
     // Delete app
-    [applicationSchemaKey]: [
-      stackSchemaKey,
-      spaceSchemaKey,
-      routeSchemaKey,
-      serviceBindingSchemaKey,
-      serviceInstancesSchemaKey
+    [applicationEntityType]: [
+      stackEntityType,
+      spaceEntityType,
+      routeEntityType,
+      serviceBindingEntityType,
+      serviceInstancesEntityType
     ],
     // Terminate app instance
-    [appStatsSchemaKey]: [],
+    [appStatsEntityType]: [],
     // Delete route, unbind route
-    [routeSchemaKey]: [
-      domainSchemaKey,
-      applicationSchemaKey
+    [routeEntityType]: [
+      domainEntityType,
+      applicationEntityType
     ],
     // Unbind service instance
-    [serviceBindingSchemaKey]: [
-      applicationSchemaKey,
-      serviceInstancesSchemaKey,
-      serviceSchemaKey
+    [serviceBindingEntityType]: [
+      applicationEntityType,
+      serviceInstancesEntityType,
+      serviceEntityType
     ],
     // Delete service instance
-    [serviceInstancesSchemaKey]: [
-      servicePlanSchemaKey,
+    [serviceInstancesEntityType]: [
+      servicePlanEntityType,
       // Service bindings
-      applicationSchemaKey,
-      serviceInstancesSchemaKey,
-      serviceSchemaKey
+      applicationEntityType,
+      serviceInstancesEntityType,
+      serviceEntityType
     ],
-    [userProvidedServiceInstanceSchemaKey]: [
-      servicePlanSchemaKey,
+    [userProvidedServiceInstanceEntityType]: [
+      servicePlanEntityType,
       // Service bindings
-      applicationSchemaKey,
-      serviceInstancesSchemaKey,
-      serviceSchemaKey,
-      organizationSchemaKey,
-      spaceSchemaKey
+      applicationEntityType,
+      serviceInstancesEntityType,
+      serviceEntityType,
+      organizationEntityType,
+      spaceEntityType
     ],
     // Remove a user role
-    [cfUserSchemaKey]: [
-      organizationSchemaKey,
-      spaceSchemaKey
+    [cfUserEntityType]: [
+      organizationEntityType,
+      spaceEntityType
     ]
   }) { }
 
   private entityExcludes: string[];
-  public getFlatTree(treeDefinition: IRecursiveDelete, state: Partial<IRequestDataState>): IFlatTree {
+  public getFlatTree(treeDefinition: IRecursiveDelete, state: IRequestTypeState): IFlatTree {
     const { schema, guid } = treeDefinition;
     const denormed = denormalize(guid, schema, state);
-    this.entityExcludes = this.excludes[schema.key] || [];
+    this.entityExcludes = this.excludes[schema.entityType] || [];
     return this.build(schema, denormed, undefined, true);
   }
 
@@ -102,7 +103,7 @@ export class EntitySchemaTreeBuilder {
     if (Array.isArray(schema)) {
       schema = schema[0];
     }
-    if (!schema || !entity || this.entityExcludes.includes(schema.key)) {
+    if (!schema || !entity || this.entityExcludes.includes(schema.entityType)) {
       return flatTree;
     }
     const keys = schema.definition ? Object.keys(schema.definition) : null;
@@ -125,11 +126,11 @@ export class EntitySchemaTreeBuilder {
     }
     const { definition } = schema;
     if (!schema.getId) {
-      return this.build(schema[schema.key], schema[schema.key], flatTree);
+      return this.build(schema[schema.entityType], schema[schema.entityType], flatTree);
     }
     // Don't add the root element to the tree to avoid duplication actions whe consuming tree
     if (!root) {
-      flatTree = this.addIdToTree(flatTree, schema.key, schema.getId(entity));
+      flatTree = this.addIdToTree(flatTree, schema.entityType, schema.getId(entity));
     }
     if (!keys) {
       return flatTree;
@@ -146,8 +147,8 @@ export class EntitySchemaTreeBuilder {
   }
 
   private addIdToTree(flatTree: IFlatTree, key: string, newId: string) {
-    const ids = flatTree[key] || new Set<string>();
-    flatTree[key] = ids.add(newId);
+    const ids = flatTree[getCFEntityKey(key)] || new Set<string>();
+    flatTree[getCFEntityKey(key)] = ids.add(newId);
     return flatTree;
   }
 

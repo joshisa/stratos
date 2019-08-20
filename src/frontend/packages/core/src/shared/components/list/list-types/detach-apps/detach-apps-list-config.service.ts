@@ -3,13 +3,13 @@ import { Injectable } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
+import { ListView } from '../../../../../../../store/src/actions/list.actions';
+import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { IServiceBinding } from '../../../../../core/cf-api-svc.types';
 import { ITableColumn } from '../../list-table/table.types';
 import { IListConfig, ListViewTypes } from '../../list.component.types';
 import { DetachAppsDataSource } from './detach-apps-data-source';
-import { APIResource } from '../../../../../../../store/src/types/api.types';
-import { ListView } from '../../../../../../../store/src/actions/list.actions';
-import { AppState } from '../../../../../../../store/src/app-state';
 
 @Injectable()
 export class DetachAppsListConfigService implements IListConfig<APIResource> {
@@ -46,7 +46,7 @@ export class DetachAppsListConfigService implements IListConfig<APIResource> {
     },
   }];
 
-  constructor(private store: Store<AppState>, private activatedRoute: ActivatedRoute, private datePipe: DatePipe) {
+  constructor(private store: Store<CFAppState>, private activatedRoute: ActivatedRoute, private datePipe: DatePipe) {
 
     const { serviceInstanceId, endpointId } = activatedRoute.snapshot.params;
     this.dataSource = new DetachAppsDataSource(endpointId, serviceInstanceId, this.store, this);

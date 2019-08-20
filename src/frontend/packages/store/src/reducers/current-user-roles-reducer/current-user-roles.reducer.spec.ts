@@ -1,15 +1,23 @@
-import { GetCurrentUserRelationsComplete, UserRelationTypes } from '../../actions/permissions.actions';
 import {
-  getDefaultEndpointRoles,
-  getDefaultRolesRequestState,
+  GetCurrentUserRelationsComplete,
+  UserRelationTypes,
+} from '../../../../cloud-foundry/src/actions/permissions.actions';
+import {
+  createOrgRoleStateState,
+} from '../../../../cloud-foundry/src/store/reducers/current-user-roles-reducer/current-user-roles-org.reducer';
+import {
   ICfRolesState,
-  ICurrentUserRolesState,
   IOrgRoleState,
   ISpaceRoleState,
   RoleEntities,
+} from '../../../../cloud-foundry/src/store/types/cf-current-user-roles.types';
+import {
+  getDefaultEndpointRoles,
+  getDefaultRolesRequestState,
+  ICurrentUserRolesState,
 } from '../../types/current-user-roles.types';
-import { createOrgRoleStateState } from './current-user-roles-org.reducer';
 import { currentUserRolesReducer } from './current-user-roles.reducer';
+import { getDefaultEndpointRoles, ICurrentUserRolesState, getDefaultRolesRequestState } from '../../types/current-user-roles.types';
 
 const testOrgGuid = 'org-1';
 const testSpaceGuid = 'space-1';

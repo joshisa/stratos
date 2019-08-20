@@ -1,20 +1,20 @@
 import { Store } from '@ngrx/store';
 import { map } from 'rxjs/operators';
 
-import { GetAppEnvVarsAction } from '../../../../../../../store/src/actions/app-metadata.actions';
-import { AppVariablesAdd, AppVariablesEdit } from '../../../../../../../store/src/actions/app-variables.actions';
-import { AppState } from '../../../../../../../store/src/app-state';
+import { GetAppEnvVarsAction } from '../../../../../../../cloud-foundry/src/actions/app-metadata.actions';
+import { AppVariablesAdd, AppVariablesEdit } from '../../../../../../../cloud-foundry/src/actions/app-variables.actions';
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
 import {
-  appEnvVarsSchemaKey,
-  applicationSchemaKey,
-  entityFactory,
-} from '../../../../../../../store/src/helpers/entity-factory';
+  appEnvVarsEntityType,
+  applicationEntityType,
+  cfEntityFactory,
+} from '../../../../../../../cloud-foundry/src/cf-entity-factory';
+import { ApplicationService } from '../../../../../../../cloud-foundry/src/features/applications/application.service';
+import { AppEnvVarsState } from '../../../../../../../cloud-foundry/src/store/types/app-metadata.types';
 import {
   createEntityRelationPaginationKey,
-} from '../../../../../../../store/src/helpers/entity-relations/entity-relations.types';
+} from '../../../../../../../cloud-foundry/src/entity-relations/entity-relations.types';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
-import { AppEnvVarsState } from '../../../../../../../store/src/types/app-metadata.types';
-import { ApplicationService } from '../../../../../features/applications/application.service';
 import { ListDataSource } from '../../data-sources-controllers/list-data-source';
 import { IListConfig } from '../../list.component.types';
 
@@ -29,17 +29,17 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
   public appGuid: string;
 
   constructor(
-    store: Store<AppState>,
+    store: Store<CFAppState>,
     appService: ApplicationService,
     listConfig: IListConfig<ListAppEnvVar>
   ) {
     super({
       store,
       action: new GetAppEnvVarsAction(appService.appGuid, appService.cfGuid),
-      schema: entityFactory(appEnvVarsSchemaKey),
+      schema: cfEntityFactory(appEnvVarsEntityType),
       getRowUniqueId: object => object.name,
       getEmptyType: () => ({ name: '', value: '', }),
-      paginationKey: createEntityRelationPaginationKey(applicationSchemaKey, appService.appGuid),
+      paginationKey: createEntityRelationPaginationKey(applicationEntityType, appService.appGuid),
       transformEntity: map(variables => {
         if (!variables || variables.length === 0) {
           return [];

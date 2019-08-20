@@ -1,3 +1,4 @@
+import { EntityCatalogueHelpers } from '../../../../core/src/core/entity-catalogue/entity-catalogue.helper';
 import { ResetPagination } from '../../actions/pagination.actions';
 import { PaginationEntityState, PaginationEntityTypeState, PaginationState } from '../../types/pagination.types';
 
@@ -30,15 +31,16 @@ export function getDefaultPaginationEntityState(): PaginationEntityState {
 }
 
 export function paginationResetPagination(state: PaginationState, action: ResetPagination): PaginationState {
-  if (!state[action.entityKey] || !state[action.entityKey][action.paginationKey]) {
+  const entityKey = EntityCatalogueHelpers.buildEntityKey(action.entityConfig.entityType, action.entityConfig.endpointType);
+  if (!state[entityKey] || !state[entityKey][action.paginationKey]) {
     return state;
   }
   const { ids, pageRequests, pageCount, currentPage, totalResults } = getDefaultPaginationEntityState();
   const newState = { ...state };
   const entityState = {
-    ...newState[action.entityKey],
+    ...newState[entityKey],
     [action.paginationKey]: {
-      ...newState[action.entityKey][action.paginationKey],
+      ...newState[entityKey][action.paginationKey],
       ids,
       pageRequests,
       pageCount,
@@ -48,6 +50,6 @@ export function paginationResetPagination(state: PaginationState, action: ResetP
   } as PaginationEntityTypeState;
   return {
     ...newState,
-    [action.entityKey]: entityState
+    [entityKey]: entityState
   };
 }

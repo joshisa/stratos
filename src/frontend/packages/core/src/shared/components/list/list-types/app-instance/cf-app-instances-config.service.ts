@@ -4,10 +4,15 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { combineLatest, filter, map, switchMap } from 'rxjs/operators';
 
+import { DeleteApplicationInstance } from '../../../../../../../cloud-foundry/src/actions/application.actions';
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
+import { ApplicationService } from '../../../../../../../cloud-foundry/src/features/applications/application.service';
+import { FetchApplicationMetricsAction, MetricQueryConfig } from '../../../../../../../store/src/actions/metrics.actions';
+import { IMetricMatrixResult, IMetrics } from '../../../../../../../store/src/types/base-metric.types';
+import { IMetricApplication } from '../../../../../../../store/src/types/metric.types';
 import { EndpointsService } from '../../../../../core/endpoints.service';
 import { EntityServiceFactory } from '../../../../../core/entity-service-factory.service';
 import { UtilsService } from '../../../../../core/utils.service';
-import { ApplicationService } from '../../../../../features/applications/application.service';
 import { MetricQueryType } from '../../../../services/metrics-range-selector.types';
 import { ConfirmationDialogConfig } from '../../../confirmation-dialog.config';
 import { ConfirmationDialogService } from '../../../confirmation-dialog.service';
@@ -18,12 +23,6 @@ import { ListAppInstance } from './app-instance-types';
 import { CfAppInstancesDataSource } from './cf-app-instances-data-source';
 import { TableCellCfCellComponent } from './table-cell-cf-cell/table-cell-cf-cell.component';
 import { TableCellUsageComponent } from './table-cell-usage/table-cell-usage.component';
-import { IMetricMatrixResult, IMetrics } from '../../../../../../../store/src/types/base-metric.types';
-import { IMetricApplication } from '../../../../../../../store/src/types/metric.types';
-import { DeleteApplicationInstance } from '../../../../../../../store/src/actions/application.actions';
-import { AppState } from '../../../../../../../store/src/app-state';
-import { FetchApplicationMetricsAction, MetricQueryConfig } from '../../../../../../../store/src/actions/metrics.actions';
-import { metricSchemaKey, entityFactory } from '../../../../../../../store/src/helpers/entity-factory';
 
 export function createAppInstancesMetricAction(appGuid: string, cfGuid: string): FetchApplicationMetricsAction {
   return new FetchApplicationMetricsAction(
@@ -184,7 +183,7 @@ export class CfAppInstancesConfigService implements IListConfig<ListAppInstance>
   ];
 
   constructor(
-    private store: Store<AppState>,
+    private store: Store<CFAppState>,
     private appService: ApplicationService,
     private utilsService: UtilsService,
     private router: Router,
@@ -193,7 +192,7 @@ export class CfAppInstancesConfigService implements IListConfig<ListAppInstance>
     entityServiceFactory: EntityServiceFactory
   ) {
 
-    this.initialised$ = this.endpointsService.hasMetrics(appService.cfGuid).pipe(
+    this.initialised$ = this.endpointsService.hasCellMetrics(appService.cfGuid).pipe(
       map(hasMetrics => {
         if (hasMetrics) {
           this.columns.splice(1, 0, this.cfCellColumn);
@@ -225,8 +224,6 @@ export class CfAppInstancesConfigService implements IListConfig<ListAppInstance>
   private createMetricsResults(entityServiceFactory: EntityServiceFactory) {
     const metricsAction = createAppInstancesMetricAction(this.appService.appGuid, this.appService.cfGuid);
     return entityServiceFactory.create<IMetrics<IMetricMatrixResult<IMetricApplication>>>(
-      metricSchemaKey,
-      entityFactory(metricSchemaKey),
       metricsAction.guid,
       metricsAction,
       false

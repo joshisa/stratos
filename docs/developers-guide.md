@@ -127,7 +127,7 @@ More information on the E2E tests and pre-requisites for running them is availab
 
 ### Code Climate
 
-We use [Code Climate](https://codeclimate.com/github/SUSE/stratos) to check for general code quality issues. This executes against Pull
+We use [Code Climate](https://codeclimate.com/github/cloudfoundry-incubator/stratos) to check for general code quality issues. This executes against Pull
 Requests on creation/push.
 
 #### Running Code Climate locally
@@ -263,5 +263,8 @@ AUTO_REG_CF_URL=<api url of cf>
 Jetstream will then attempt to auto-connect to it with the credentials supplied when logging into Stratos.
 
 #### Running Jetstream in a container
-* Follow instructions in the deploy/docker-compose docs
-* To apply changes (build and update docker image) simply run `deploy/tools/restart_proxy.sh`
+
+We recommend running Stratos using the Docker All-In-One image.
+
+* Follow instructions in the deploy/all-in-one docs
+

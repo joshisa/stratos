@@ -14,13 +14,16 @@ import {
   withLatestFrom,
 } from 'rxjs/operators';
 
-import { AppState } from '../../../../store/src/app-state';
-import { entityFactory } from '../../../../store/src/helpers/entity-factory';
+import { AppState, GeneralEntityAppState, GeneralRequestDataState } from '../../../../store/src/app-state';
+import { EntitySchema } from '../../../../store/src/helpers/entity-schema';
 import { ActionState, ListActionState } from '../../../../store/src/reducers/api-request-reducer/types';
 import { getAPIRequestDataState, selectEntities } from '../../../../store/src/selectors/api.selectors';
 import { selectPaginationState } from '../../../../store/src/selectors/pagination.selectors';
-import { IRequestDataState } from '../../../../store/src/types/entity.types';
 import { PaginationEntityState } from '../../../../store/src/types/pagination.types';
+import { StratosBaseCatalogueEntity } from '../../core/entity-catalogue/entity-catalogue-entity';
+import { EntityCatalogueHelpers } from '../../core/entity-catalogue/entity-catalogue.helper';
+import { entityCatalogue } from '../../core/entity-catalogue/entity-catalogue.service';
+import { EntityCatalogueEntityConfig } from '../../core/entity-catalogue/entity-catalogue.types';
 import { LocalPaginationHelpers } from '../components/list/data-sources-controllers/local-list.helpers';
 
 export class MultiActionListEntity {
@@ -38,7 +41,8 @@ export class MultiActionListEntity {
   }
   constructor(public entity: any, public entityKey: string) { }
 }
-export class PaginationMonitor<T = any> {
+export class PaginationMonitor<T = any, Y extends AppState = GeneralEntityAppState> {
+
   /**
    * Emits the current page of entities.
    */
@@ -56,17 +60,37 @@ export class PaginationMonitor<T = any> {
    */
   public pagination$: Observable<PaginationEntityState>;
 
-
   public currentPageIds$: Observable<string[]>;
   public isMultiAction$: Observable<boolean>;
+  public schema: EntitySchema;
+
+  /**
+   * Returns a pagination monitor for a given catalogue entity and pagination key.
+   */
+  static getMonitorFromCatalogueEntity(
+    store: Store<GeneralEntityAppState>,
+    catalogueEntity: StratosBaseCatalogueEntity,
+    paginationKey: string,
+    {
+      isLocal = false,
+      schemaKey = ''
+    }: any
+  ) {
+    // This is a static on the pagination monitor rather than a member of StratosBaseCatalogueEntity due to
+    // a circular dependency on entityFactory from the getPageInfo function below.
+    const schema = catalogueEntity.getSchema(schemaKey);
+    return new PaginationMonitor(store, paginationKey, schema, isLocal);
+  }
 
   constructor(
-    private store: Store<AppState>,
+    private store: Store<Y>,
     public paginationKey: string,
-    public schema: normalizrSchema.Entity,
+    public entityConfig: EntityCatalogueEntityConfig,
     public isLocal = false
   ) {
-    this.init(store, paginationKey, schema);
+    const { endpointType, entityType, schemaKey } = entityConfig;
+    this.schema = entityCatalogue.getEntity(endpointType, entityType).getSchema(schemaKey);
+    this.init(store, paginationKey, this.schema);
   }
 
   /**
@@ -108,7 +132,7 @@ export class PaginationMonitor<T = any> {
 
   // ### Initialization methods.
   private init(
-    store: Store<AppState>,
+    store: Store<GeneralEntityAppState>,
     paginationKey: string,
     schema: normalizrSchema.Entity,
   ) {
@@ -132,7 +156,7 @@ export class PaginationMonitor<T = any> {
   }
 
   private createPaginationObservable(
-    store: Store<AppState>,
+    store: Store<GeneralEntityAppState>,
     entityKey: string,
     paginationKey: string,
   ) {
@@ -222,12 +246,13 @@ export class PaginationMonitor<T = any> {
     ).pipe(
       filter(([pagination, fetching]) => !fetching),
       map(([pagination]) => {
-        return Object.values(pagination.pageRequests).reduce((schemaKeys, pageRequest) => {
-          const { schemaKey } = pageRequest;
-          if (schemaKey && !schemaKeys.includes(schemaKey)) {
-            schemaKeys.push(schemaKey);
+        return Object.values(pagination.pageRequests).reduce((entityKeys, pageRequest) => {
+          const { entityConfig } = pageRequest;
+          const key = EntityCatalogueHelpers.buildEntityKey(entityConfig.entityType, entityConfig.endpointType);
+          if (key && !entityKeys.includes(key)) {
+            entityKeys.push(key);
           }
-          return schemaKeys;
+          return entityKeys;
         }, []).length > 1;
       })
     );
@@ -242,11 +267,12 @@ export class PaginationMonitor<T = any> {
     };
   }
 
-  private getLocalEntities(pagination: PaginationEntityState, allEntities: IRequestDataState, defaultSchema: normalizrSchema.Entity) {
+  private getLocalEntities(pagination: PaginationEntityState, allEntities: GeneralRequestDataState, defaultSchema: normalizrSchema.Entity) {
     const pages = Object.keys(pagination.ids);
     if (pages.length > 1) {
       if (pagination.forcedLocalPage) {
         const { page, pageSchema } = this.getPageInfo(pagination, pagination.forcedLocalPage, defaultSchema);
+
         return this.denormalizePage(page, pageSchema, allEntities).map(entity => new MultiActionListEntity(entity, pageSchema.key));
       }
       return pages.reduce((allPageEntities, pageNumber) => {
@@ -264,7 +290,7 @@ export class PaginationMonitor<T = any> {
     }
   }
 
-  private denormalizePage(page: string[], schema: normalizrSchema.Entity, allEntities: IRequestDataState) {
+  private denormalizePage(page: string[], schema: normalizrSchema.Entity, allEntities: GeneralRequestDataState) {
     return page.length
       ? denormalize(page, [schema], allEntities).filter(ent => !!ent)
       : [];
@@ -273,7 +299,10 @@ export class PaginationMonitor<T = any> {
   private getPageInfo(pagination: PaginationEntityState, pageId: number | string, defaultSchema: normalizrSchema.Entity) {
     const page = pagination.ids[pageId] || [];
     const pageState = pagination.pageRequests[pageId] || {} as ListActionState;
-    const pageSchema = pageState.schemaKey ? entityFactory(pageState.schemaKey) : defaultSchema;
+    const pageSchema = pageState.entityConfig ? entityCatalogue.getEntity(
+      pageState.entityConfig.endpointType,
+      pageState.entityConfig.entityType
+    ).getSchema(pageState.entityConfig.schemaKey) : defaultSchema;
     return {
       page,
       pageSchema

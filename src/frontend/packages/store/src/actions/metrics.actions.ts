@@ -1,8 +1,9 @@
-import { metricSchemaKey } from '../helpers/entity-factory';
-import { PaginatedAction } from '../types/pagination.types';
-import { IRequestAction } from '../types/request.types';
+import { CF_ENDPOINT_TYPE } from '../../../cloud-foundry/cf-types';
+import { metricEntityType } from '../../../cloud-foundry/src/cf-entity-factory';
 import { environment } from '../../../core/src/environments/environment';
 import { MetricQueryType } from '../../../core/src/shared/services/metrics-range-selector.types';
+import { PaginatedAction } from '../types/pagination.types';
+import { EntityRequestAction } from '../types/request.types';
 
 export const METRICS_START = '[Metrics] Fetch Start';
 export const METRICS_START_SUCCESS = '[Metrics] Fetch Succeeded';
@@ -38,8 +39,8 @@ export class MetricQueryConfig {
   ) { }
 }
 
-
-export class MetricsAction implements IRequestAction {
+// FIXME: Final solution for Metrics - STRAT-152
+export class MetricsAction implements EntityRequestAction {
   constructor(
     guid: string,
     public endpointGuid: string,
@@ -47,11 +48,13 @@ export class MetricsAction implements IRequestAction {
     public url: string,
     public windowValue: string = null,
     public queryType: MetricQueryType = MetricQueryType.QUERY,
-    isSeries = true) {
+    isSeries = true,
+    public endpointType = CF_ENDPOINT_TYPE) {
     this.guid = MetricsAction.buildMetricKey(guid, query, isSeries, queryType, windowValue);
   }
   public guid: string;
-  entityKey = metricSchemaKey;
+
+  entityType = metricEntityType;
   type = METRICS_START;
   directApi = false;
 

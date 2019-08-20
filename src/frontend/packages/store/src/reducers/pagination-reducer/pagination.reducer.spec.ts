@@ -1,10 +1,12 @@
 import { RequestOptions } from '@angular/http';
 
+import { CF_ENDPOINT_TYPE } from '../../../../cloud-foundry/cf-types';
+import { applicationEntityType, cfEntityFactory, CFEntitySchema } from '../../../../cloud-foundry/src/cf-entity-factory';
+import { getCFEntityKey } from '../../../../cloud-foundry/src/cf-entity-helpers';
 import { RequestTypes } from '../../actions/request.actions';
-import { applicationSchemaKey, entityFactory, EntitySchema } from '../../helpers/entity-factory';
 import { PaginatedAction } from '../../types/pagination.types';
 import { StartRequestAction, WrapperRequestActionFailed, WrapperRequestActionSuccess } from '../../types/request.types';
-import { createPaginationReducer, defaultPaginationState } from './pagination.reducer';
+import { createPaginationReducer } from './pagination.reducer';
 
 function getReducer() {
   return createPaginationReducer([
@@ -17,8 +19,9 @@ function getReducer() {
 class MockPagAction implements PaginatedAction {
   actions = ['ONE', 'TWO', 'THREE'];
   options = new RequestOptions();
-  entity = entityFactory(applicationSchemaKey);
-  entityKey = applicationSchemaKey;
+  entity = cfEntityFactory(applicationEntityType);
+  entityType = applicationEntityType;
+  endpointType = CF_ENDPOINT_TYPE;
   paginationKey = 'PaginationKey';
   type = RequestTypes.START;
 }
@@ -44,8 +47,8 @@ describe('PaginationReducer', () => {
 
   it('should return empty state', () => {
     const paginationReducer = getReducer();
-    expect(paginationReducer(null, { type: 'FAKE_NEWS' })).toEqual(defaultPaginationState);
-    expect(paginationReducer(null, { type: RequestTypes.START })).toEqual(defaultPaginationState);
+    expect(paginationReducer({}, { type: 'FAKE_NEWS' })).toEqual({});
+    expect(paginationReducer({}, { type: RequestTypes.START })).toEqual({});
   });
 
   it('should return fetching state', () => {
@@ -54,18 +57,16 @@ describe('PaginationReducer', () => {
       RequestTypes.SUCCESS,
       RequestTypes.FAILED
     ]);
-    const entityKey = applicationSchemaKey;
-    const paginationKey = 'PaginationKey';
     const apiAction = new MockPagAction();
-    apiAction.entityKey = entityKey;
-    apiAction.paginationKey = paginationKey;
+    apiAction.paginationKey = 'PaginationKey';
+
+    const entityKey = getCFEntityKey(apiAction.entityType);
 
     const startApiAction = new StartRequestAction(apiAction, 'fetch');
     const newState = paginationReducer(
       {
-        ...defaultPaginationState,
-        [applicationSchemaKey]: {
-          [paginationKey]: {
+        [entityKey]: {
+          [apiAction.paginationKey]: {
             pageCount: 0,
             currentPage: 1,
             ids: {},
@@ -77,18 +78,19 @@ describe('PaginationReducer', () => {
         }
       }, startApiAction);
     const expectedNewState = {
-      ...defaultPaginationState,
-      [applicationSchemaKey]: {
-        [paginationKey]: {
+      [entityKey]: {
+        [apiAction.paginationKey]: {
           pageCount: 0,
           currentPage: 1,
           ids: {},
           pageRequests: {
             1: {
-              busy: true, error: false, message: '',
-              schemaKey: undefined,
-              entityKey: applicationSchemaKey,
-              maxed: false
+              busy: true,
+              error: false,
+              message: '',
+              maxed: false,
+              baseEntityConfig: { entityType: applicationEntityType, endpointType: CF_ENDPOINT_TYPE, schemaKey: undefined },
+              entityConfig: null
             }
           },
           clientPagination: {
@@ -101,7 +103,7 @@ describe('PaginationReducer', () => {
       newState,
       expectedNewState,
       entityKey,
-      paginationKey
+      paginationKey: apiAction.paginationKey
     });
   });
 
@@ -109,7 +111,8 @@ describe('PaginationReducer', () => {
 
     const paginationReducer = getReducer();
 
-    const entityKey = 'EntityKey';
+    const entityType = 'EntityKey';
+    const entityKey = getCFEntityKey(entityType);
     const paginationKey = 'PaginationKey';
 
     const successApiAction = new WrapperRequestActionSuccess(
@@ -121,11 +124,12 @@ describe('PaginationReducer', () => {
         ]
       },
       {
-        entityKey,
+        endpointType: CF_ENDPOINT_TYPE,
+        entityType,
         paginationKey,
         type: 'type',
-        entity: {} as EntitySchema,
-        options: {},
+        entity: {} as CFEntitySchema,
+        options: {} as RequestOptions,
         actions: []
       },
       'fetch',
@@ -133,7 +137,6 @@ describe('PaginationReducer', () => {
       1,
     );
     const newState = paginationReducer({
-      ...defaultPaginationState,
       [entityKey]: {
         [paginationKey]: {
           pageCount: 0,
@@ -177,23 +180,24 @@ describe('PaginationReducer', () => {
 
     const paginationReducer = getReducer();
 
-    const entityKey = 'EntityKey';
+    const entityType = 'EntityKey';
+    const entityKey = getCFEntityKey(entityType);
     const paginationKey = 'PaginationKey';
     const message = 'Failed';
 
     const failedApiAction = new WrapperRequestActionFailed(
       message,
       {
-        entityKey,
+        endpointType: CF_ENDPOINT_TYPE,
+        entityType,
         paginationKey,
         type: 'type',
-        entity: {} as EntitySchema,
+        entity: {} as CFEntitySchema,
         actions: []
       },
       'fetch'
     );
     const newState = paginationReducer({
-      ...defaultPaginationState,
       [entityKey]: {
         [paginationKey]: {
           pageCount: 0,

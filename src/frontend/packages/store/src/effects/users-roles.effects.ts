@@ -4,17 +4,21 @@ import { Store } from '@ngrx/store';
 import { combineLatest as observableCombineLatest, Observable, of as observableOf } from 'rxjs';
 import { filter, first, map, mergeMap, pairwise, withLatestFrom } from 'rxjs/operators';
 
-import { EntityMonitor } from '../../../core/src/shared/monitors/entity-monitor';
-import { UsersRolesActions, UsersRolesClearUpdateState, UsersRolesExecuteChanges } from '../actions/users-roles.actions';
-import { AddUserRole, ChangeUserRole, RemoveUserRole } from '../actions/users.actions';
-import { AppState } from '../app-state';
-import { entityFactory, organizationSchemaKey, spaceSchemaKey } from '../helpers/entity-factory';
+import {
+  UsersRolesActions,
+  UsersRolesClearUpdateState,
+  UsersRolesExecuteChanges,
+} from '../../../cloud-foundry/src/actions/users-roles.actions';
+import { AddUserRole, ChangeUserRole, RemoveUserRole } from '../../../cloud-foundry/src/actions/users.actions';
+import { CFAppState } from '../../../cloud-foundry/src/cf-app-state';
+import { organizationEntityType, spaceEntityType } from '../../../cloud-foundry/src/cf-entity-factory';
+import { entityCatalogue } from '../../../core/src/core/entity-catalogue/entity-catalogue.service';
 import { selectSessionData } from '../reducers/auth.reducer';
 import { selectUsersRoles } from '../selectors/users-roles.selector';
 import { SessionDataEndpoint } from '../types/auth.types';
 import { ICFAction, UpdateCfAction } from '../types/request.types';
-import { OrgUserRoleNames } from '../types/user.types';
-import { CfRoleChange } from '../types/users-roles.types';
+import { OrgUserRoleNames } from '../../../cloud-foundry/src/store/types/user.types';
+import { CfRoleChange } from '../../../cloud-foundry/src/store/types/users-roles.types';
 
 
 @Injectable()
@@ -22,7 +26,7 @@ export class UsersRolesEffects {
 
   constructor(
     private actions$: Actions,
-    private store: Store<AppState>,
+    private store: Store<CFAppState>,
   ) { }
 
   @Effect() clearEntityUpdates$ = this.actions$.pipe(
@@ -32,12 +36,11 @@ export class UsersRolesEffects {
       action.changedRoles.forEach(change => {
         const apiAction = {
           guid: change.spaceGuid ? change.spaceGuid : change.orgGuid,
-          entityKey: change.spaceGuid ? spaceSchemaKey : organizationSchemaKey,
+          entityType: change.spaceGuid ? spaceEntityType : organizationEntityType,
           updatingKey: ChangeUserRole.generateUpdatingKey(change.role, change.userGuid),
           options: null,
           actions: []
         } as ICFAction;
-
         actions.push(new UpdateCfAction(apiAction, false, ''));
       });
       return actions;
@@ -120,16 +123,15 @@ export class UsersRolesEffects {
   }
 
   private createActionObs(action: ChangeUserRole): Observable<boolean> {
-    return new EntityMonitor(
-      this.store,
-      action.guid,
-      action.entityKey,
-      entityFactory(action.entityKey)
-    ).getUpdatingSection(action.updatingKey).pipe(
-      map(update => update.busy),
-      pairwise(),
-      filter(([oldBusy, newBusy]) => !!oldBusy && !newBusy),
-      map(([oldBusy, newBusy]) => newBusy)
-    );
+    return entityCatalogue.getEntity(action)
+      .getEntityMonitor(
+        this.store,
+        action.guid
+      ).getUpdatingSection(action.updatingKey).pipe(
+        map(update => update.busy),
+        pairwise(),
+        filter(([oldBusy, newBusy]) => !!oldBusy && !newBusy),
+        map(([oldBusy, newBusy]) => newBusy)
+      );
   }
 }

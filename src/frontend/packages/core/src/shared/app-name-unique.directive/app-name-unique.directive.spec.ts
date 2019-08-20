@@ -7,14 +7,14 @@ import { MatDialogModule } from '@angular/material';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Store } from '@ngrx/store';
 
-import { AppNameUniqueDirective } from './app-name-unique.directive';
+import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
 import { AppStoreModule } from '../../../../store/src/store.module';
-import { CoreModule } from '../../core/core.module';
-import { SharedModule } from '../shared.module';
 import { createBasicStoreModule } from '../../../test-framework/store-test-helper';
+import { CoreModule } from '../../core/core.module';
 import { ExtensionService } from '../../core/extension/extension-service';
-import { GITHUB_API_URL, getGitHubAPIURL } from '../../core/github.helpers';
-import { AppState } from '../../../../store/src/app-state';
+import { getGitHubAPIURL, GITHUB_API_URL } from '../../core/github.helpers';
+import { SharedModule } from '../shared.module';
+import { AppNameUniqueDirective } from './app-name-unique.directive';
 
 describe('AppNameUniqueDirective', () => {
 
@@ -41,7 +41,7 @@ describe('AppNameUniqueDirective', () => {
       ]
     });
   });
-  it('should create an instance', inject([Store, HttpClient], (store: Store<AppState>, http: HttpClient) => {
+  it('should create an instance', inject([Store, HttpClient], (store: Store<CFAppState>, http: HttpClient) => {
     const directive = new AppNameUniqueDirective(store, http);
     expect(directive).toBeTruthy();
   }));

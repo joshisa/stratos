@@ -1,11 +1,12 @@
-import { IRequestAction, IUpdateRequestAction } from '../../types/request.types';
+import { BaseRequestState } from '../../app-state';
+import { EntityRequestAction, IUpdateRequestAction } from '../../types/request.types';
 import { getEntityRequestState, mergeUpdatingState, setEntityRequestState } from './request-helpers';
 
-export function updateRequest(state, action: IUpdateRequestAction) {
+export function updateRequest(state: BaseRequestState, action: IUpdateRequestAction) {
   if (!action.apiAction.guid) {
     return state;
   }
-  const apiAction = action.apiAction as IRequestAction;
+  const apiAction = action.apiAction as EntityRequestAction;
   const requestState = getEntityRequestState(state, apiAction);
 
   requestState.updating = mergeUpdatingState(

@@ -1,5 +1,5 @@
 <div class="dashboard__outer">
-  <mat-drawer-container class="dashboard">
+  <mat-drawer-container autosize class="dashboard">
     <mat-drawer #sidenav *ngIf="mainNavState$ | async as navState" class="dashboard__side-nav" [mode]="navState.mode"
       [opened]="navState.opened">
       <app-side-nav (changedMode)="redrawSideNav()" [iconMode]="navState.iconMode" [tabs]="sideNavTabs">
@@ -7,9 +7,7 @@
     </mat-drawer>
     <mat-drawer-content>
       <div class="page-content">
-        <div class="page-header" *ngIf="tabNavService.pageHeader$ | async as portal">
-          <ng-container [cdkPortalOutlet]="portal"></ng-container>
-        </div>
+        <app-show-page-header class="page-header"></app-show-page-header>
         <app-routing-indicator class="routing-indicator"></app-routing-indicator>
         <div class="dashboard__inner">
           <div class="dashboard__page-tabs" *ngIf="tabNavService.tabNavs$ | async as tabs">

@@ -1,21 +1,17 @@
-import { RequestMethod } from '@angular/http';
+import { HttpRequest } from '@angular/common/http';
+import { RequestOptions } from '@angular/http';
 import { Action } from '@ngrx/store';
 
+import { EntityCatalogueEntityConfig } from '../../../core/src/core/entity-catalogue/entity-catalogue.types';
 import { ListActionState } from '../reducers/api-request-reducer/types';
-import { IRequestAction } from './request.types';
+import { EntityRequestAction } from './request.types';
 
-export class QParam {
-  constructor(
-    public key: string,
-    public value: string | string[],
-    public joiner: '>=' | '<=' | '<' | '>' | ' IN ' | ':' | '=' = ':'
-  ) { }
-}
+
 
 export interface PaginationParam {
-  q?: QParam[];
-  [entityKey: string]: any;
+  [entityKey: string]: string | string[] | number;
 }
+// metricConfig?: MetricQueryConfig
 
 export interface PaginationClientFilter {
   string: string;
@@ -61,11 +57,12 @@ export function isPaginatedAction(obj: any): PaginatedAction {
 }
 
 export interface BasePaginatedAction extends Action {
-  entityKey: string;
+  entityType: string;
+  endpointType: string;
   paginationKey: string;
 }
 
-export interface PaginatedAction extends BasePaginatedAction, IRequestAction {
+export interface PaginatedAction extends BasePaginatedAction, EntityRequestAction {
   actions: string[];
   /*
    * Fetch all pages and add them to a single page
@@ -77,16 +74,11 @@ export interface PaginatedAction extends BasePaginatedAction, IRequestAction {
   flattenPaginationMax?: number;
   initialParams?: PaginationParam;
   pageNumber?: number;
-  options?: {
-    params?: {
-      paramsMap: any;
-    },
-    method?: RequestMethod | string | null
-  };
+  options?: RequestOptions | HttpRequest<any>;
   skipValidation?: boolean;
   // Internal, used for local multi action lists
   __forcedPageNumber__?: number;
-  __forcedPageSchemaKey__?: string;
+  __forcedPageEntityConfig__?: EntityCatalogueEntityConfig;
 }
 
 export interface PaginationEntityTypeState {

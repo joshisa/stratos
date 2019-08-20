@@ -2,15 +2,15 @@ import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import { RouterNav } from '../../../../../../store/src/actions/router.actions';
-import { AppState } from '../../../../../../store/src/app-state';
+import { GeneralEntityAppState } from '../../../../../../store/src/app-state';
 import { BASE_REDIRECT_QUERY } from '../../../../shared/components/stepper/stepper.types';
 import { TileConfigManager } from '../../../../shared/components/tile/tile-selector.helpers';
 import { ITileConfig, ITileData } from '../../../../shared/components/tile/tile-selector.types';
-import { getEndpointTypes } from '../../endpoint-helpers';
+import { entityCatalogue } from '../../../../core/entity-catalogue/entity-catalogue.service';
 
 interface ICreateEndpointTilesData extends ITileData {
   type: string;
-  subType: string;
+  parentType: string;
 }
 
 @Component({
@@ -32,26 +32,27 @@ export class CreateEndpointBaseStepComponent {
     this.pSelectedTile = tile;
     if (tile) {
       this.store.dispatch(new RouterNav({
-        path: `endpoints/new/${tile.data.type}/${tile.data.subType || ''}`,
+        path: `endpoints/new/${tile.data.parentType || tile.data.type}/${tile.data.parentType ? tile.data.type : ''}`,
         query: {
           [BASE_REDIRECT_QUERY]: 'endpoints/new'
         }
       }));
     }
   }
-  constructor(public store: Store<AppState>) {
-    this.tileSelectorConfig = getEndpointTypes().map(et => {
+  constructor(public store: Store<GeneralEntityAppState>, ) {
+    this.tileSelectorConfig = entityCatalogue.getAllEndpointTypes().map(catalogueEndpoint => {
+      const endpoint = catalogueEndpoint.definition;
       return this.tileManager.getNextTileConfig<ICreateEndpointTilesData>(
-        et.label,
-        et.imagePath ? {
-          location: et.imagePath
+        endpoint.label,
+        endpoint.logoUrl ? {
+          location: endpoint.logoUrl
         } : {
-            matIcon: et.icon,
-            matIconFont: et.iconFont
+            matIcon: endpoint.icon,
+            matIconFont: endpoint.iconFont
           },
         {
-          type: et.type,
-          subType: et.subType
+          type: endpoint.type,
+          parentType: endpoint.parentType
         }
       );
     });

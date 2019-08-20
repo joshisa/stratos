@@ -4,7 +4,8 @@ import { Subscription } from 'rxjs';
 import { first, map } from 'rxjs/operators';
 
 import { RouterNav } from '../../../../../store/src/actions/router.actions';
-import { AppState } from '../../../../../store/src/app-state';
+import { EndpointOnlyAppState } from '../../../../../store/src/app-state';
+import { selectDashboardState } from '../../../../../store/src/selectors/dashboard.selectors';
 import { CurrentUserPermissions } from '../../../core/current-user-permissions.config';
 import { EndpointsService } from '../../../core/endpoints.service';
 import {
@@ -30,7 +31,7 @@ import { ListConfig } from '../../../shared/components/list/list.component.types
 export class EndpointsPageComponent implements OnDestroy, OnInit {
   public canRegisterEndpoint = CurrentUserPermissions.ENDPOINT_REGISTER;
   private healthCheckTimeout: number;
-  constructor(public endpointsService: EndpointsService, public store: Store<AppState>, private ngZone: NgZone) {
+  constructor(public endpointsService: EndpointsService, public store: Store<EndpointOnlyAppState>, private ngZone: NgZone) {
     // Redirect to /applications if not enabled.
     endpointsService.disablePersistenceFeatures$.pipe(
       map(off => {
@@ -53,7 +54,6 @@ export class EndpointsPageComponent implements OnDestroy, OnInit {
   public extensionActions: StratosActionMetadata[] = getActionsFromExtensions(StratosActionType.Endpoints);
 
   private startEndpointHealthCheckPulse() {
-    this.endpointsService.checkAllEndpoints();
     this.ngZone.runOutsideAngular(() => {
       this.healthCheckTimeout = window.setInterval(() => {
         this.ngZone.run(() => {
@@ -68,7 +68,14 @@ export class EndpointsPageComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    this.startEndpointHealthCheckPulse();
+    this.endpointsService.checkAllEndpoints();
+    this.store.select(selectDashboardState).pipe(
+      first()
+    ).subscribe(dashboard => {
+      if (dashboard.pollingEnabled) {
+        this.startEndpointHealthCheckPulse();
+      }
+    });
     // Doesn't look like this is used (see connect-endpoint-dialog.component for actual handler)
     // const params = queryParamMap();
     // if (params.cnsi_guid) {

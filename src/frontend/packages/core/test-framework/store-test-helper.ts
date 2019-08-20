@@ -1,31 +1,34 @@
 import { ModuleWithProviders } from '@angular/core';
 import { StoreModule } from '@ngrx/store';
 
-import { AppState } from '../../store/src/app-state';
-import { addEntityToCache, EntitySchema, userProvidedServiceInstanceSchemaKey } from '../../store/src/helpers/entity-factory';
+import { CFAppState } from '../../cloud-foundry/src/cf-app-state';
+import { createUserRoleInOrg } from '../../cloud-foundry/src/store/types/user.types';
+import { InternalAppState } from '../../store/src/app-state';
 import { appReducers } from '../../store/src/reducers.module';
-import { registerAPIRequestEntity } from '../../store/src/reducers/api-request-reducers.generator';
+import { getDefaultRequestState } from '../../store/src/reducers/api-request-reducer/types';
+import {
+  getDefaultPaginationEntityState,
+} from '../../store/src/reducers/pagination-reducer/pagination-reducer-reset-pagination';
 import { getDefaultEndpointRoles, getDefaultRolesRequestState } from '../../store/src/types/current-user-roles.types';
-import { defaultCfEntitiesState } from '../../store/src/types/entity.types';
-import { createUserRoleInOrg } from '../../store/src/types/user.types';
-import { getEntitiesFromExtensions } from '../src/core/extension/extension-service';
+import { entityCatalogue } from '../src/core/entity-catalogue/entity-catalogue.service';
+import { EntityCatalogueEntityConfig } from '../src/core/entity-catalogue/entity-catalogue.types';
 
 export const testSCFGuid = '01ccda9d-8f40-4dd0-bc39-08eea68e364f';
 
 /* tslint:disable */
-export function getInitialTestStoreState(): AppState {
-  const entities = getEntitiesFromExtensions();
+export function getInitialTestStoreState(): InternalAppState {
+  // const entities = getEntitiesFromExtensions();
   const state = getDefaultInitialTestStoreState();
-  entities.forEach(entity => {
-    state.pagination[entity.entityKey] = {};
-    state.request[entity.entityKey] = {};
-    state.requestData[entity.entityKey] = {};
-  });
+  // entities.forEach(entity => {
+  //   state.pagination[entity.entityKey] = {};
+  //   state.request[entity.entityKey] = {};
+  //   state.requestData[entity.entityKey] = {};
+  // });
 
   return state;
 }
 
-function getDefaultInitialTestStoreState(): AppState {
+function getDefaultInitialTestStoreState(): CFAppState {
 
   return {
     recentlyVisited: {
@@ -142,12 +145,16 @@ function getDefaultInitialTestStoreState(): AppState {
       message: ''
     },
     pagination: {
-      featureFlag: {},
-      serviceBroker: {},
-      securityGroup: {},
-      servicePlanVisibility: {},
-      buildpack: {},
-      application: {
+      cfSummary: {},
+      cfPrivate_domains: {},
+      cfUser: {},
+      cfFeatureFlag: {},
+      cfServiceBroker: {},
+      cfSecurityGroup: {},
+      cfServicePlanVisibility: {},
+      cfBuildpack: {},
+      system: {},
+      cfApplication: {
         applicationWall: {
           pageCount: 1,
           currentPage: 1,
@@ -309,10 +316,10 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         },
       },
-      stack: {},
-      space: {},
-      userFavorites: {},
-      organization: {
+      cfStack: {},
+      cfSpace: {},
+      stratosUserFavorites: {}, // TODO: RC should be stratosUserFavourites
+      cfOrganization: {
         endpointOrgSpaceService: {
           pageCount: 1,
           currentPage: 1,
@@ -384,8 +391,8 @@ function getDefaultInitialTestStoreState(): AppState {
           },
         }
       },
-      route: {},
-      event: {
+      cfRoute: {},
+      cfEvent: {
         'app-events:01ccda9d-8f40-4dd0-bc39-08eea68e364f4e4858c4-24ab-4caf-87a8-7703d1da58a0': {
           pageCount: 1,
           currentPage: 1,
@@ -547,7 +554,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      endpoint: {
+      stratosEndpoint: {
         "endpoint-list": {
           pageCount: 1,
           currentPage: 1,
@@ -569,32 +576,77 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      environmentVars: {},
-      stats: {},
-      summary: {},
-      user: {
-        endpointUsersService: {
+      cfEnvironmentVars: {},
+      cfStats: {},
+      // stratosUser: {
+      //   endpointUsersService: {
+      //     pageCount: 1,
+      //     currentPage: 1,
+      //     totalResults: 3,
+      //     ids: {
+      //       '1': [
+      //         'bcf78136-6225-4515-bf8e-a32243deea0c',
+      //         'hcf_auto_config',
+      //         'b950b10c-c360-4bec-83c9-333c76cbbbe1'
+      //       ]
+      //     },
+      //     pageRequests: {
+      //       '1': {
+      //         busy: false,
+      //         error: false,
+      //         message: ''
+      //       }
+      //     },
+      //     params: {
+      //       'results-per-page': 100,
+      //       page: 1,
+      //       'inline-relations-depth': 1,
+      //       q: []
+      //     },
+      //     clientPagination: {
+      //       pageSize: 9,
+      //       currentPage: 1,
+      //       filter: {
+      //         string: '',
+      //         items: {}
+      //       },
+      //       totalResults: 3
+      //     }
+      //   }
+      // },
+      cfServiceInstance: {},
+      cfServiceBinding: {},
+      cfService: {},
+      cfGitCommits: {},
+      cfGitBranches: {},
+      cfGitRepo: {},
+      cfDomain: {},
+      metrics: {},
+      cfServicePlan: {},
+      cfCloudFoundryInfo: {},
+      cfUserProvidedServiceInstance: {},
+      cfQuota_definition: {
+        'endpoint-all': {
           pageCount: 1,
           currentPage: 1,
-          totalResults: 3,
+          totalResults: 1,
           ids: {
             '1': [
-              'bcf78136-6225-4515-bf8e-a32243deea0c',
-              'hcf_auto_config',
-              'b950b10c-c360-4bec-83c9-333c76cbbbe1'
+              '037d050d-979e-4dbf-940d-51a8a90729c8',
             ]
           },
           pageRequests: {
             '1': {
               busy: false,
               error: false,
-              message: ''
+              message: '',
+              maxed: false
             }
           },
           params: {
             'results-per-page': 100,
             page: 1,
-            'inline-relations-depth': 1,
+            'order-direction': 'asc',
             q: []
           },
           clientPagination: {
@@ -604,27 +656,57 @@ function getDefaultInitialTestStoreState(): AppState {
               string: '',
               items: {}
             },
-            totalResults: 3
+            totalResults: 1
           }
         }
       },
-      serviceInstance: {},
-      serviceBinding: {},
-      service: {},
-      gitCommits: {},
-      domain: {},
-      metrics: {},
-      servicePlan: {},
-      [userProvidedServiceInstanceSchemaKey]: {}
+      cfSpace_quota_definition: {
+        'endpoint-all': {
+          pageCount: 1,
+          currentPage: 1,
+          totalResults: 1,
+          ids: {
+            '1': [
+              'a42468c7-b66c-4570-9e25-7cdcf1f3591b'
+            ]
+          },
+          pageRequests: {
+            '1': {
+              busy: false,
+              error: false,
+              message: '',
+              maxed: false
+            }
+          },
+          params: {
+            'results-per-page': 100,
+            page: 1,
+            'order-direction': 'asc',
+            q: []
+          },
+          clientPagination: {
+            pageSize: 9,
+            currentPage: 1,
+            filter: {
+              string: '',
+              items: {}
+            },
+            totalResults: 1
+          }
+        }
+      },
+      stratosUserProfile: {}
     },
     dashboard: {
       sidenavOpen: true,
       headerEventMinimized: false,
+      timeoutSession: true,
       sideHelpOpen: false,
       sideHelpDocument: '',
       isMobile: false,
       isMobileNavOpen: false,
       sideNavPinned: false,
+      pollingEnabled: true
     },
     createApplication: {
       cloudFoundryDetails: null,
@@ -658,18 +740,23 @@ function getDefaultInitialTestStoreState(): AppState {
       }
     },
     request: {
-      servicePlanVisibility: {},
-      serviceBroker: {},
-      serviceInstance: {},
-      servicePlan: {},
-      service: {},
-      serviceBinding: {},
-      securityGroup: {},
-      featureFlag: {},
-      securityRule: {},
-      buildpack: {},
-      userFavorites: {},
-      user: {
+      cfSummary: {},
+      cfGitRepo: {},
+      stratosUserProfile: {},
+      cfServicePlanVisibility: {},
+      cfServiceBroker: {},
+      cfServiceInstance: {},
+      cfServicePlan: {},
+      cfEnvironmentVars: {},
+      cfStats: {},
+      cfService: {},
+      cfServiceBinding: {},
+      cfSecurityGroup: {},
+      cfFeatureFlag: {},
+      cfBuildpack: {},
+      metrics: {},
+      stratosUserFavorites: {},
+      cfUser: {
         'bcf78136-6225-4515-bf8e-a32243deea0c': {
           fetching: false,
           updating: {
@@ -731,11 +818,11 @@ function getDefaultInitialTestStoreState(): AppState {
           message: ''
         }
       },
-      domain: {},
-      gitBranches: {},
-      cloudFoundryInfo: {},
-      gitCommits: {},
-      endpoint: {
+      cfDomain: {},
+      cfGitBranches: {},
+      cfCloudFoundryInfo: {},
+      cfGitCommits: {},
+      stratosEndpoint: {
         '57ab08d8-86cc-473a-8818-25d5e8d0ea23': {
           fetching: false,
           updating: {
@@ -757,7 +844,7 @@ function getDefaultInitialTestStoreState(): AppState {
           message: ''
         }
       },
-      application: {
+      cfApplication: {
         '4e4858c4-24ab-4caf-87a8-7703d1da58a0': {
           fetching: false,
           updating: {
@@ -3504,7 +3591,7 @@ function getDefaultInitialTestStoreState(): AppState {
           message: ''
         }
       },
-      stack: {
+      cfStack: {
         '57ab08d8-86cc-473a-8818-25d5e8d0ea23': {
           fetching: false,
           updating: {
@@ -3686,7 +3773,7 @@ function getDefaultInitialTestStoreState(): AppState {
           message: ''
         }
       },
-      space: {
+      cfSpace: {
         'd87ba175-51ec-4cc9-916c-bee26d00e498': {
           fetching: false,
           updating: {
@@ -3908,18 +3995,24 @@ function getDefaultInitialTestStoreState(): AppState {
           message: ''
         }
       },
-      organization: {},
-      route: {},
-      event: {},
+      cfOrganization: {},
+      cfRoute: {},
+      cfEvent: {},
       system: {},
-      private_domains: {},
-      space_quota_definition: {},
-      [userProvidedServiceInstanceSchemaKey]: {}
+      cfPrivate_domains: {},
+      cfQuota_definition: {},
+      cfSpace_quota_definition: {},
+      cfUserProvidedServiceInstance: {}
     },
     requestData: {
-      userFavorites: {},
-      servicePlanVisibility: {},
-      serviceBroker: {
+      cfSummary: {},
+      cfEnvironmentVars: {},
+      cfStats: {},
+      cfGitRepo: {},
+      cfPrivate_domains: {},
+      stratosUserFavorites: {},
+      cfServicePlanVisibility: {},
+      cfServiceBroker: {
         'a55f1a04-e3a3-4a89-92ee-94e3f96103f3': {
           entity: {
             name: 'app-autoscaler',
@@ -3937,7 +4030,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         },
       },
-      serviceInstance: {
+      cfServiceInstance: {
         '250d8795-d49e-4669-acd5-b5cf94f97c7b': {
           entity: {
             name: 'Ntahtntest',
@@ -3977,7 +4070,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      servicePlan: {
+      cfServicePlan: {
         '00da4974-5037-485a-96f0-cbbbf98dc8e9': {
           entity: {
             name: 'shared',
@@ -4002,7 +4095,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      service: {
+      cfService: {
         '977b0c26-9f39-46be-93f8-c33c0b37dcb0': {
           entity: {
             label: 'public-service',
@@ -4037,12 +4130,11 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         },
       },
-      serviceBinding: {},
-      securityGroup: {},
-      featureFlag: {},
-      securityRule: {},
-      buildpack: {},
-      user: {
+      cfServiceBinding: {},
+      cfSecurityGroup: {},
+      cfFeatureFlag: {},
+      cfBuildpack: {},
+      cfUser: {
         'bcf78136-6225-4515-bf8e-a32243deea0c': {
           entity: {
             admin: false,
@@ -4337,11 +4429,11 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      domain: {},
-      cloudFoundryInfo: {},
-      gitBranches: {},
-      gitCommits: {},
-      application: {
+      cfDomain: {},
+      cfCloudFoundryInfo: {},
+      cfGitBranches: {},
+      cfGitCommits: {},
+      cfApplication: {
         '4e4858c4-24ab-4caf-87a8-7703d1da58a0': {
           entity: {
             name: 'go-env',
@@ -16425,7 +16517,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      stack: {
+      cfStack: {
         '57ab08d8-86cc-473a-8818-25d5e8d0ea23': {
           metadata: {
             guid: '57ab08d8-86cc-473a-8818-25d5e8d0ea23',
@@ -16535,7 +16627,7 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      space: {
+      cfSpace: {
         'd87ba175-51ec-4cc9-916c-bee26d00e498': {
           metadata: {
             guid: 'd87ba175-51ec-4cc9-916c-bee26d00e498',
@@ -21746,10 +21838,10 @@ function getDefaultInitialTestStoreState(): AppState {
           }
         }
       },
-      organization: {},
-      route: {},
-      event: {},
-      endpoint: {
+      cfOrganization: {},
+      cfRoute: {},
+      cfEvent: {},
+      stratosEndpoint: {
         [testSCFGuid]: {
           guid: testSCFGuid,
           name: 'SCF',
@@ -21783,7 +21875,7 @@ function getDefaultInitialTestStoreState(): AppState {
       },
       metrics: {},
       system: {},
-      userProfile: {
+      stratosUserProfile: {
         id: 'test-user',
         name: {
           familyName: 'User',
@@ -21791,6 +21883,7 @@ function getDefaultInitialTestStoreState(): AppState {
         },
         userName: 'tesy-user-name',
         meta: {
+          version: 1,
           created: '',
           lastModified: '',
         },
@@ -21802,9 +21895,65 @@ function getDefaultInitialTestStoreState(): AppState {
             value: 'test@test.com',
           }
         ],
-        passwordLastModified: ''
+        passwordLastModified: '',
+        schemas: '',
+        zoneId: '',
+        origin: ''
       },
-      [userProvidedServiceInstanceSchemaKey]: {}
+      cfUserProvidedServiceInstance: {},
+      cfQuota_definition: {
+        '037d050d-979e-4dbf-940d-51a8a90729c8': {
+          entity: {
+            name: 'default',
+            non_basic_services_allowed: true,
+            total_services: -1,
+            total_routes: 100,
+            total_private_domains: -1,
+            memory_limit: 102400,
+            trial_db_allowed: false,
+            instance_memory_limit: -1,
+            app_instance_limit: -1,
+            app_task_limit: -1,
+            total_service_keys: -1,
+            total_reserved_route_ports: -1,
+            guid: '037d050d-979e-4dbf-940d-51a8a90729c8',
+            cfGuid: 'IcXF69N2sUyBYliHug7f-_17WCA'
+          },
+          metadata: {
+            guid: '037d050d-979e-4dbf-940d-51a8a90729c8',
+            url: '/v2/quota_definitions/037d050d-979e-4dbf-940d-51a8a90729c8',
+            created_at: '2019-05-09T11:21:23Z',
+            updated_at: '2019-05-09T11:28:48Z'
+          }
+        },
+      },
+      cfSpace_quota_definition: {
+        'a42468c7-b66c-4570-9e25-7cdcf1f3591b': {
+          entity: {
+            name: 'acceptance.e2e.quota.20190515T093829298Z',
+            organization_guid: 'b044afa4-eceb-4eb9-9bdd-476005bcbbde',
+            non_basic_services_allowed: true,
+            total_services: -1,
+            total_routes: 10,
+            memory_limit: 5120,
+            instance_memory_limit: -1,
+            app_instance_limit: -1,
+            app_task_limit: 5,
+            total_service_keys: -1,
+            total_reserved_route_ports: 5,
+            organization_url: '/v2/organizations/b044afa4-eceb-4eb9-9bdd-476005bcbbde',
+            spaces_url: '/v2/space_quota_definitions/a42468c7-b66c-4570-9e25-7cdcf1f3591b/spaces',
+            guid: 'a42468c7-b66c-4570-9e25-7cdcf1f3591b',
+            cfGuid: 'IcXF69N2sUyBYliHug7f-_17WCA'
+          },
+          metadata: {
+            guid: 'a42468c7-b66c-4570-9e25-7cdcf1f3591b',
+            url: '/v2/space_quota_definitions/a42468c7-b66c-4570-9e25-7cdcf1f3591b',
+            created_at: '2019-05-15T09:38:29Z',
+            updated_at: '2019-05-15T09:38:29Z'
+          }
+        }
+      },
     },
     actionHistory: [],
     lists: {},
@@ -21863,7 +22012,7 @@ function getDefaultInitialTestStoreState(): AppState {
 }
 
 /* tslint:enable */
-export function createBasicStoreModule(initialState: Partial<AppState> = getInitialTestStoreState()): ModuleWithProviders {
+export function createBasicStoreModule(initialState: InternalAppState = getInitialTestStoreState()): ModuleWithProviders {
   return StoreModule.forRoot(
     appReducers,
     {
@@ -21872,11 +22021,85 @@ export function createBasicStoreModule(initialState: Partial<AppState> = getInit
   );
 }
 
-export function registerEntitiesForTesting(entities) {
-  entities.forEach(entity => {
-    const entitySchema = new EntitySchema(entity.entityKey, entity.definition, entity.options, entity.relationKey);
-    addEntityToCache(entitySchema);
-    defaultCfEntitiesState[entity.entityKey] = {};
-    registerAPIRequestEntity(entity.entityKey);
-  });
+export function createEmptyStoreModule(): ModuleWithProviders {
+  return StoreModule.forRoot(
+    appReducers
+  );
 }
+
+function getStoreSectionForIds(entities: Array<TestStoreEntity | string>, dataOverride?: any) {
+  return entities.reduce((sections, entity) => {
+    if (typeof entity === 'string') {
+      return {
+        [entity]: dataOverride || {}
+      };
+    }
+    sections[entity.guid] = dataOverride || entity.data || {};
+    return sections;
+  }, {});
+}
+
+export interface TestStoreEntity {
+  guid: string;
+  data?: any;
+}
+
+export function createEntityStoreState(entityMap: Map<EntityCatalogueEntityConfig, Array<TestStoreEntity | string>>) {
+  return Array.from(entityMap.keys()).reduce((state, entityConfig) => {
+    // const initialState = entityMap.entries()..reduce((state, entityConfig) => {
+    const entities = entityMap.get(entityConfig);
+    const entityKey = entityCatalogue.getEntityKey(entityConfig);
+    return {
+      request: {
+        ...state.request,
+        [entityKey]: getStoreSectionForIds(entities, getDefaultRequestState())
+      },
+      requestData: {
+        ...state.requestData,
+        [entityKey]: getStoreSectionForIds(entities)
+      },
+      pagination: {
+        ...state.pagination,
+        [entityKey]: getStoreSectionForIds(entities, getDefaultPaginationEntityState())
+      }
+    };
+  }, { request: {}, requestData: {}, pagination: {} });
+}
+
+export function createEntityStore(entityMap: Map<EntityCatalogueEntityConfig, Array<TestStoreEntity | string>>): ModuleWithProviders {
+  const initialState = createEntityStoreState(entityMap);
+
+  return StoreModule.forRoot(
+    appReducers,
+    {
+      initialState
+    }
+  );
+}
+
+
+// {
+//   fetching: false,
+//   updating: {
+//     _root_: {
+//       busy: false,
+//       error: false,
+//       message: ''
+//     },
+//     updating: {
+//       busy: false,
+//       error: false,
+//       message: ''
+//     }
+//   },
+//   creating: false,
+//   error: false,
+//   deleting: {
+//     busy: false,
+//     error: false,
+//     message: '',
+//     deleted: false
+//   },
+//   response: null,
+//   message: ''
+// }

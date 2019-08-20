@@ -10,7 +10,7 @@ import {
 } from '../actions/auth.actions';
 import { RouterActions, RouterNav } from '../actions/router.actions';
 import { GET_SYSTEM_INFO_SUCCESS } from '../actions/system.actions';
-import { AppState } from '../app-state';
+import { AuthOnlyAppState } from '../app-state';
 import { SessionData } from '../types/auth.types';
 import { RouterRedirect } from './routing.reducer';
 
@@ -29,6 +29,7 @@ export interface AuthState {
   sessionData: SessionData;
   verifying: boolean;
   redirect?: RouterRedirect;
+  keepAlive?: boolean;
 }
 
 const defaultState: AuthState = {
@@ -101,5 +102,5 @@ export function authReducer(state: AuthState = defaultState, action): AuthState 
 }
 
 export function selectSessionData() {
-  return (state: AppState) => state.auth.sessionData;
+  return (state: AuthOnlyAppState) => state.auth.sessionData;
 }

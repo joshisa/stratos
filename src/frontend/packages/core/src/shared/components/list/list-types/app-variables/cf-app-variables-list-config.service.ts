@@ -3,12 +3,13 @@ import { Store } from '@ngrx/store';
 import { of as observableOf, Subject } from 'rxjs';
 import { filter, first, map, switchMap } from 'rxjs/operators';
 
-import { AppVariablesDelete } from '../../../../../../../store/src/actions/app-variables.actions';
-import { UpdateExistingApplication } from '../../../../../../../store/src/actions/application.actions';
-import { AppState } from '../../../../../../../store/src/app-state';
-import { applicationSchemaKey, entityFactory } from '../../../../../../../store/src/helpers/entity-factory';
-import { ApplicationService } from '../../../../../features/applications/application.service';
-import { EntityMonitor } from '../../../../monitors/entity-monitor';
+import { CF_ENDPOINT_TYPE } from '../../../../../../../cloud-foundry/cf-types';
+import { AppVariablesDelete } from '../../../../../../../cloud-foundry/src/actions/app-variables.actions';
+import { UpdateExistingApplication } from '../../../../../../../cloud-foundry/src/actions/application.actions';
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
+import { applicationEntityType } from '../../../../../../../cloud-foundry/src/cf-entity-factory';
+import { ApplicationService } from '../../../../../../../cloud-foundry/src/features/applications/application.service';
+import { entityCatalogue } from '../../../../../core/entity-catalogue/entity-catalogue.service';
 import { ConfirmationDialogConfig } from '../../../confirmation-dialog.config';
 import { ConfirmationDialogService } from '../../../confirmation-dialog.service';
 import { TableCellEditComponent } from '../../list-table/table-cell-edit/table-cell-edit.component';
@@ -102,15 +103,19 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
   }
 
   private getEntityMonitor() {
-    return new EntityMonitor(
-      this.store,
-      this.envVarsDataSource.appGuid,
-      applicationSchemaKey,
-      entityFactory(applicationSchemaKey)
-    ).entityRequest$.pipe(
-      map(request => request.updating[UpdateExistingApplication.updateKey]),
-      filter(req => !!req)
-    );
+    const catalogueEntity = entityCatalogue.getEntity({
+      entityType: applicationEntityType,
+      endpointType: CF_ENDPOINT_TYPE
+    });
+    return catalogueEntity
+      .getEntityMonitor(
+        this.store,
+        this.envVarsDataSource.appGuid
+      )
+      .entityRequest$.pipe(
+        map(request => request.updating[UpdateExistingApplication.updateKey]),
+        filter(req => !!req)
+      );
   }
 
   private getConfirmationModal(newValues: ListAppEnvVar[]) {
@@ -133,7 +138,7 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
   getMultiFiltersConfigs = () => [];
 
   constructor(
-    private store: Store<AppState>,
+    private store: Store<CFAppState>,
     private appService: ApplicationService,
     private confirmDialog: ConfirmationDialogService
   ) {

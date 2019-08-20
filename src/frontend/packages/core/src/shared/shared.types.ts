@@ -1,10 +1,12 @@
-import { schema as normalizrSchema } from 'normalizr';
+import { CFAppState } from '../../../cloud-foundry/src/cf-app-state';
+import { EntitySchema } from '../../../store/src/helpers/entity-schema';
+
 
 export class ComponentEntityMonitorConfig {
-  constructor(public guid: string, public schema: normalizrSchema.Entity) { }
+  constructor(public guid: string, public schema: EntitySchema) { }
 }
 
-export enum CardStatus {
+export enum StratosStatus {
   NONE = 'none',
   OK = 'ok',
   WARNING = 'warning',
@@ -13,3 +15,8 @@ export enum CardStatus {
   ERROR = 'error',
   BUSY = 'busy'
 }
+
+export type PartialAppState = Partial<CFAppState>;
+
+export type PickAppState = keyof CFAppState;
+

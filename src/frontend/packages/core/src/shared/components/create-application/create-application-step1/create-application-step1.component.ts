@@ -5,15 +5,17 @@ import { Store } from '@ngrx/store';
 import { asapScheduler, Observable, of as observableOf } from 'rxjs';
 import { map, observeOn, startWith, switchMap, withLatestFrom } from 'rxjs/operators';
 
-import { SetCFDetails } from '../../../../../../store/src/actions/create-applications-page.actions';
-import { AppState } from '../../../../../../store/src/app-state';
+import { SetCFDetails } from '../../../../../../cloud-foundry/src/actions/create-applications-page.actions';
+import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
+import {
+  CfOrgSpaceDataService,
+} from '../../../../../../cloud-foundry/src/shared/data-services/cf-org-space-service.service';
 import {
   getSpacesFromOrgWithRole,
-} from '../../../../../../store/src/selectors/current-user-roles-permissions-selectors/role.selectors';
+} from '../../../../../../cloud-foundry/src/store/selectors/cf-current-user-role.selectors';
 import { ISpace } from '../../../../core/cf-api.types';
 import { PermissionStrings } from '../../../../core/current-user-permissions.config';
 import { StepOnNextFunction } from '../../../../shared/components/stepper/step/step.component';
-import { CfOrgSpaceDataService } from '../../../data-services/cf-org-space-service.service';
 
 @Component({
   selector: 'app-create-application-step1',
@@ -25,7 +27,7 @@ export class CreateApplicationStep1Component implements OnInit, AfterContentInit
   @Input()
   isMarketplaceMode: boolean;
   constructor(
-    private store: Store<AppState>,
+    private store: Store<CFAppState>,
     public cfOrgSpaceService: CfOrgSpaceDataService,
     public route: ActivatedRoute
   ) { }

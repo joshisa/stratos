@@ -2,13 +2,12 @@ import { inject, TestBed } from '@angular/core/testing';
 import { HttpModule, XHRBackend } from '@angular/http';
 import { MockBackend } from '@angular/http/testing';
 import { Store } from '@ngrx/store';
-import { schema as normalizrSchema } from 'normalizr';
 import { filter, first, map, pairwise, tap } from 'rxjs/operators';
 
-import { GetApplication } from '../../../store/src/actions/application.actions';
+import { GetApplication } from '../../../cloud-foundry/src/actions/application.actions';
 import { APIResponse } from '../../../store/src/actions/request.actions';
-import { AppState } from '../../../store/src/app-state';
-import { applicationSchemaKey, entityFactory } from '../../../store/src/helpers/entity-factory';
+import { GeneralAppState } from '../../../store/src/app-state';
+import { EntitySchema } from '../../../store/src/helpers/entity-schema';
 import {
   completeApiRequest,
   failApiRequest,
@@ -16,33 +15,62 @@ import {
 } from '../../../store/src/reducers/api-request-reducer/request-helpers';
 import { RequestSectionKeys } from '../../../store/src/reducers/api-request-reducer/types';
 import { NormalizedResponse } from '../../../store/src/types/api.types';
-import { ICFAction, IRequestAction } from '../../../store/src/types/request.types';
+import { ICFAction, EntityRequestAction } from '../../../store/src/types/request.types';
+import { EntityCatalogueTestHelper } from '../../test-framework/entity-catalogue-test-helpers';
 import { generateTestEntityServiceProvider } from '../../test-framework/entity-service.helper';
-import { createBasicStoreModule } from '../../test-framework/store-test-helper';
+import { createEntityStore, TestStoreEntity } from '../../test-framework/store-test-helper';
 import { ENTITY_SERVICE } from '../shared/entity.tokens';
 import { EntityMonitor } from '../shared/monitors/entity-monitor';
 import { EntityMonitorFactory } from '../shared/monitors/entity-monitor.factory.service';
+import { StratosBaseCatalogueEntity } from './entity-catalogue/entity-catalogue-entity';
+import { EntityCatalogueEntityConfig } from './entity-catalogue/entity-catalogue.types';
 import { EntityService } from './entity-service';
 import { EntityServiceFactory } from './entity-service-factory.service';
 
+const endpointType = 'endpoint1';
+const entitySchema = new EntitySchema('child2', endpointType);
 
 const appId = '4e4858c4-24ab-4caf-87a8-7703d1da58a0';
 const cfId = 'cf123';
 
+const entityType = 'key';
+
+const catalogueEntity = new StratosBaseCatalogueEntity({
+  type: entityType,
+  schema: new EntitySchema(
+    entityType,
+    'endpoint'
+  ),
+  label: 'Entity',
+  labelPlural: 'Entities',
+});
+
 describe('EntityServiceService', () => {
+  beforeAll(() => {
+    const helper = new EntityCatalogueTestHelper(
+      spyOn,
+      {
+        catalogueEntities: [
+          [entitySchema, catalogueEntity]
+        ]
+      }
+    );
+    helper.mockGetEntityResponses();
+  });
   function createTestService(
-    store: Store<AppState>,
+    store: Store<GeneralAppState>,
     guid: string,
-    schema: normalizrSchema.Entity,
-    action: IRequestAction,
+    schema: EntitySchema,
+    action: EntityRequestAction,
   ) {
+
     const entityMonitor = new EntityMonitor(store, guid, schema.key, schema);
     return new EntityService(store, entityMonitor, action, false, RequestSectionKeys.CF);
   }
 
-  function getAllTheThings(store: Store<AppState>, guid: string, schemaKey: string) {
+  function getAllTheThings(store: Store<GeneralAppState>, guid: string, schemaKey: string) {
     const entities = {
-      [applicationSchemaKey]: {
+      [entitySchema.key]: {
         [guid]: {
           guid,
           test: 123
@@ -52,16 +80,16 @@ describe('EntityServiceService', () => {
     const action = {
       actions: ['fa', 'k', 'e'],
       options: {},
-      entityKey: applicationSchemaKey,
+      entityType: entitySchema.entityType,
+      endpointType: entitySchema.endpointType,
       guid,
       type: 'test-action'
     } as ICFAction;
 
-    const schema = entityFactory(applicationSchemaKey);
     const entityService = createTestService(
       store,
       guid,
-      schema,
+      entitySchema,
       action
     );
 
@@ -74,19 +102,36 @@ describe('EntityServiceService', () => {
     return {
       action,
       entities,
-      schema,
+      entitySchema,
       entityService,
       res
     };
   }
   beforeEach(() => {
+    const entityMap = new Map<EntityCatalogueEntityConfig, Array<TestStoreEntity | string>>([
+      [
+        entitySchema,
+        [
+          {
+            guid: 'GUID123456789x',
+            data: {
+              test: 123
+            }
+          },
+          '1234567890',
+          'upd8ing-1234567890',
+          '1-delete123',
+          '1234567890123124hjvgh'
+        ]
+      ]
+    ]);
     TestBed.configureTestingModule({
       providers: [
         EntityServiceFactory,
         EntityMonitorFactory,
         generateTestEntityServiceProvider(
           appId,
-          entityFactory(applicationSchemaKey),
+          entitySchema,
           new GetApplication(appId, cfId)
         ),
         {
@@ -96,7 +141,7 @@ describe('EntityServiceService', () => {
       ],
       imports: [
         HttpModule,
-        createBasicStoreModule(),
+        createEntityStore(entityMap),
       ]
     });
   });
@@ -107,28 +152,28 @@ describe('EntityServiceService', () => {
 
   it('should poll', (done) => {
     inject([ENTITY_SERVICE, XHRBackend], (service: EntityService, mockBackend: MockBackend) => {
-      const sub = service.poll(1).subscribe(a => {
+      const sub = service.poll(1, '_root_').subscribe(a => {
         sub.unsubscribe();
-        expect(sub.closed).toBeTruthy();
+        expect('polled once').toEqual('polled once');
         done();
       });
     })();
   });
 
   it('should get application', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const guid = 'GUID123456789x';
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       entityService.entityObs$.pipe(
         filter(ent => !!ent.entity),
         first(),
         tap(ent => {
-          expect(ent.entity).toEqual(res.response.entities[applicationSchemaKey][guid]);
+          expect(ent.entity).toEqual(res.response.entities[entitySchema.key][guid]);
           done();
         })
       ).subscribe();
@@ -141,13 +186,13 @@ describe('EntityServiceService', () => {
   });
 
   it('should fail new entity', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const guid = '1234567890';
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       entityService.entityObs$.pipe(
         filter(ent => ent.entityRequestInfo.error),
@@ -162,13 +207,13 @@ describe('EntityServiceService', () => {
   });
 
   it('should fail previously fetched entity', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const guid = '1234567890';
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       completeApiRequest(store, action, res);
       entityService.entityObs$.pipe(
@@ -184,14 +229,14 @@ describe('EntityServiceService', () => {
   });
 
   it('should set busy new entity', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const updatingKey = 'upd8ing';
       const guid = `${updatingKey}-1234567890`;
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       action.updatingKey = updatingKey;
       startApiRequest(store, action);
       entityService.entityObs$.pipe(
@@ -214,14 +259,14 @@ describe('EntityServiceService', () => {
   });
 
   it('should set busy', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const updatingKey = 'upd8ing';
       const guid = `${updatingKey}-1234567890`;
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       completeApiRequest(store, action, res);
       action.updatingKey = updatingKey;
@@ -246,14 +291,14 @@ describe('EntityServiceService', () => {
   });
 
   it('should set deleted new entity', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const updatingKey = 'upd8ing';
       const guid = `${updatingKey}-1234567890`;
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       action.options.method = 'delete';
       startApiRequest(store, action);
       entityService.entityObs$.pipe(
@@ -276,13 +321,13 @@ describe('EntityServiceService', () => {
   });
 
   it('should set deleted', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const guid = `1-delete123`;
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       completeApiRequest(store, action, res);
       action.options.method = 'delete';
@@ -307,13 +352,13 @@ describe('EntityServiceService', () => {
   });
 
   it('should set deleted failed', (done) => {
-    inject([Store], (store: Store<AppState>) => {
+    inject([Store], (store: Store<GeneralAppState>) => {
       const guid = `1234567890123124hjvgh`;
       const {
         action,
         entityService,
         res
-      } = getAllTheThings(store, guid, applicationSchemaKey);
+      } = getAllTheThings(store, guid, entitySchema.key);
       startApiRequest(store, action);
       completeApiRequest(store, action, res);
       action.options.method = 'delete';

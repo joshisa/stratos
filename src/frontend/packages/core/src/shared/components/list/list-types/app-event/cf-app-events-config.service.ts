@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
-import { ApplicationService } from '../../../../../features/applications/application.service';
+import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
+import { ApplicationService } from '../../../../../../../cloud-foundry/src/features/applications/application.service';
+import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { ITableColumn } from '../../list-table/table.types';
 import { IListConfig, ListConfig, ListViewTypes } from '../../list.component.types';
 import { CfAppEventsDataSource } from './cf-app-events-data-source';
@@ -9,14 +11,12 @@ import { TableCellEventActionComponent } from './table-cell-event-action/table-c
 import { TableCellEventDetailComponent } from './table-cell-event-detail/table-cell-event-detail.component';
 import { TableCellEventTimestampComponent } from './table-cell-event-timestamp/table-cell-event-timestamp.component';
 import { TableCellEventTypeComponent } from './table-cell-event-type/table-cell-event-type.component';
-import { EntityInfo } from '../../../../../../../store/src/types/api.types';
-import { AppState } from '../../../../../../../store/src/app-state';
 
 @Injectable()
-export class CfAppEventsConfigService extends ListConfig<EntityInfo> implements IListConfig<EntityInfo> {
+export class CfAppEventsConfigService extends ListConfig<APIResource> implements IListConfig<APIResource> {
 
   eventSource: CfAppEventsDataSource;
-  columns: Array<ITableColumn<EntityInfo>> = [
+  columns: Array<ITableColumn<APIResource>> = [
     {
       columnId: 'timestamp', headerCell: () => 'Timestamp', cellComponent: TableCellEventTimestampComponent, sort: true, cellFlex: '3'
     },
@@ -36,12 +36,13 @@ export class CfAppEventsConfigService extends ListConfig<EntityInfo> implements 
     noEntries: 'There are no events'
   };
 
-  constructor(private store: Store<AppState>, private appService: ApplicationService) {
+  constructor(private store: Store<CFAppState>, private appService: ApplicationService) {
     super();
     this.eventSource = new CfAppEventsDataSource(
       this.store,
       this.appService.cfGuid,
       this.appService.appGuid,
+      this
     );
   }
 

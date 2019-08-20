@@ -1,12 +1,9 @@
 # Docker build for all-in-one Stratos
 FROM splatform/stratos-aio-base:opensuse as builder
 
-COPY --chown=stratos:users *.json ./
-COPY --chown=stratos:users gulpfile.js ./
-COPY --chown=stratos:users src ./src
-COPY --chown=stratos:users build ./build/
+# Ensure that we copy the custom-src folder
+COPY --chown=stratos:users . ./
 COPY --chown=stratos:users deploy/tools/generate_cert.sh generate_cert.sh
-COPY --chown=stratos:users deploy/db deploy/db
 COPY --chown=stratos:users deploy/all-in-one/config.all-in-one.properties config.properties
 
 RUN npm install \
@@ -26,6 +23,8 @@ COPY --from=builder /home/stratos/dev-certs /srv/dev-certs
 COPY --from=builder /home/stratos/ui /srv/ui
 COPY --from=builder /home/stratos/jetstream /srv/jetstream
 COPY --from=builder /home/stratos/config.properties /srv/config.properties
+# User Invite templates
+COPY --from=builder /home/stratos/src/jetstream/templates /srv/templates
 
 EXPOSE 443
 
