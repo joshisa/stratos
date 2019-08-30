@@ -18,7 +18,7 @@ import (
 
 // MetricsSpecification is a plugin to support the metrics endpoint type
 type MetricsSpecification struct {
-	portalProxy  interfaces.PortalProxy
+	portalProxy  interfaces.PortalProxyAPI
 	endpointType string
 }
 
@@ -76,7 +76,7 @@ type MetricsAuth struct {
 }
 
 // Init creates a new MetricsSpecification
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &MetricsSpecification{portalProxy: portalProxy, endpointType: EndpointType}, nil
 }
 

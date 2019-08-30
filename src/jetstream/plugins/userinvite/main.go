@@ -11,7 +11,7 @@ import (
 
 // UserInvite is a plugin to allow user invitations
 type UserInvite struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 	Config      *Config
 }
 
@@ -25,7 +25,7 @@ const UserInvitePluginConfigSetting = "userInvitationsEnabled"
 const UAAClientAuthType = "uaa-client"
 
 // Init creates a new UserInvite
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 
 	init := &UserInvite{portalProxy: portalProxy}
 	c, err := init.LoadConfig(*portalProxy.Env())

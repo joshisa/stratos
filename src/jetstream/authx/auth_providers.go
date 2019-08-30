@@ -1,4 +1,4 @@
-package main
+package authx
 
 import (
 	// log "github.com/sirupsen/logrus"

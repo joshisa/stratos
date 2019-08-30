@@ -10,12 +10,12 @@ import (
 
 // CFAppPush is a plugin to allow applications to be pushed to Cloud Foundry from Stratos
 type CFAppPush struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 	cfPush      pushapp.CFPush
 }
 
 // Init creates a new CFAppPush
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &CFAppPush{portalProxy: portalProxy}, nil
 }
 

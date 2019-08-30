@@ -22,7 +22,7 @@ func (pp *portalProxy) loadPlugins() {
 
 	for _, p := range []struct {
 		Name string
-		Init func(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error)
+		Init func(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error)
 	}{
 		{"cfapppush", cfapppush.Init},
 		{"cfappssh", cfappssh.Init},

@@ -22,8 +22,6 @@ import (
 	"syscall"
 	"time"
 
-	"auth"
-
 	"github.com/antonlindstrom/pgstore"
 	"github.com/cf-stratos/mysqlstore"
 	cfenv "github.com/cloudfoundry-community/go-cfenv"
@@ -35,7 +33,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/auth"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/datastore"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/console_config"
@@ -493,7 +491,7 @@ func loadPortalConfig(pc interfaces.PortalConfig, env *env.VarSet) (interfaces.P
 	}
 
 	// Add custom properties
-	pc.CFAdminIdentifier = auth.CFAdminIdentifier
+	pc.CFAdminIdentifier = authx.CFAdminIdentifier
 	pc.HTTPS = true
 	pc.PluginConfig = make(map[string]string)
 

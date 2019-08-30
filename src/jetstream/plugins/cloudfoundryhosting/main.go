@@ -32,7 +32,7 @@ const (
 
 // CFHosting is a plugin to configure Stratos when hosted in Cloud Foundry
 type CFHosting struct {
-	portalProxy  interfaces.PortalProxy
+	portalProxy  interfaces.PortalProxyAPI
 	endpointType string
 }
 
@@ -77,7 +77,7 @@ func ConfigInit(envLookup *env.VarSet, jetstreamConfig *interfaces.PortalConfig)
 }
 
 // Init creates a new CFHosting plugin
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 
 	// Update Database migration status depending on app instance index and SQLite
 	if portalProxy.Env().IsSet(VCapApplication) {

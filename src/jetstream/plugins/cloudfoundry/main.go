@@ -17,7 +17,7 @@ import (
 
 // CloudFoundrySpecification - Plugin to support Cloud Foundry endpoint type
 type CloudFoundrySpecification struct {
-	portalProxy  interfaces.PortalProxy
+	portalProxy  interfaces.PortalProxyAPI
 	endpointType string
 }
 
@@ -27,7 +27,7 @@ const (
 )
 
 // Init creates a new CloudFoundrySpecification
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &CloudFoundrySpecification{portalProxy: portalProxy, endpointType: EndpointType}, nil
 }
 

@@ -10,11 +10,11 @@ import (
 
 // UserFavorites stores user favorites
 type UserFavorites struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 }
 
 // Init creates a new UserFavorites
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	userfavoritesstore.InitRepositoryProvider(portalProxy.GetConfig().DatabaseProviderName)
 	return &UserFavorites{portalProxy: portalProxy}, nil
 }

@@ -9,11 +9,11 @@ import (
 
 // Autoscaler is a plugin to allow applications to be pushed to Cloud Foundry from Stratos
 type Autoscaler struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 }
 
 // Init creates a new Autoscaler
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &Autoscaler{portalProxy: portalProxy}, nil
 }
 

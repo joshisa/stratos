@@ -6,7 +6,7 @@ import (
 )
 
 type userFavoriteEndpoints struct {
-	portalProxy  interfaces.PortalProxy
+	portalProxy  interfaces.PortalProxyAPI
 	endpointGUID string
 }
 
@@ -14,7 +14,7 @@ type userEndpointFavorites interface {
 	RemoveFavorites() error
 }
 
-func Constructor(portalProxy interfaces.PortalProxy, endpointGUID string) userEndpointFavorites {
+func Constructor(portalProxy interfaces.PortalProxyAPI, endpointGUID string) userEndpointFavorites {
 	ufe := &userFavoriteEndpoints{
 		portalProxy:  portalProxy,
 		endpointGUID: endpointGUID,

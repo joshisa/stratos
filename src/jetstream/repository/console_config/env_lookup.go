@@ -43,7 +43,7 @@ func InitializeConfEnvProvider(configStore Repository) error {
 }
 
 // MigrateSetupData will migrate the old data if needed
-func MigrateSetupData(portal interfaces.PortalProxy, configStore Repository) error {
+func MigrateSetupData(portal interfaces.PortalProxyAPI, configStore Repository) error {
 
 	// Determine if we need to migrate data first
 	_, ok, err := configStore.GetValue(systemGroupName, configSetupNeededMarker)

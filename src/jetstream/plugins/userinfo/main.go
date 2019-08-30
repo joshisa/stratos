@@ -9,11 +9,11 @@ import (
 
 // UserInfo is a plugin to fetch user info from the UAA
 type UserInfo struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 }
 
 // Init creates a new UserInfo
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &UserInfo{portalProxy: portalProxy}, nil
 }
 

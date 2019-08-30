@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ import (
 	"github.com/govau/cf-common/env"
 )
 
-type portalProxy struct {
+type PortalProxy struct {
 	Config                 interfaces.PortalConfig
 	DatabaseConnectionPool *sql.DB
 	SessionStore           interfaces.SessionStorer
@@ -39,11 +39,11 @@ type HttpSessionStore interface {
 var canPerformMigrations = true
 
 // SetCanPerformMigrations updates the state that records if we can perform Database migrations
-func (p *portalProxy) SetCanPerformMigrations(value bool) {
+func (p *PortalProxy) SetCanPerformMigrations(value bool) {
 	canPerformMigrations = canPerformMigrations && value
 }
 
 // CanPerformMigrations returns if we can perform Database migrations
-func (p *portalProxy) CanPerformMigrations() bool {
+func (p *PortalProxy) CanPerformMigrations() bool {
 	return canPerformMigrations
 }

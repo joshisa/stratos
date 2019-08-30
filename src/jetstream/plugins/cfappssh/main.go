@@ -9,11 +9,11 @@ import (
 
 // CFAppSSH - Plugin to allow SSH into an application instance
 type CFAppSSH struct {
-	portalProxy interfaces.PortalProxy
+	portalProxy interfaces.PortalProxyAPI
 }
 
 // Init creates a new CFAppSSH
-func Init(portalProxy interfaces.PortalProxy) (interfaces.StratosPlugin, error) {
+func Init(portalProxy interfaces.PortalProxyAPI) (interfaces.StratosPlugin, error) {
 	return &CFAppSSH{portalProxy: portalProxy}, nil
 }
 
