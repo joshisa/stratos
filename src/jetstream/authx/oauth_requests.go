@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
 	log "github.com/sirupsen/logrus"
 )
 
-func (p *portalProxy) OAuthHandlerFunc(cnsiRequest *interfaces.CNSIRequest, req *http.Request, refreshOAuthTokenFunc interfaces.RefreshOAuthTokenFunc) interfaces.AuthHandlerFunc {
+func (p *portalProxy) OAuthHandlerFunc(cnsiRequest *interfaces.CNSIRequest, req *http.Request, refreshOAuthTokenFunc RefreshOAuthTokenFunc) AuthHandlerFunc {
 
-	return func(tokenRec TokenRecord, cnsi interfaces.CNSIRecord) (*http.Response, error) {
+	return func(tokenRec TokenRecord, cnsi cnsis.CNSIRecord) (*http.Response, error) {
 
 		got401 := false
 
@@ -54,7 +55,7 @@ func (p *portalProxy) doOauthFlowRequest(cnsiRequest *interfaces.CNSIRequest, re
 
 }
 
-func (p *portalProxy) getCNSIRequestRecords(r *interfaces.CNSIRequest) (t interfaces.TokenRecord, c interfaces.CNSIRecord, err error) {
+func (p *portalProxy) getCNSIRequestRecords(r *interfaces.CNSIRequest) (t TokenRecord, c cnsis.CNSIRecord, err error) {
 	log.Debug("getCNSIRequestRecords")
 	// look up token
 	t, ok := p.GetCNSITokenRecord(r.GUID, r.UserGUID)
@@ -70,7 +71,7 @@ func (p *portalProxy) getCNSIRequestRecords(r *interfaces.CNSIRequest) (t interf
 	return t, c, nil
 }
 
-func (p *portalProxy) RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t interfaces.TokenRecord, err error) {
+func (p *portalProxy) RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error) {
 	log.Debug("refreshToken")
 	userToken, ok := p.GetCNSITokenRecordWithDisconnected(cnsiGUID, userGUID)
 	if !ok {

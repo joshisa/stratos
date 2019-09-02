@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
 )
 
@@ -55,7 +56,7 @@ type Auth struct {
 	EncryptionKeyInBytes   []byte
 	CFAdminIdentifier      string
 	DatabaseConnectionPool *sql.DB
-	Plugins                map[string]interfaces.StratosPlugin
+	Plugins                map[string]plugins.StratosPlugin
 	EmptyCookieMatcher     *regexp.Regexp // Used to detect and remove empty Cookies sent by certain browsers
 	AuthProviders          map[string]AuthProvider
 }
