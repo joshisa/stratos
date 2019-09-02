@@ -14,15 +14,16 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/localusers"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/stringutils"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/localusers"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/tokens"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/stringutils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -200,7 +201,7 @@ func (p *proxy.PortalProxy) ssoLoginToUAA(c echo.Context) error {
 func (p *proxy.PortalProxy) loginToUAA(c echo.Context) error {
 	log.Debug("loginToUAA")
 
-	if interfaces.AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != interfaces.Remote {
+	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != Remote {
 		err := interfaces.NewHTTPShadowError(
 			http.StatusNotFound,
 			"UAA Login is not enabled",
@@ -303,7 +304,7 @@ func (p *proxy.PortalProxy) doLoginToUAA(c echo.Context) (*interfaces.LoginRes, 
 func (p *proxy.PortalProxy) localLogin(c echo.Context) error {
 	log.Debug("localLogin")
 
-	if interfaces.AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != interfaces.Local {
+	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != Local {
 		err := interfaces.NewHTTPShadowError(
 			http.StatusNotFound,
 			"Local Login is not enabled",
@@ -621,7 +622,7 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 		"Endpoint connection not supported")
 }
 
-func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord interfaces.CNSIRecord) error {
+func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord cnsis.CNSIRecord) error {
 	userID, err := p.GetSessionStringValue(c, "user_id")
 	if err != nil {
 		return errors.New("could not find correct session value")
@@ -670,7 +671,7 @@ func santizeInfoForSystemSharedTokenUser(cnsiUser *interfaces.ConnectedUser, isS
 	}
 }
 
-func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord interfaces.CNSIRecord) (*interfaces.TokenRecord, error) {
+func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord cnsis.CNSIRecord) (*TokenRecord, error) {
 	uaaRes, u, _, err := p.FetchOAuth2Token(cnsiRecord, c)
 	if err != nil {
 		return nil, err
@@ -679,7 +680,7 @@ func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord interfaces.
 	return &tokenRecord, nil
 }
 
-func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord interfaces.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *interfaces.JWTUserTokenInfo, *interfaces.CNSIRecord, error) {
+func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord cnsis.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *interfaces.JWTUserTokenInfo, *interfaces.CNSIRecord, error) {
 
 	uaaRes, u, err := p.loginHTTPBasic(c)
 
@@ -692,7 +693,7 @@ func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord interfaces.CNSIRecord
 	return uaaRes, u, &cnsiRecord, nil
 }
 
-func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord interfaces.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *interfaces.JWTUserTokenInfo, *interfaces.CNSIRecord, error) {
+func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord cnsis.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *interfaces.JWTUserTokenInfo, *cnsis.CNSIRecord, error) {
 	endpoint := cnsiRecord.AuthorizationEndpoint
 
 	tokenEndpoint := fmt.Sprintf("%s/oauth/token", endpoint)
@@ -763,7 +764,7 @@ func (p *proxy.PortalProxy) logoutOfCNSI(c echo.Context) error {
 }
 
 // Clear the CNSI token
-func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord interfaces.CNSIRecord, userGUID string) error {
+func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord cnsis.CNSIRecord, userGUID string) error {
 	// If cnsi is cf AND cf is auto-register only clear the entry
 	p.Config.AutoRegisterCFUrl = strings.TrimRight(p.Config.AutoRegisterCFUrl, "/")
 	if cnsiRecord.CNSIType == "cf" && p.GetConfig().AutoRegisterCFUrl == cnsiRecord.APIEndpoint.String() {
@@ -834,7 +835,7 @@ func (p *proxy.PortalProxy) login(c echo.Context, skipSSLValidation bool, client
 	return uaaRes, u, nil
 }
 
-func (p *proxy.PortalProxy) loginHTTPBasic(c echo.Context) (uaaRes *interfaces.UAAResponse, u *interfaces.JWTUserTokenInfo, err error) {
+func (p *proxy.PortalProxy) loginHTTPBasic(c echo.Context) (uaaRes *interfaces.UAAResponse, u *JWTUserTokenInfo, err error) {
 	log.Debug("login")
 	username := c.FormValue("username")
 	password := c.FormValue("password")
@@ -943,15 +944,15 @@ func (p *proxy.PortalProxy) getUAAToken(body url.Values, skipSSLValidation bool,
 	return &response, nil
 }
 
-func (p *proxy.PortalProxy) saveAuthToken(u interfaces.JWTUserTokenInfo, authTok string, refreshTok string) (interfaces.TokenRecord, error) {
+func (p *proxy.PortalProxy) saveAuthToken(u JWTUserTokenInfo, authTok string, refreshTok string) (TokenRecord, error) {
 	log.Debug("saveAuthToken")
 
 	key := u.UserGUID
-	tokenRecord := interfaces.TokenRecord{
+	tokenRecord := TokenRecord{
 		AuthToken:    authTok,
 		RefreshToken: refreshTok,
 		TokenExpiry:  u.TokenExpiry,
-		AuthType:     interfaces.AuthTypeOAuth2,
+		AuthType:     AuthTypeOAuth2,
 	}
 
 	err := p.setUAATokenRecord(key, tokenRecord)
@@ -963,13 +964,13 @@ func (p *proxy.PortalProxy) saveAuthToken(u interfaces.JWTUserTokenInfo, authTok
 }
 
 // Helper to initialzie a token record using the specified parameters
-func (p *proxy.PortalProxy) InitEndpointTokenRecord(expiry int64, authTok string, refreshTok string, disconnect bool) interfaces.TokenRecord {
-	tokenRecord := interfaces.TokenRecord{
+func (p *proxy.PortalProxy) InitEndpointTokenRecord(expiry int64, authTok string, refreshTok string, disconnect bool) TokenRecord {
+	tokenRecord := TokenRecord{
 		AuthToken:    authTok,
 		RefreshToken: refreshTok,
 		TokenExpiry:  expiry,
 		Disconnected: disconnect,
-		AuthType:     interfaces.AuthTypeOAuth2,
+		AuthType:     AuthTypeOAuth2,
 	}
 
 	return tokenRecord
@@ -987,25 +988,25 @@ func (p *proxy.PortalProxy) deleteCNSIToken(cnsiID string, userGUID string) erro
 	return nil
 }
 
-func (p *proxy.PortalProxy) GetUAATokenRecord(userGUID string) (interfaces.TokenRecord, error) {
+func (p *proxy.PortalProxy) GetUAATokenRecord(userGUID string) (TokenRecord, error) {
 	log.Debug("GetUAATokenRecord")
 
 	tokenRepo, err := tokens.NewPgsqlTokenRepository(p.DatabaseConnectionPool)
 	if err != nil {
 		log.Errorf("Database error getting repo for UAA token: %v", err)
-		return interfaces.TokenRecord{}, err
+		return TokenRecord{}, err
 	}
 
 	tr, err := tokenRepo.FindAuthToken(userGUID, p.Config.EncryptionKeyInBytes)
 	if err != nil {
 		log.Errorf("Database error finding UAA token: %v", err)
-		return interfaces.TokenRecord{}, err
+		return TokenRecord{}, err
 	}
 
 	return tr, nil
 }
 
-func (p *proxy.PortalProxy) setUAATokenRecord(key string, t interfaces.TokenRecord) error {
+func (p *proxy.PortalProxy) setUAATokenRecord(key string, t TokenRecord) error {
 	log.Debug("setUAATokenRecord")
 
 	tokenRepo, err := tokens.NewPgsqlTokenRepository(p.DatabaseConnectionPool)
@@ -1038,7 +1039,7 @@ func (p *proxy.PortalProxy) verifySession(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, msg)
 	}
 
-	if interfaces.AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == interfaces.Local {
+	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == Local {
 		err = p.verifySessionLocal(c, sessionUser, sessionExpireTime)
 	} else {
 		err = p.verifySessionUAA(c, sessionUser, sessionExpireTime)
@@ -1195,7 +1196,7 @@ func (p *proxy.PortalProxy) GetStratosUser(userGUID string) (*interfaces.Connect
 
 	// If configured for local users, use that instead
 	// This needs to be refactored
-	if interfaces.AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == interfaces.Local {
+	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == Local {
 		return p.getLocalUser(userGUID)
 	}
 
@@ -1259,12 +1260,12 @@ func (p *proxy.PortalProxy) getLocalUser(userGUID string) (*interfaces.Connected
 	return uaaEntry, nil
 }
 
-func (p *proxy.PortalProxy) GetCNSIUser(cnsiGUID string, userGUID string) (*interfaces.ConnectedUser, bool) {
+func (p *proxy.PortalProxy) GetCNSIUser(cnsiGUID string, userGUID string) (*users.ConnectedUser, bool) {
 	user, _, ok := p.GetCNSIUserAndToken(cnsiGUID, userGUID)
 	return user, ok
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string) (*interfaces.ConnectedUser, *interfaces.TokenRecord, bool) {
+func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string) (*users.ConnectedUser, *TokenRecord, bool) {
 	log.Debug("GetCNSIUserAndToken")
 
 	// get the uaa token record
@@ -1283,7 +1284,7 @@ func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string
 	return cnsiUser, &cfTokenRecord, ok
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromToken(cnsiGUID string, cfTokenRecord *interfaces.TokenRecord) (*interfaces.ConnectedUser, bool) {
+func (p *proxy.PortalProxy) GetCNSIUserFromToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
 	log.Debug("GetCNSIUserFromToken")
 
 	// Custom handler for the Auth type available?
@@ -1296,15 +1297,15 @@ func (p *proxy.PortalProxy) GetCNSIUserFromToken(cnsiGUID string, cfTokenRecord 
 	return p.GetCNSIUserFromOAuthToken(cnsiGUID, cfTokenRecord)
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromBasicToken(cnsiGUID string, cfTokenRecord *interfaces.TokenRecord) (*interfaces.ConnectedUser, bool) {
-	return &interfaces.ConnectedUser{
+func (p *proxy.PortalProxy) GetCNSIUserFromBasicToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
+	return &users.ConnectedUser{
 		GUID: cfTokenRecord.RefreshToken,
 		Name: cfTokenRecord.RefreshToken,
 	}, true
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRecord *interfaces.TokenRecord) (*interfaces.ConnectedUser, bool) {
-	var cnsiUser *interfaces.ConnectedUser
+func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
+	var cnsiUser *users.ConnectedUser
 	var scope = []string{}
 
 	// get the scope out of the JWT token data
@@ -1316,7 +1317,7 @@ func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRe
 	}
 
 	// add the uaa entry to the output
-	cnsiUser = &interfaces.ConnectedUser{
+	cnsiUser = &users.ConnectedUser{
 		GUID:   userTokenInfo.UserGUID,
 		Name:   userTokenInfo.UserName,
 		Scopes: userTokenInfo.Scope,
@@ -1339,7 +1340,7 @@ func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRe
 	return cnsiUser, true
 }
 
-func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *interfaces.CNSIRequest, req *http.Request, authHandler interfaces.AuthHandlerFunc) (*http.Response, error) {
+func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *interfaces.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error) {
 
 	// get a cnsi token record and a cnsi record
 	tokenRec, cnsi, err := p.getCNSIRequestRecords(cnsiRequest)
@@ -1350,7 +1351,7 @@ func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *interfaces.CNSIReques
 }
 
 // Refresh the UAA Token for the user
-func (p *proxy.PortalProxy) RefreshUAAToken(userGUID string) (t interfaces.TokenRecord, err error) {
+func (p *proxy.PortalProxy) RefreshUAAToken(userGUID string) (t TokenRecord, err error) {
 	log.Debug("RefreshUAAToken")
 
 	userToken, err := p.GetUAATokenRecord(userGUID)

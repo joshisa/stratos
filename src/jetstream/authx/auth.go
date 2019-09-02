@@ -2,7 +2,7 @@ package authx
 
 import "github.com/labstack/echo"
 
-type Auth interface {
+type AuthService interface {
 	GetCNSIUser(cnsiGUID string, userGUID string) (*ConnectedUser, bool)
 
 	// UAA Token
@@ -20,4 +20,8 @@ type Auth interface {
 
 	DoLoginToCNSI(c echo.Context, cnsiGUID string, systemSharedToken bool) (*LoginRes, error)
 	DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord CNSIRecord) error
+}
+
+type Auth {
+	
 }

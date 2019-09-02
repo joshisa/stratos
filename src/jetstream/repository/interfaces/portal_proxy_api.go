@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 )
 
 type PortalProxyAPI interface {
@@ -17,7 +18,7 @@ type PortalProxyAPI interface {
 	GetHttpClientForRequest(req *http.Request, skipSSLValidation bool) http.Client
 	RegisterEndpoint(c echo.Context, fetchInfo InfoFunc) error
 	DoRegisterEndpoint(cnsiName string, apiEndpoint string, skipSSLValidation bool, clientId string, clientSecret string, ssoAllowed bool, subType string, fetchInfo InfoFunc) (CNSIRecord, error)
-	GetEndpointTypeSpec(typeName string) (EndpointPlugin, error)
+	GetEndpointTypeSpec(typeName string) (cnsis.EndpointPlugin, error)
 
 	// Session
 	GetSession(c echo.Context) (*sessions.Session, error)
@@ -26,18 +27,18 @@ type PortalProxyAPI interface {
 	GetSessionStringValue(c echo.Context, key string) (string, error)
 	SaveSession(c echo.Context, session *sessions.Session) error
 
-	RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error)
+	RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t authx.TokenRecord, err error)
 
 	// Expose internal portal proxy records to extensions
-	GetCNSIRecord(guid string) (CNSIRecord, error)
-	GetCNSIRecordByEndpoint(endpoint string) (CNSIRecord, error)
-	GetCNSITokenRecord(cnsiGUID string, userGUID string) (TokenRecord, bool)
-	GetCNSITokenRecordWithDisconnected(cnsiGUID string, userGUID string) (TokenRecord, bool)
+	GetCNSIRecord(guid string) (cnsis.CNSIRecord, error)
+	GetCNSIRecordByEndpoint(endpoint string) (cnsis.CNSIRecord, error)
+	GetCNSITokenRecord(cnsiGUID string, userGUID string) (authx.TokenRecord, bool)
+	GetCNSITokenRecordWithDisconnected(cnsiGUID string, userGUID string) (authx.TokenRecord, bool)
 
 	GetConfig() *PortalConfig
 	Env() *env.VarSet
 	ListEndpointsByUser(userGUID string) ([]*ConnectedEndpoint, error)
-	ListEndpoints() ([]*CNSIRecord, error)
+	ListEndpoints() ([]*cnsis.CNSIRecord, error)
 	UpdateEndointMetadata(guid string, metadata string) error
 
 	// Proxy API requests
@@ -48,13 +49,13 @@ type PortalProxyAPI interface {
 
 	// Database Connection
 	GetDatabaseConnection() *sql.DB
-	AddAuthProvider(name string, provider AuthProvider)
-	GetAuthProvider(name string) AuthProvider
+	AddAuthProvider(name string, provider authx.AuthProvider)
+	GetAuthProvider(name string) authx.AuthProvider
 	DoAuthFlowRequest(cnsiRequest *CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error)
-	OAuthHandlerFunc(cnsiRequest *CNSIRequest, req *http.Request, refreshOAuthTokenFunc RefreshOAuthTokenFunc) AuthHandlerFunc
+	OAuthHandlerFunc(cnsiRequest *CNSIRequest, req *http.Request, refreshOAuthTokenFunc authx.RefreshOAuthTokenFunc) AuthHandlerFunc
 
 	// Tokens - lower-level access
-	SaveEndpointToken(cnsiGUID string, userGUID string, tokenRecord TokenRecord) error
+	SaveEndpointToken(cnsiGUID string, userGUID string, tokenRecord authx.TokenRecord) error
 	DeleteEndpointToken(cnsiGUID string, userGUID string) error
 
 	AddLoginHook(priority int, function LoginHookFunc) error

@@ -1,6 +1,12 @@
 package authx
 
-import "net/http"
+import (
+	"database/sql"
+	"net/url"
+	"regexp"
+
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
+)
 
 const (
 	// AuthTypeOAuth2 means OAuth2
@@ -20,6 +26,40 @@ const (
 	AuthConnectTypeNone = "none"
 )
 
+//AuthEndpointType - Restrict the possible values of the configured
+type AuthEndpointType string
+
+const (
+	//Remote - String representation of remote auth endpoint type
+	Remote AuthEndpointType = "remote"
+	//Local - String representation of remote auth endpoint type
+	Local AuthEndpointType = "local"
+)
+
+//AuthEndpointTypes - Allows lookup of internal string representation by the
+//value of the AUTH_ENDPOINT_TYPE env variable
+var AuthEndpointTypes = map[string]AuthEndpointType{
+	"remote": Remote,
+	"local":  Local,
+}
+
+type Auth struct {
+	AuthEndpointType       AuthEndpointType
+	AuthEndpointURL        *url.URL
+	UAAEndpoint            *url.URL
+	SkipSSLValidation      bool
+	ConsoleClientSecret    string
+	ConsoleAdminScope      string
+	AutoRegisterCFURL      string
+	SSOLogin               bool
+	EncryptionKeyInBytes   []byte
+	CFAdminIdentifier      string
+	DatabaseConnectionPool *sql.DB
+	Plugins                map[string]interfaces.StratosPlugin
+	EmptyCookieMatcher     *regexp.Regexp // Used to detect and remove empty Cookies sent by certain browsers
+	AuthProviders          map[string]AuthProvider
+}
+
 // Structure for optional metadata for an OAuth2 Token
 type OAuth2Metadata struct {
 	ClientID     string
@@ -35,7 +75,7 @@ type JWTUserTokenInfo struct {
 }
 
 type AuthProvider struct {
-	Handler  AuthFlowHandlerFunc
+	//Handler  AuthFlowHandlerFunc
 	UserInfo GetUserInfoFromToken
 }
 
@@ -43,7 +83,7 @@ type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *TokenRecord) (*us
 
 type RefreshOAuthTokenFunc func(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error)
 
-type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
+//type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
 
 // TokenRecord repsrents and endpoint or uaa token
 type TokenRecord struct {
