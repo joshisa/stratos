@@ -1,5 +1,7 @@
 github.com/cloudfoundry-community/go-cfenv v1.17.0 h1:qfxEfn8qKkaHY3ZEk/Y2noY79HBASvNgmtHK9x4+6GY=
 github.com/cloudfoundry-community/go-cfenv v1.17.0/go.mod h1:2UgWvQTRXUuIZ/x3KnW6fk6CgPBhcV4UQb/UGIrUyyI=
+github.com/cloudfoundry-incubator/stratos v2.0.0-beta-001+incompatible h1:UUxNbLjhv2cfymub5yNN1tjjqYkteHBBagb4jcbXEIQ=
+github.com/cloudfoundry-incubator/stratos/src/jetstream v0.0.0-20190830075829-59a053f5a630 h1:+nr5zSv1iLghs8nfCfOE5fs5vyLKaLVCq7ChVJyzwno=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gorilla/context v1.1.1 h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
