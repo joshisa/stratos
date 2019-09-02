@@ -16,7 +16,7 @@ func (p *portalProxy) doOidcFlowRequest(cnsiRequest *interfaces.CNSIRequest, req
 	return p.DoAuthFlowRequest(cnsiRequest, req, authHandler)
 }
 
-func (p *portalProxy) RefreshOidcToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t interfaces.TokenRecord, err error) {
+func (p *portalProxy) RefreshOidcToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error) {
 	log.Debug("refreshToken")
 	userToken, ok := p.GetCNSITokenRecordWithDisconnected(cnsiGUID, userGUID)
 	if !ok {
@@ -31,7 +31,7 @@ func (p *portalProxy) RefreshOidcToken(skipSSLValidation bool, cnsiGUID, userGUI
 
 	log.Info(userToken.Metadata)
 	if len(userToken.Metadata) > 0 {
-		metadata := &interfaces.OAuth2Metadata{}
+		metadata := &OAuth2Metadata{}
 		if err := json.Unmarshal([]byte(userToken.Metadata), metadata); err == nil {
 			log.Info(metadata)
 			log.Info(metadata.ClientID)
@@ -63,7 +63,7 @@ func (p *portalProxy) RefreshOidcToken(skipSSLValidation bool, cnsiGUID, userGUI
 	u.UserGUID = userGUID
 
 	tokenRecord := p.InitEndpointTokenRecord(u.TokenExpiry, uaaRes.AccessToken, uaaRes.RefreshToken, userToken.Disconnected)
-	tokenRecord.AuthType = interfaces.AuthTypeOIDC
+	tokenRecord.AuthType = AuthTypeOIDC
 	// Copy across the metadata from the original token
 	tokenRecord.Metadata = userToken.Metadata
 

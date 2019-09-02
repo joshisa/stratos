@@ -1,4 +1,4 @@
-package auth
+package authx
 
 import "github.com/labstack/echo"
 

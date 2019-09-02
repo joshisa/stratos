@@ -4,21 +4,17 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 )
 
-type AuthHandlerFunc func(tokenRec TokenRecord, cnsi CNSIRecord) (*http.Response, error)
-type RefreshOAuthTokenFunc func(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error)
+type AuthHandlerFunc func(tokenRec authx.TokenRecord, cnsi CNSIRecord) (*http.Response, error)
 
-type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *TokenRecord) (*ConnectedUser, bool)
+type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *authx.TokenRecord) (*ConnectedUser, bool)
 
 type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
-
-type AuthProvider struct {
-	Handler  AuthFlowHandlerFunc
-	UserInfo GetUserInfoFromToken
-}
 
 type V2Info struct {
 	AuthorizationEndpoint    string `json:"authorization_endpoint"`
@@ -64,59 +60,10 @@ type ConnectedEndpoint struct {
 	EndpointMetadata       string   `json:"metadata"`
 }
 
-const (
-	// AuthTypeOAuth2 means OAuth2
-	AuthTypeOAuth2 = "OAuth2"
-	// AuthTypeOIDC means no OIDC
-	AuthTypeOIDC = "OIDC"
-	// AuthTypeHttpBasic means HTTP Basic auth
-	AuthTypeHttpBasic = "HttpBasic"
-	// AuthTypeAKS means AKS
-	AuthTypeAKS = "AKS"
-)
-
-const (
-	// AuthConnectTypeCreds means authenticate with username/password credentials
-	AuthConnectTypeCreds = "creds"
-	// AuthConnectTypeNone means no authentication
-	AuthConnectTypeNone = "none"
-)
-
-// Token record for an endpoint (includes the Endpoint GUID)
-type EndpointTokenRecord struct {
-	*TokenRecord
-	EndpointGUID    string
-	EndpointType    string
-	APIEndpint      string
-	LoggingEndpoint string
-}
-
-// TokenRecord repsrents and endpoint or uaa token
-type TokenRecord struct {
-	TokenGUID      string
-	AuthToken      string
-	RefreshToken   string
-	TokenExpiry    int64
-	Disconnected   bool
-	AuthType       string
-	Metadata       string
-	SystemShared   bool
-	LinkedGUID     string // Indicates the GUID of the token that this token is linked to (if any)
-	Certificate    string
-	CertificateKey string
-}
-
 type CFInfo struct {
 	EndpointGUID string
 	SpaceGUID    string
 	AppGUID      string
-}
-
-// Structure for optional metadata for an OAuth2 Token
-type OAuth2Metadata struct {
-	ClientID     string
-	ClientSecret string
-	IssuerURL    string
 }
 
 type VCapApplicationData struct {
@@ -126,15 +73,15 @@ type VCapApplicationData struct {
 }
 
 type LoginRes struct {
-	Account     string         `json:"account"`
-	TokenExpiry int64          `json:"token_expiry"`
-	APIEndpoint *url.URL       `json:"api_endpoint"`
-	Admin       bool           `json:"admin"`
-	User        *ConnectedUser `json:"user"`
+	Account     string               `json:"account"`
+	TokenExpiry int64                `json:"token_expiry"`
+	APIEndpoint *url.URL             `json:"api_endpoint"`
+	Admin       bool                 `json:"admin"`
+	User        *users.ConnectedUser `json:"user"`
 }
 
 type LocalLoginRes struct {
-	User *ConnectedUser `json:"user"`
+	User *users.ConnectedUser `json:"user"`
 }
 
 type LoginHookFunc func(c echo.Context) error
@@ -156,21 +103,6 @@ type ProxyRequestInfo struct {
 type SessionStorer interface {
 	Get(r *http.Request, name string) (*sessions.Session, error)
 	Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error
-}
-
-// ConnectedUser - details about the user connected to a specific service or UAA
-type ConnectedUser struct {
-	GUID   string   `json:"guid"`
-	Name   string   `json:"name"`
-	Admin  bool     `json:"admin"`
-	Scopes []string `json:"scopes"`
-}
-
-type JWTUserTokenInfo struct {
-	UserGUID    string   `json:"user_id"`
-	UserName    string   `json:"user_name"`
-	TokenExpiry int64    `json:"exp"`
-	Scope       []string `json:"scope"`
 }
 
 // Diagnostics - Diagnostic metadata
@@ -196,7 +128,7 @@ type GooseDBVersionRecord struct {
 // Info - this represents user specific info
 type Info struct {
 	Versions      *Versions                             `json:"version"`
-	User          *ConnectedUser                        `json:"user"`
+	User          *users.ConnectedUser                  `json:"user"`
 	Endpoints     map[string]map[string]*EndpointDetail `json:"endpoints"`
 	CloudFoundry  *CFInfo                               `json:"cloud-foundry,omitempty"`
 	Plugins       map[string]bool                       `json:"plugins"`
@@ -210,11 +142,11 @@ type Info struct {
 // EndpointDetail extends CNSI Record and adds the user
 type EndpointDetail struct {
 	*CNSIRecord
-	EndpointMetadata  interface{}       `json:"endpoint_metadata,omitempty"`
-	User              *ConnectedUser    `json:"user"`
-	Metadata          map[string]string `json:"metadata,omitempty"`
-	TokenMetadata     string            `json:"-"`
-	SystemSharedToken bool              `json:"system_shared_token"`
+	EndpointMetadata  interface{}          `json:"endpoint_metadata,omitempty"`
+	User              *users.ConnectedUser `json:"user"`
+	Metadata          map[string]string    `json:"metadata,omitempty"`
+	TokenMetadata     string               `json:"-"`
+	SystemSharedToken bool                 `json:"system_shared_token"`
 }
 
 // Versions - response returned to caller from a getVersions action

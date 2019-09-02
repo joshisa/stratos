@@ -12,7 +12,7 @@ import (
 
 func (p *portalProxy) OAuthHandlerFunc(cnsiRequest *interfaces.CNSIRequest, req *http.Request, refreshOAuthTokenFunc interfaces.RefreshOAuthTokenFunc) interfaces.AuthHandlerFunc {
 
-	return func(tokenRec interfaces.TokenRecord, cnsi interfaces.CNSIRecord) (*http.Response, error) {
+	return func(tokenRec TokenRecord, cnsi interfaces.CNSIRecord) (*http.Response, error) {
 
 		got401 := false
 

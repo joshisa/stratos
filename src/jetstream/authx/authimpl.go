@@ -19,7 +19,6 @@ import (
 
 	"github.com/labstack/echo"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/localusers"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/stringutils"

@@ -15,7 +15,7 @@ type Endpoint struct {
 	GUID     string                    `json:"guid"`
 	Name     string                    `json:"name"`
 	Version  string                    `json:"version"`
-	User     *interfaces.ConnectedUser `json:"user"`
+	User     *authx.ConnectedUser `json:"user"`
 	CNSIType string                    `json:"type"`
 }
 
