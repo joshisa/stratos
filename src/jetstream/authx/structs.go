@@ -2,10 +2,12 @@ package authx
 
 import (
 	"database/sql"
+	"net/http"
 	"net/url"
 	"regexp"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
 )
 
@@ -85,6 +87,7 @@ type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *TokenRecord) (*us
 type RefreshOAuthTokenFunc func(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error)
 
 //type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
+type AuthHandlerFunc func(tokenRec TokenRecord, cnsi cnsis.CNSIRecord) (*http.Response, error)
 
 // TokenRecord repsrents and endpoint or uaa token
 type TokenRecord struct {

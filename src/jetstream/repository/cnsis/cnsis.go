@@ -1,6 +1,7 @@
 package cnsis
 
 import (
+	"net/http"
 	"net/url"
 )
 
@@ -34,6 +35,24 @@ type CNSIRecord struct {
 	SSOAllowed             bool     `json:"sso_allowed"`
 	SubType                string   `json:"sub_type"`
 	Metadata               string   `json:"metadata"`
+}
+
+// CNSIRequest
+type CNSIRequest struct {
+	GUID     string `json:"-"`
+	UserGUID string `json:"-"`
+
+	Method      string      `json:"-"`
+	Body        []byte      `json:"-"`
+	Header      http.Header `json:"-"`
+	URL         *url.URL    `json:"-"`
+	StatusCode  int         `json:"statusCode"`
+	Status      string      `json:"status"`
+	PassThrough bool        `json:"-"`
+
+	Response     []byte `json:"-"`
+	Error        error  `json:"-"`
+	ResponseGUID string `json:"-"`
 }
 
 // ConnectedEndpoint

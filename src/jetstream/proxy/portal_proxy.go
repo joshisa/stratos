@@ -6,7 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
+	interfaces "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins"
 	"github.com/gorilla/sessions"
 	"github.com/govau/cf-common/env"
 )
@@ -14,14 +15,14 @@ import (
 type PortalProxy struct {
 	Config                 PortalConfig
 	DatabaseConnectionPool *sql.DB
-	SessionStore           interfaces.SessionStorer
+	SessionStore           sessions.SessionStorer
 	SessionStoreOptions    *sessions.Options
-	Plugins                map[string]interfaces.StratosPlugin
+	Plugins                map[string]plugins.StratosPlugin
 	PluginsStatus          map[string]bool
 	Diagnostics            *interfaces.Diagnostics
 	SessionCookieName      string
 	EmptyCookieMatcher     *regexp.Regexp // Used to detect and remove empty Cookies sent by certain browsers
-	AuthProviders          map[string]interfaces.AuthProvider
+	AuthProviders          map[string]authx.AuthProvider
 	env                    *env.VarSet
 }
 
@@ -70,7 +71,7 @@ type PortalConfig struct {
 	ConsoleVersion                  string
 	IsCloudFoundry                  bool
 	LoginHooks                      []LoginHook
-	SessionStore                    SessionStorer
+	SessionStore                    sessions.SessionStorer
 	ConsoleConfig                   *ConsoleConfig
 	PluginConfig                    map[string]string
 	DatabaseProviderName            string

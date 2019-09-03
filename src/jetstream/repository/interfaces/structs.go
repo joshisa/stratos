@@ -4,17 +4,18 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 )
 
-type AuthHandlerFunc func(tokenRec authx.TokenRecord, cnsi CNSIRecord) (*http.Response, error)
+//type AuthHandlerFunc func(tokenRec authx.TokenRecord, cnsi CNSIRecord) (*http.Response, error)
 
-type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *authx.TokenRecord) (*users.ConnectedUser, bool)
+//type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *authx.TokenRecord) (*users.ConnectedUser, bool)
 
-type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
+//type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
 
 type V2Info struct {
 	AuthorizationEndpoint    string `json:"authorization_endpoint"`
@@ -25,10 +26,9 @@ type V2Info struct {
 	AppSSHOauthCLient        string `json:"app_ssh_oauth_client"`
 }
 
-type InfoFunc func(apiEndpoint string, skipSSLValidation bool) (CNSIRecord, interface{}, error)
+type InfoFunc func(apiEndpoint string, skipSSLValidation bool) (cnsis.CNSIRecord, interface{}, error)
 
 //TODO this could be moved back to cnsis subpackage, and extensions could import it?
-
 
 // ConnectedEndpoint
 type ConnectedEndpoint struct {
@@ -127,7 +127,7 @@ type Info struct {
 
 // EndpointDetail extends CNSI Record and adds the user
 type EndpointDetail struct {
-	*CNSIRecord
+	*cnsis.CNSIRecord
 	EndpointMetadata  interface{}          `json:"endpoint_metadata,omitempty"`
 	User              *users.ConnectedUser `json:"user"`
 	Metadata          map[string]string    `json:"metadata,omitempty"`
@@ -142,28 +142,10 @@ type Versions struct {
 }
 
 // IsSetupComplete indicates if we have enough config
-func (consoleConfig *ConsoleConfig) IsSetupComplete() bool {
+func (consoleConfig *proxy.ConsoleConfig) IsSetupComplete() bool {
 	if consoleConfig.UAAEndpoint == nil {
 		return false
 	}
 
 	return len(consoleConfig.UAAEndpoint.String()) > 0 && len(consoleConfig.ConsoleAdminScope) > 0
-}
-
-// CNSIRequest
-type CNSIRequest struct {
-	GUID     string `json:"-"`
-	UserGUID string `json:"-"`
-
-	Method      string      `json:"-"`
-	Body        []byte      `json:"-"`
-	Header      http.Header `json:"-"`
-	URL         *url.URL    `json:"-"`
-	StatusCode  int         `json:"statusCode"`
-	Status      string      `json:"status"`
-	PassThrough bool        `json:"-"`
-
-	Response     []byte `json:"-"`
-	Error        error  `json:"-"`
-	ResponseGUID string `json:"-"`
 }
