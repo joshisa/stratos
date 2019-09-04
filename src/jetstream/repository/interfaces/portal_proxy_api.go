@@ -38,21 +38,21 @@ type PortalProxyAPI interface {
 
 	GetConfig() *proxy.PortalConfig
 	Env() *env.VarSet
-	ListEndpointsByUser(userGUID string) ([]*ConnectedEndpoint, error)
+	ListEndpointsByUser(userGUID string) ([]*structs.ConnectedEndpoint, error)
 	ListEndpoints() ([]*structs.CNSIRecord, error)
 	UpdateEndointMetadata(guid string, metadata string) error
 
 	// Proxy API requests
-	ProxyRequest(c echo.Context, uri *url.URL) (map[string]*CNSIRequest, error)
-	DoProxyRequest(requests []ProxyRequestInfo) (map[string]*structs.CNSIRequest, error)
+	ProxyRequest(c echo.Context, uri *url.URL) (map[string]*structs.CNSIRequest, error)
+	DoProxyRequest(requests []structs.ProxyRequestInfo) (map[string]*structs.CNSIRequest, error)
 	DoProxySingleRequest(cnsiGUID, userGUID, method, requestUrl string, headers http.Header, body []byte) (*structs.CNSIRequest, error)
-	SendProxiedResponse(c echo.Context, responses map[string]*CNSIRequest) error
+	SendProxiedResponse(c echo.Context, responses map[string]*structs.CNSIRequest) error
 
 	// Database Connections
 	GetDatabaseConnection() *sql.DB
 	AddAuthProvider(name string, provider authx.AuthProvider)
 	GetAuthProvider(name string) authx.AuthProvider
-	DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error)
+	DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler authx.AuthHandlerFunc) (*http.Response, error)
 	OAuthHandlerFunc(cnsiRequest *structs.CNSIRequest, req *http.Request, refreshOAuthTokenFunc authx.RefreshOAuthTokenFunc) authx.AuthHandlerFunc
 
 	// Tokens - lower-level access

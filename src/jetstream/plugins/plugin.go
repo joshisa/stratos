@@ -2,8 +2,10 @@ package interfaces
 
 import (
 	"github.com/govau/cf-common/env"
+	"github.com/labstack/echo"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/structs"
 )
 
 // StratosPlugin is the interface for a Jetstream plugin
@@ -27,7 +29,7 @@ func RegisterJetstreamConfigPlugin(plugin JetstreamConfigInit) {
 
 // i is the interface for a Jetstream plugin
 type EndpointNotificationPlugin interface {
-	OnEndpointNotification(EndpointAction, *cnsis.CNSIRecord)
+	OnEndpointNotification(EndpointAction, *structs, structs.CNSIRecord)
 }
 
 type MiddlewarePlugin interface {
@@ -36,12 +38,12 @@ type MiddlewarePlugin interface {
 }
 
 type EndpointPlugin interface {
-	Info(apiEndpoint string, skipSSLValidation bool) (CNSIRecord, interface{}, error)
+	Info(apiEndpoint string, skipSSLValidation bool) (structs.CNSIRecord, interface{}, error)
 	GetType() string
 	Register(echoContext echo.Context) error
-	Connect(echoContext echo.Context, cnsiRecord CNSIRecord, userId string) (*TokenRecord, bool, error)
-	Validate(userGUID string, cnsiRecord CNSIRecord, tokenRecord TokenRecord) error
-	UpdateMetadata(info *Info, userGUID string, echoContext echo.Context)
+	Connect(echoContext echo.Context, cnsiRecord structs.CNSIRecord, userId string) (*structs.TokenRecord, bool, error)
+	Validate(userGUID string, cnsiRecord structs.CNSIRecord, tokenRecord structs.TokenRecord) error
+	UpdateMetadata(info *structs.Info, userGUID string, echoContext echo.Context)
 }
 
 type RoutePlugin interface {

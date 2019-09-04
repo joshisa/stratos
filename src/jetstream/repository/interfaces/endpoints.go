@@ -12,7 +12,7 @@ type EndpointPlugin interface {
 	Register(echoContext echo.Context) error
 	Connect(echoContext echo.Context, cnsiRecord structs.CNSIRecord, userId string) (*authx.TokenRecord, bool, error)
 	Validate(userGUID string, cnsiRecord structs.CNSIRecord, tokenRecord authx.TokenRecord) error
-	UpdateMetadata(info *Info, userGUID string, echoContext echo.Context)
+	UpdateMetadata(info *structs.Info, userGUID string, echoContext echo.Context)
 }
 
 type RoutePlugin interface {
