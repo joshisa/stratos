@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/interfaces"
 	log "github.com/sirupsen/logrus"
 )
 
-func (p *portalProxy) doOidcFlowRequest(cnsiRequest *interfaces.CNSIRequest, req *http.Request) (*http.Response, error) {
+func (p *portalProxy) doOidcFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request) (*http.Response, error) {
 	log.Debug("doOidcFlowRequest")
 
 	authHandler := p.OAuthHandlerFunc(cnsiRequest, req, p.RefreshOidcToken)

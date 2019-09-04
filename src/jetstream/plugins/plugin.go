@@ -29,7 +29,7 @@ func RegisterJetstreamConfigPlugin(plugin JetstreamConfigInit) {
 
 // i is the interface for a Jetstream plugin
 type EndpointNotificationPlugin interface {
-	OnEndpointNotification(EndpointAction, *structs, structs.CNSIRecord)
+	OnEndpointNotification(EndpointAction, structs.CNSIRecord)
 }
 
 type MiddlewarePlugin interface {

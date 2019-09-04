@@ -622,7 +622,7 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 		"Endpoint connection not supported")
 }
 
-func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord cnsis.CNSIRecord) error {
+func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord structs.CNSIRecord) error {
 	userID, err := p.GetSessionStringValue(c, "user_id")
 	if err != nil {
 		return errors.New("could not find correct session value")
@@ -671,7 +671,7 @@ func santizeInfoForSystemSharedTokenUser(cnsiUser *users.ConnectedUser, isSysyst
 	}
 }
 
-func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord cnsis.CNSIRecord) (*TokenRecord, error) {
+func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord structs.CNSIRecord) (*TokenRecord, error) {
 	uaaRes, u, _, err := p.FetchOAuth2Token(cnsiRecord, c)
 	if err != nil {
 		return nil, err
@@ -680,7 +680,7 @@ func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord cnsis.CNSIR
 	return &tokenRecord, nil
 }
 
-func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord cnsis.CNSIRecord, c echo.Context) (*UAAResponse, *JWTUserTokenInfo, *cnsis.CNSIRecord, error) {
+func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord structs.CNSIRecord, c echo.Context) (*UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
 
 	uaaRes, u, err := p.loginHTTPBasic(c)
 
@@ -693,7 +693,7 @@ func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord cnsis.CNSIRecord, c e
 	return uaaRes, u, &cnsiRecord, nil
 }
 
-func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord cnsis.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *JWTUserTokenInfo, *cnsis.CNSIRecord, error) {
+func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord structs.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
 	endpoint := cnsiRecord.AuthorizationEndpoint
 
 	tokenEndpoint := fmt.Sprintf("%s/oauth/token", endpoint)
@@ -764,7 +764,7 @@ func (p *proxy.PortalProxy) logoutOfCNSI(c echo.Context) error {
 }
 
 // Clear the CNSI token
-func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord cnsis.CNSIRecord, userGUID string) error {
+func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord structs.CNSIRecord, userGUID string) error {
 	// If cnsi is cf AND cf is auto-register only clear the entry
 	p.Config.AutoRegisterCFUrl = strings.TrimRight(p.Config.AutoRegisterCFUrl, "/")
 	if cnsiRecord.CNSIType == "cf" && p.GetConfig().AutoRegisterCFUrl == cnsiRecord.APIEndpoint.String() {
@@ -1340,7 +1340,7 @@ func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRe
 	return cnsiUser, true
 }
 
-func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *cnsis.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error) {
+func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error) {
 
 	// get a cnsi token record and a cnsi record
 	tokenRec, cnsi, err := p.getCNSIRequestRecords(cnsiRequest)

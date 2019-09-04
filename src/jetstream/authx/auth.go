@@ -1,8 +1,8 @@
 package authx
 
 import (
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/structs"
 	"github.com/labstack/echo"
 )
 
@@ -19,9 +19,9 @@ type AuthService interface {
 	GetUAAUser(userGUID string) (*users.ConnectedUser, error)
 
 	// Auth
-	ConnectOAuth2(c echo.Context, cnsiRecord cnsis.CNSIRecord) (*TokenRecord, error)
+	ConnectOAuth2(c echo.Context, cnsiRecord structs.CNSIRecord) (*TokenRecord, error)
 	InitEndpointTokenRecord(expiry int64, authTok string, refreshTok string, disconnect bool) TokenRecord
 
-	DoLoginToCNSI(c echo.Context, cnsiGUID string, systemSharedToken bool) (*LoginRes, error)
-	DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord cnsis.CNSIRecord) error
+	DoLoginToCNSI(c echo.Context, cnsiGUID string, systemSharedToken bool) (*structs.LoginRes, error)
+	DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord structs.CNSIRecord) error
 }
