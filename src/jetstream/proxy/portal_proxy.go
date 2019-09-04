@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/authx"
-	interfaces "github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/plugins"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/structs"
 	"github.com/gorilla/sessions"
 	"github.com/govau/cf-common/env"
 )
@@ -19,7 +20,7 @@ type PortalProxy struct {
 	SessionStoreOptions    *sessions.Options
 	Plugins                map[string]plugins.StratosPlugin
 	PluginsStatus          map[string]bool
-	Diagnostics            *interfaces.Diagnostics
+	Diagnostics            *structs.Diagnostics
 	SessionCookieName      string
 	EmptyCookieMatcher     *regexp.Regexp // Used to detect and remove empty Cookies sent by certain browsers
 	AuthProviders          map[string]authx.AuthProvider
@@ -65,12 +66,12 @@ type PortalConfig struct {
 	CookieDomain                    string   `configName:"COOKIE_DOMAIN"`
 	LogLevel                        string   `configName:"LOG_LEVEL"`
 	CFAdminIdentifier               string
-	CloudFoundryInfo                *CFInfo
+	CloudFoundryInfo                *structs.CFInfo
 	HTTPS                           bool
 	EncryptionKeyInBytes            []byte
 	ConsoleVersion                  string
 	IsCloudFoundry                  bool
-	LoginHooks                      []LoginHook
+	LoginHooks                      []structs.LoginHook
 	SessionStore                    sessions.SessionStorer
 	ConsoleConfig                   *ConsoleConfig
 	PluginConfig                    map[string]string

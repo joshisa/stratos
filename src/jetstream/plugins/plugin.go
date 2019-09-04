@@ -2,6 +2,8 @@ package interfaces
 
 import (
 	"github.com/govau/cf-common/env"
+
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
 )
 
 // StratosPlugin is the interface for a Jetstream plugin
@@ -13,7 +15,7 @@ type StratosPlugin interface {
 }
 
 // JetstreamConfigInit is the function signature for the config plugin init function
-type JetstreamConfigInit func(*env.VarSet, *PortalConfig)
+type JetstreamConfigInit func(*env.VarSet, *proxy.PortalConfig)
 
 // JetstreamConfigPlugins is the array of config plugins
 var JetstreamConfigPlugins []JetstreamConfigInit

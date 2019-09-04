@@ -1,4 +1,4 @@
-package interfaces
+package structs
 
 import (
 	"net/http"
@@ -16,6 +16,55 @@ import (
 //type GetUserInfoFromToken func(cnsiGUID string, cfTokenRecord *authx.TokenRecord) (*users.ConnectedUser, bool)
 
 //type AuthFlowHandlerFunc func(cnsiRequest *CNSIRequest, req *http.Request) (*http.Response, error)
+// Repository is an application of the repository pattern for storing CNSI Records
+type Repository interface {
+	List(encryptionKey []byte) ([]*CNSIRecord, error)
+	ListByUser(userGUID string) ([]*ConnectedEndpoint, error)
+	Find(guid string, encryptionKey []byte) (CNSIRecord, error)
+	FindByAPIEndpoint(endpoint string, encryptionKey []byte) (CNSIRecord, error)
+	Delete(guid string) error
+	Save(guid string, cnsiRecord CNSIRecord, encryptionKey []byte) error
+	Update(guid string, ssoAllowed bool) error
+	UpdateMetadata(guid string, metadata string) error
+}
+
+type Endpoint interface {
+	Init()
+}
+
+type CNSIRecord struct {
+	GUID                   string   `json:"guid"`
+	Name                   string   `json:"name"`
+	CNSIType               string   `json:"cnsi_type"`
+	APIEndpoint            *url.URL `json:"api_endpoint"`
+	AuthorizationEndpoint  string   `json:"authorization_endpoint"`
+	TokenEndpoint          string   `json:"token_endpoint"`
+	DopplerLoggingEndpoint string   `json:"doppler_logging_endpoint"`
+	SkipSSLValidation      bool     `json:"skip_ssl_validation"`
+	ClientId               string   `json:"client_id"`
+	ClientSecret           string   `json:"-"`
+	SSOAllowed             bool     `json:"sso_allowed"`
+	SubType                string   `json:"sub_type"`
+	Metadata               string   `json:"metadata"`
+}
+
+// CNSIRequest
+type CNSIRequest struct {
+	GUID     string `json:"-"`
+	UserGUID string `json:"-"`
+
+	Method      string      `json:"-"`
+	Body        []byte      `json:"-"`
+	Header      http.Header `json:"-"`
+	URL         *url.URL    `json:"-"`
+	StatusCode  int         `json:"statusCode"`
+	Status      string      `json:"status"`
+	PassThrough bool        `json:"-"`
+
+	Response     []byte `json:"-"`
+	Error        error  `json:"-"`
+	ResponseGUID string `json:"-"`
+}
 
 type V2Info struct {
 	AuthorizationEndpoint    string `json:"authorization_endpoint"`
@@ -26,7 +75,7 @@ type V2Info struct {
 	AppSSHOauthCLient        string `json:"app_ssh_oauth_client"`
 }
 
-type InfoFunc func(apiEndpoint string, skipSSLValidation bool) (cnsis.CNSIRecord, interface{}, error)
+type InfoFunc func(apiEndpoint string, skipSSLValidation bool) (CNSIRecord, interface{}, error)
 
 //TODO this could be moved back to cnsis subpackage, and extensions could import it?
 
