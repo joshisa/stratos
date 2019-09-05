@@ -1,4 +1,4 @@
-package main
+package cnsi
 
 import (
 	"crypto/x509"

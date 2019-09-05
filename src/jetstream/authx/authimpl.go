@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -19,9 +18,6 @@ import (
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/errors"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/users"
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/cnsis"
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/localusers"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/tokens"
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/stringutils"
 
@@ -58,12 +54,12 @@ type LogoutResponse struct {
 	IsSSO bool `json:"isSSO"`
 }
 
-func (p *proxy.PortalProxy) getUAAIdentityEndpoint() string {
+func (a *Auth) getUAAIdentityEndpoint() string {
 	log.Debug("getUAAIdentityEndpoint")
-	return fmt.Sprintf("%s/oauth/token", p.Config.ConsoleConfig.UAAEndpoint)
+	return fmt.Sprintf("%s/oauth/token", a.UAAEndpoint)
 }
 
-func (p *proxy.PortalProxy) removeEmptyCookie(c echo.Context) {
+func (a *Auth) removeEmptyCookie(c echo.Context) {
 	req := c.Request()
 	originalCookie := req.Header.Get("Cookie")
 	cleanCookie := p.EmptyCookieMatcher.ReplaceAllLiteralString(originalCookie, "")
@@ -71,13 +67,13 @@ func (p *proxy.PortalProxy) removeEmptyCookie(c echo.Context) {
 }
 
 // Get the user name for the specified user
-func (p *proxy.PortalProxy) GetUsername(userid string) (string, error) {
-	tr, err := p.GetUAATokenRecord(userid)
+func (a *Auth) GetUsername(userid string) (string, error) {
+	tr, err := a.GetUAATokenRecord(userid)
 	if err != nil {
 		return "", err
 	}
 
-	u, userTokenErr := p.GetUserTokenInfo(tr.AuthToken)
+	u, userTokenErr := a.GetUserTokenInfo(tr.AuthToken)
 	if userTokenErr != nil {
 		return "", userTokenErr
 	}
@@ -86,8 +82,8 @@ func (p *proxy.PortalProxy) GetUsername(userid string) (string, error) {
 }
 
 // Login via UAA
-func (p *proxy.PortalProxy) initSSOlogin(c echo.Context) error {
-	if !p.Config.SSOLogin {
+func (a *Auth) initSSOlogin(c echo.Context) error {
+	if !a.SSOLogin {
 		err := errors.NewHTTPShadowError(
 			http.StatusNotFound,
 			"SSO Login is not enabled",
@@ -104,7 +100,7 @@ func (p *proxy.PortalProxy) initSSOlogin(c echo.Context) error {
 		return err
 	}
 
-	redirectURL := fmt.Sprintf("%s/oauth/authorize?response_type=code&client_id=%s&redirect_uri=%s", p.Config.ConsoleConfig.AuthorizationEndpoint, p.Config.ConsoleConfig.ConsoleClient, url.QueryEscape(getSSORedirectURI(state, state, "")))
+	redirectURL := fmt.Sprintf("%s/oauth/authorize?response_type=code&client_id=%s&redirect_uri=%s", a.AuthorizationEndpoint, a.ConsoleClient, url.QueryEscape(getSSORedirectURI(state, state, "")))
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	return nil
 }
@@ -123,8 +119,8 @@ func getSSORedirectURI(base string, state string, endpointGUID string) string {
 }
 
 // Logout of the UAA
-func (p *proxy.PortalProxy) ssoLogoutOfUAA(c echo.Context) error {
-	if !p.Config.SSOLogin {
+func (a *Auth) ssoLogoutOfUAA(c echo.Context) error {
+	if !a.SSOLogin {
 		err := errors.NewHTTPShadowError(
 			http.StatusNotFound,
 			"SSO Login is not enabled",
@@ -143,7 +139,7 @@ func (p *proxy.PortalProxy) ssoLogoutOfUAA(c echo.Context) error {
 
 	// Redirect to the UAA to logout of the UAA session as well (if confimainured to do so), otherwise redirect back to the UI login page
 	var redirectURL string
-	if p.hasSSOOption("logout") {
+	if a.hasSSOOption("logout") {
 		redirectURL = fmt.Sprintf("%s/logout.do?client_id=%s&redirect=%s", p.Config.ConsoleConfig.UAAEndpoint, p.Config.ConsoleConfig.ConsoleClient, url.QueryEscape(getSSORedirectURI(state, "logout", "")))
 	} else {
 		redirectURL = "/login?SSO_Message=You+have+been+logged+out"
@@ -151,7 +147,7 @@ func (p *proxy.PortalProxy) ssoLogoutOfUAA(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
-func (p *proxy.PortalProxy) hasSSOOption(option string) bool {
+func (a *Auth) hasSSOOption(option string) bool {
 	// Remove all spaces
 	opts := stringutils.RemoveSpaces(p.Config.SSOOptions)
 
@@ -162,7 +158,7 @@ func (p *proxy.PortalProxy) hasSSOOption(option string) bool {
 
 // Callback - invoked after the UAA login flow has completed and during logout
 // We use a single callback so this can be whitelisted in the client
-func (p *proxy.PortalProxy) ssoLoginToUAA(c echo.Context) error {
+func (a *Auth) ssoLoginToUAA(c echo.Context) error {
 	state := c.QueryParam("state")
 	if len(state) == 0 {
 		err := errors.NewHTTPShadowError(
@@ -176,13 +172,13 @@ func (p *proxy.PortalProxy) ssoLoginToUAA(c echo.Context) error {
 	// Check if it is an endpoint login and dens to the right handler
 	endpointGUID := c.QueryParam("guid")
 	if len(endpointGUID) > 0 {
-		return p.ssoLoginToCNSI(c)
+		return a.ssoLoginToCNSI(c)
 	}
 
 	if state == "logout" {
 		return c.Redirect(http.StatusTemporaryRedirect, "/login?SSO_Message=You+have+been+logged+out")
 	}
-	_, err := p.doLoginToUAA(c)
+	_, err := a.doLoginToUAA(c)
 	if err != nil {
 		// Send error as query string param
 		msg := err.Error()
@@ -198,10 +194,10 @@ func (p *proxy.PortalProxy) ssoLoginToUAA(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, state)
 }
 
-func (p *proxy.PortalProxy) loginToUAA(c echo.Context) error {
+func (a *Auth) loginToUAA(c echo.Context) error {
 	log.Debug("loginToUAA")
 
-	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != Remote {
+	if AuthEndpointTypes[a.AuthEndpointType] != Remote {
 		err := errors.NewHTTPShadowError(
 			http.StatusNotFound,
 			"UAA Login is not enabled",
@@ -209,7 +205,7 @@ func (p *proxy.PortalProxy) loginToUAA(c echo.Context) error {
 		return err
 	}
 
-	resp, err := p.doLoginToUAA(c)
+	resp, err := a.doLoginToUAA(c)
 	if err != nil {
 		return err
 	}
@@ -229,24 +225,24 @@ func (p *proxy.PortalProxy) loginToUAA(c echo.Context) error {
 }
 
 // Use the appropriate login mechanism
-func (p *proxy.PortalProxy) stratosLoginHandler(c echo.Context) error {
+func (a *Auth) stratosLoginHandler(c echo.Context) error {
 	// Local login
-	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == Local {
-		return p.localLogin(c)
+	if AuthEndpointTypes[a.AuthEndpointType] == Local {
+		return a.localLogin(c)
 	}
 
 	// UAA login
-	return p.loginToUAA(c)
+	return a.loginToUAA(c)
 }
 
 // Use the appropriate logout mechanism
-func (p *proxy.PortalProxy) stratosLogoutHandler(c echo.Context) error {
-	return p.logout(c)
+func (a *Auth) stratosLogoutHandler(c echo.Context) error {
+	return a.logout(c)
 }
 
-func (p *proxy.PortalProxy) doLoginToUAA(c echo.Context) (*interfaces.LoginRes, error) {
+func (a *Auth) doLoginToUAA(c echo.Context) (*structs.LoginRes, error) {
 	log.Debug("doLoginToUAA")
-	uaaRes, u, err := p.login(c, p.Config.ConsoleConfig.SkipSSLValidation, p.Config.ConsoleConfig.ConsoleClient, p.Config.ConsoleConfig.ConsoleClientSecret, p.getUAAIdentityEndpoint())
+	uaaRes, u, err := p.login(c, a.SkipSSLValidation, a.ConsoleClient, a.ConsoleClientSecret, a.getUAAIdentityEndpoint())
 	if err != nil {
 		// Check the Error
 		errMessage := "Access Denied"
@@ -272,16 +268,16 @@ func (p *proxy.PortalProxy) doLoginToUAA(c echo.Context) (*interfaces.LoginRes, 
 	// Ensure that login disregards cookies from the request
 	req := c.Request()
 	req.Header.Set("Cookie", "")
-	if err = p.setSessionValues(c, sessionValues); err != nil {
+	if err = a.setSessionValues(c, sessionValues); err != nil {
 		return nil, err
 	}
 
-	err = p.handleSessionExpiryHeader(c)
+	err = a.handleSessionExpiryHeader(c)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = p.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
+	_, err = a.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -291,8 +287,8 @@ func (p *proxy.PortalProxy) doLoginToUAA(c echo.Context) (*interfaces.LoginRes, 
 		log.Warnf("Login hooks failed: %v", err)
 	}
 
-	uaaAdmin := strings.Contains(uaaRes.Scope, p.Config.ConsoleConfig.ConsoleAdminScope)
-	resp := &interfaces.LoginRes{
+	uaaAdmin := strings.Contains(uaaRes.Scope, a.ConsoleAdminScope)
+	resp := &structs.LoginRes{
 		Account:     u.UserName,
 		TokenExpiry: u.TokenExpiry,
 		APIEndpoint: nil,
@@ -301,10 +297,10 @@ func (p *proxy.PortalProxy) doLoginToUAA(c echo.Context) (*interfaces.LoginRes, 
 	return resp, nil
 }
 
-func (p *proxy.PortalProxy) localLogin(c echo.Context) error {
+func (a *Auth) localLogin(c echo.Context) error {
 	log.Debug("localLogin")
 
-	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] != Local {
+	if AuthEndpointTypes[a.AuthEndpointType] != Local {
 		err := errors.NewHTTPShadowError(
 			http.StatusNotFound,
 			"Local Login is not enabled",
@@ -313,7 +309,7 @@ func (p *proxy.PortalProxy) localLogin(c echo.Context) error {
 	}
 
 	//Perform the login and fetch session values if successful
-	userGUID, username, err := p.doLocalLogin(c)
+	userGUID, username, err := a.doLocalLogin(c)
 	if err != nil {
 		//Login failed, return response.
 		errMessage := err.Error()
@@ -343,7 +339,7 @@ func (p *proxy.PortalProxy) localLogin(c echo.Context) error {
 		return err
 	}
 
-	resp := &interfaces.LoginRes{
+	resp := &structs.LoginRes{
 		Account:     username,
 		TokenExpiry: expiry,
 		APIEndpoint: nil,
@@ -360,7 +356,7 @@ func (p *proxy.PortalProxy) localLogin(c echo.Context) error {
 	return err
 }
 
-func (p *proxy.PortalProxy) doLocalLogin(c echo.Context) (string, string, error) {
+func (a *Auth) doLocalLogin(c echo.Context) (string, string, error) {
 	log.Debug("doLocalLogin")
 
 	username := c.FormValue("username")
@@ -370,7 +366,7 @@ func (p *proxy.PortalProxy) doLocalLogin(c echo.Context) (string, string, error)
 		return "", username, errors.New("Needs usernameand password")
 	}
 
-	localUsersRepo, err := localusers.NewPgsqlLocalUsersRepository(p.DatabaseConnectionPool)
+	localUsersRepo, err := localusers.NewPgsqlLocalUsersRepository(a.DatabaseConnectionPool)
 	if err != nil {
 		log.Errorf("Database error getting repo for Local users: %v", err)
 		return "", username, err
@@ -396,7 +392,7 @@ func (p *proxy.PortalProxy) doLocalLogin(c echo.Context) (string, string, error)
 	} else {
 		//Ensure the local user has some kind of admin role configured and we check for it here
 		localUserScope, authError = localUsersRepo.FindUserScope(guid)
-		scopeOK = strings.Contains(localUserScope, p.Config.ConsoleConfig.LocalUserScope)
+		scopeOK = strings.Contains(localUserScope, a.LocalUserScope)
 		if (authError != nil) || (!scopeOK) {
 			authError = fmt.Errorf("Access Denied - User scope invalid")
 		} else {
@@ -425,7 +421,7 @@ func CheckPasswordHash(password string, hash []byte) error {
 }
 
 // Start SSO flow for an Endpoint
-func (p *proxy.PortalProxy) ssoLoginToCNSI(c echo.Context) error {
+func (a *Auth) ssoLoginToCNSI(c echo.Context) error {
 	log.Debug("ssoLoginToCNSI")
 	endpointGUID := c.QueryParam("guid")
 	if len(endpointGUID) == 0 {
@@ -471,7 +467,7 @@ func (p *proxy.PortalProxy) ssoLoginToCNSI(c echo.Context) error {
 	}
 
 	// Callback
-	_, err = p.DoLoginToCNSI(c, endpointGUID, false)
+	_, err = a.DoLoginToCNSI(c, endpointGUID, false)
 	status := "ok"
 	if err != nil {
 		status = "fail"
@@ -485,7 +481,7 @@ func (p *proxy.PortalProxy) ssoLoginToCNSI(c echo.Context) error {
 
 // Connect to the given Endpoint
 // Note, an admin user can connect an endpoint as a system endpoint to share it with others
-func (p *proxy.PortalProxy) loginToCNSI(c echo.Context) error {
+func (a *Auth) loginToCNSI(c echo.Context) error {
 	log.Debug("loginToCNSI")
 	cnsiGUID := c.FormValue("cnsi_guid")
 	var systemSharedToken = false
@@ -502,7 +498,7 @@ func (p *proxy.PortalProxy) loginToCNSI(c echo.Context) error {
 		systemSharedToken = systemSharedValue == "true"
 	}
 
-	resp, err := p.DoLoginToCNSI(c, cnsiGUID, systemSharedToken)
+	resp, err := a.DoLoginToCNSI(c, cnsiGUID, systemSharedToken)
 	if err != nil {
 		return err
 	}
@@ -517,7 +513,7 @@ func (p *proxy.PortalProxy) loginToCNSI(c echo.Context) error {
 	return nil
 }
 
-func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, systemSharedToken bool) (*interfaces.LoginRes, error) {
+func (a *Auth) DoLoginToCNSI(c echo.Context, cnsiGUID string, systemSharedToken bool) (*structs.LoginRes, error) {
 
 	cnsiRecord, err := p.GetCNSIRecord(cnsiGUID)
 	if err != nil {
@@ -536,7 +532,7 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 	// Register as a system endpoint?
 	if systemSharedToken {
 		// User needs to be an admin
-		user, err := p.GetUAAUser(userID)
+		user, err := a.GetUAAUser(userID)
 		if err != nil {
 			return nil, echo.NewHTTPError(http.StatusUnauthorized, "Can not connect System Shared endpoint - could not check user")
 		}
@@ -551,7 +547,7 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 	}
 
 	// Ask the endpoint type to connect
-	for _, plugin := range p.Plugins {
+	for _, plugin := range a.Plugins {
 		endpointPlugin, err := plugin.GetEndpointPlugin()
 		if err != nil {
 			// Plugin doesn't implement an Endpoint Plugin interface, skip
@@ -583,28 +579,28 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 			err = endpointPlugin.Validate(userID, cnsiRecord, *tokenRecord)
 			if err != nil {
 				// Clear the token
-				p.ClearCNSIToken(cnsiRecord, userID)
+				a.ClearCNSIToken(cnsiRecord, userID)
 				return nil, errors.NewHTTPShadowError(
 					http.StatusBadRequest,
 					"Could not connect to the endpoint",
 					"Could not connect to the endpoint: %s", err)
 			}
 
-			resp := &interfaces.LoginRes{
+			resp := &structs.LoginRes{
 				Account:     userID,
 				TokenExpiry: tokenRecord.TokenExpiry,
 				APIEndpoint: cnsiRecord.APIEndpoint,
 				Admin:       isAdmin,
 			}
 
-			cnsiUser, ok := p.GetCNSIUserFromToken(cnsiGUID, tokenRecord)
+			cnsiUser, ok := a.GetCNSIUserFromToken(cnsiGUID, tokenRecord)
 			if ok {
 				// If this is a system shared endpoint, then remove some metadata that should be send back to other users
 				santizeInfoForSystemSharedTokenUser(cnsiUser, systemSharedToken)
 				resp.User = cnsiUser
 			} else {
 				// Need to record a user
-				resp.User = &users.ConnectedUser{
+				resp.User = &structs.ConnectedUser{
 					GUID:   "Unknown",
 					Name:   "Unknown",
 					Scopes: []string{"read"},
@@ -622,12 +618,12 @@ func (p *proxy.PortalProxy) DoLoginToCNSI(c echo.Context, cnsiGUID string, syste
 		"Endpoint connection not supported")
 }
 
-func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord structs.CNSIRecord) error {
+func (a *Auth) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, theCNSIrecord structs.CNSIRecord) error {
 	userID, err := p.GetSessionStringValue(c, "user_id")
 	if err != nil {
 		return errors.New("could not find correct session value")
 	}
-	uaaToken, err := p.GetUAATokenRecord(userID)
+	uaaToken, err := a.GetUAATokenRecord(userID)
 	if err == nil { // Found the user's UAA token
 		u, err := p.GetUserTokenInfo(uaaToken.AuthToken)
 		if err != nil {
@@ -663,7 +659,7 @@ func (p *proxy.PortalProxy) DoLoginToCNSIwithConsoleUAAtoken(c echo.Context, the
 	return err
 }
 
-func santizeInfoForSystemSharedTokenUser(cnsiUser *users.ConnectedUser, isSysystemShared bool) {
+func santizeInfoForSystemSharedTokenUser(cnsiUser *structs.ConnectedUser, isSysystemShared bool) {
 	if isSysystemShared {
 		cnsiUser.GUID = tokens.SystemSharedUserGuid
 		cnsiUser.Scopes = make([]string, 0)
@@ -671,18 +667,18 @@ func santizeInfoForSystemSharedTokenUser(cnsiUser *users.ConnectedUser, isSysyst
 	}
 }
 
-func (p *proxy.PortalProxy) ConnectOAuth2(c echo.Context, cnsiRecord structs.CNSIRecord) (*TokenRecord, error) {
-	uaaRes, u, _, err := p.FetchOAuth2Token(cnsiRecord, c)
+func (a *Auth) ConnectOAuth2(c echo.Context, cnsiRecord structs.CNSIRecord) (*TokenRecord, error) {
+	uaaRes, u, _, err := a.FetchOAuth2Token(cnsiRecord, c)
 	if err != nil {
 		return nil, err
 	}
-	tokenRecord := p.InitEndpointTokenRecord(u.TokenExpiry, uaaRes.AccessToken, uaaRes.RefreshToken, false)
+	tokenRecord := a.InitEndpointTokenRecord(u.TokenExpiry, uaaRes.AccessToken, uaaRes.RefreshToken, false)
 	return &tokenRecord, nil
 }
 
-func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord structs.CNSIRecord, c echo.Context) (*UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
+func (a *Auth) fetchHTTPBasicToken(cnsiRecord structs.CNSIRecord, c echo.Context) (*UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
 
-	uaaRes, u, err := p.loginHTTPBasic(c)
+	uaaRes, u, err := a.loginHTTPBasic(c)
 
 	if err != nil {
 		return nil, nil, nil, errors.NewHTTPShadowError(
@@ -693,7 +689,7 @@ func (p *proxy.PortalProxy) fetchHTTPBasicToken(cnsiRecord structs.CNSIRecord, c
 	return uaaRes, u, &cnsiRecord, nil
 }
 
-func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord structs.CNSIRecord, c echo.Context) (*interfaces.UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
+func (a *Auth) FetchOAuth2Token(cnsiRecord structs.CNSIRecord, c echo.Context) (*UAAResponse, *JWTUserTokenInfo, *structs.CNSIRecord, error) {
 	endpoint := cnsiRecord.AuthorizationEndpoint
 
 	tokenEndpoint := fmt.Sprintf("%s/oauth/token", endpoint)
@@ -701,10 +697,10 @@ func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord structs.CNSIRecord, c ec
 	uaaRes, u, err := p.login(c, cnsiRecord.SkipSSLValidation, cnsiRecord.ClientId, cnsiRecord.ClientSecret, tokenEndpoint)
 
 	if err != nil {
-		if httpError, ok := err.(interfaces.ErrHTTPRequest); ok {
+		if httpError, ok := err.(errors.ErrHTTPRequest); ok {
 			// Try and parse the Response into UAA error structure (p.login only handles UAA requests)
 			errMessage := ""
-			authError := &interfaces.UAAErrorResponse{}
+			authError := &UAAErrorResponse{}
 			if err := json.Unmarshal([]byte(httpError.Response), authError); err == nil {
 				errMessage = fmt.Sprintf(": %s", authError.ErrorDescription)
 			}
@@ -722,7 +718,7 @@ func (p *proxy.PortalProxy) FetchOAuth2Token(cnsiRecord structs.CNSIRecord, c ec
 	return uaaRes, u, &cnsiRecord, nil
 }
 
-func (p *proxy.PortalProxy) logoutOfCNSI(c echo.Context) error {
+func (a *Auth) logoutOfCNSI(c echo.Context) error {
 	log.Debug("logoutOfCNSI")
 
 	cnsiGUID := c.FormValue("cnsi_guid")
@@ -748,7 +744,7 @@ func (p *proxy.PortalProxy) logoutOfCNSI(c echo.Context) error {
 	tr, ok := p.GetCNSITokenRecord(cnsiGUID, userGUID)
 	if ok && tr.SystemShared {
 		// User needs to be an admin
-		user, err := p.GetUAAUser(userGUID)
+		user, err := a.GetUAAUser(userGUID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Can not disconnect System Shared endpoint - could not check user")
 		}
@@ -760,23 +756,23 @@ func (p *proxy.PortalProxy) logoutOfCNSI(c echo.Context) error {
 	}
 
 	// Clear the token
-	return p.ClearCNSIToken(cnsiRecord, userGUID)
+	return a.ClearCNSIToken(cnsiRecord, userGUID)
 }
 
 // Clear the CNSI token
-func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord structs.CNSIRecord, userGUID string) error {
+func (a *Auth) ClearCNSIToken(cnsiRecord structs.CNSIRecord, userGUID string) error {
 	// If cnsi is cf AND cf is auto-register only clear the entry
-	p.Config.AutoRegisterCFUrl = strings.TrimRight(p.Config.AutoRegisterCFUrl, "/")
+	a.AutoRegisterCFUrl = strings.TrimRight(p.Config.AutoRegisterCFUrl, "/")
 	if cnsiRecord.CNSIType == "cf" && p.GetConfig().AutoRegisterCFUrl == cnsiRecord.APIEndpoint.String() {
 		log.Debug("Setting token record as disconnected")
 
-		tokenRecord := p.InitEndpointTokenRecord(0, "cleared_token", "cleared_token", true)
-		if err := p.setCNSITokenRecord(cnsiRecord.GUID, userGUID, tokenRecord); err != nil {
+		tokenRecord := a.InitEndpointTokenRecord(0, "cleared_token", "cleared_token", true)
+		if err := a.setCNSITokenRecord(cnsiRecord.GUID, userGUID, tokenRecord); err != nil {
 			return fmt.Errorf("Unable to clear token: %s", err)
 		}
 	} else {
 		log.Debug("Deleting Token")
-		if err := p.deleteCNSIToken(cnsiRecord.GUID, userGUID); err != nil {
+		if err := a.deleteCNSIToken(cnsiRecord.GUID, userGUID); err != nil {
 			return fmt.Errorf("Unable to delete token: %s", err)
 		}
 	}
@@ -784,20 +780,20 @@ func (p *proxy.PortalProxy) ClearCNSIToken(cnsiRecord structs.CNSIRecord, userGU
 	return nil
 }
 
-func (p *proxy.PortalProxy) RefreshUAALogin(username, password string, store bool) error {
+func (a *Auth) RefreshUAALogin(username, password string, store bool) error {
 	log.Debug("RefreshUAALogin")
-	uaaRes, err := p.getUAATokenWithCreds(p.Config.ConsoleConfig.SkipSSLValidation, username, password, p.Config.ConsoleConfig.ConsoleClient, p.Config.ConsoleConfig.ConsoleClientSecret, p.getUAAIdentityEndpoint())
+	uaaRes, err := a.getUAATokenWithCreds(a.SkipSSLValidation, username, password, a.ConsoleClient, a.ConsoleClientSecret, a.getUAAIdentityEndpoint())
 	if err != nil {
 		return err
 	}
 
-	u, err := p.GetUserTokenInfo(uaaRes.AccessToken)
+	u, err := a.GetUserTokenInfo(uaaRes.AccessToken)
 	if err != nil {
 		return err
 	}
 
 	if store {
-		_, err = p.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
+		_, err = a.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
 		if err != nil {
 			return err
 		}
@@ -806,7 +802,7 @@ func (p *proxy.PortalProxy) RefreshUAALogin(username, password string, store boo
 	return nil
 }
 
-func (p *proxy.PortalProxy) login(c echo.Context, skipSSLValidation bool, client string, clientSecret string, endpoint string) (uaaRes *interfaces.UAAResponse, u *JWTUserTokenInfo, err error) {
+func (a *Auth) login(c echo.Context, skipSSLValidation bool, client string, clientSecret string, endpoint string) (uaaRes *UAAResponse, u *JWTUserTokenInfo, err error) {
 	log.Debug("login")
 	if c.Request().Method == http.MethodGet {
 		code := c.QueryParam("code")
@@ -821,13 +817,13 @@ func (p *proxy.PortalProxy) login(c echo.Context, skipSSLValidation bool, client
 		if len(username) == 0 || len(password) == 0 {
 			return uaaRes, u, errors.New("Needs username and password")
 		}
-		uaaRes, err = p.getUAATokenWithCreds(skipSSLValidation, username, password, client, clientSecret, endpoint)
+		uaaRes, err = a.getUAATokenWithCreds(skipSSLValidation, username, password, client, clientSecret, endpoint)
 	}
 	if err != nil {
 		return uaaRes, u, err
 	}
 
-	u, err = p.GetUserTokenInfo(uaaRes.AccessToken)
+	u, err = a.GetUserTokenInfo(uaaRes.AccessToken)
 	if err != nil {
 		return uaaRes, u, err
 	}
@@ -835,7 +831,7 @@ func (p *proxy.PortalProxy) login(c echo.Context, skipSSLValidation bool, client
 	return uaaRes, u, nil
 }
 
-func (p *proxy.PortalProxy) loginHTTPBasic(c echo.Context) (uaaRes *interfaces.UAAResponse, u *JWTUserTokenInfo, err error) {
+func (a *Auth) loginHTTPBasic(c echo.Context) (uaaRes *UAAResponse, u *JWTUserTokenInfo, err error) {
 	log.Debug("login")
 	username := c.FormValue("username")
 	password := c.FormValue("password")
@@ -851,7 +847,7 @@ func (p *proxy.PortalProxy) loginHTTPBasic(c echo.Context) (uaaRes *interfaces.U
 	return uaaRes, u, nil
 }
 
-func (p *proxy.PortalProxy) logout(c echo.Context) error {
+func (a *Auth) logout(c echo.Context) error {
 	log.Debug("logout")
 
 	p.removeEmptyCookie(c)
@@ -872,7 +868,7 @@ func (p *proxy.PortalProxy) logout(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-func (p *proxy.PortalProxy) getUAATokenWithAuthorizationCode(skipSSLValidation bool, code, client, clientSecret, authEndpoint string, state string, cnsiGUID string) (*interfaces.UAAResponse, error) {
+func (p *proxy.PortalProxy) getUAATokenWithAuthorizationCode(skipSSLValidation bool, code, client, clientSecret, authEndpoint string, state string, cnsiGUID string) (*UAAResponse, error) {
 	log.Debug("getUAATokenWithAuthorizationCode")
 
 	body := url.Values{}
@@ -885,7 +881,7 @@ func (p *proxy.PortalProxy) getUAATokenWithAuthorizationCode(skipSSLValidation b
 	return p.getUAAToken(body, skipSSLValidation, client, clientSecret, authEndpoint)
 }
 
-func (p *proxy.PortalProxy) getUAATokenWithCreds(skipSSLValidation bool, username, password, client, clientSecret, authEndpoint string) (*interfaces.UAAResponse, error) {
+func (p *proxy.PortalProxy) getUAATokenWithCreds(skipSSLValidation bool, username, password, client, clientSecret, authEndpoint string) (*UAAResponse, error) {
 	log.Debug("getUAATokenWithCreds")
 
 	body := url.Values{}
@@ -897,7 +893,7 @@ func (p *proxy.PortalProxy) getUAATokenWithCreds(skipSSLValidation bool, usernam
 	return p.getUAAToken(body, skipSSLValidation, client, clientSecret, authEndpoint)
 }
 
-func (p *proxy.PortalProxy) getUAATokenWithRefreshToken(skipSSLValidation bool, refreshToken, client, clientSecret, authEndpoint string, scopes string) (*interfaces.UAAResponse, error) {
+func (p *proxy.PortalProxy) getUAATokenWithRefreshToken(skipSSLValidation bool, refreshToken, client, clientSecret, authEndpoint string, scopes string) (*UAAResponse, error) {
 	log.Debug("getUAATokenWithRefreshToken")
 
 	body := url.Values{}
@@ -912,7 +908,7 @@ func (p *proxy.PortalProxy) getUAATokenWithRefreshToken(skipSSLValidation bool, 
 	return p.getUAAToken(body, skipSSLValidation, client, clientSecret, authEndpoint)
 }
 
-func (p *proxy.PortalProxy) getUAAToken(body url.Values, skipSSLValidation bool, client, clientSecret, authEndpoint string) (*interfaces.UAAResponse, error) {
+func (p *proxy.PortalProxy) getUAAToken(body url.Values, skipSSLValidation bool, client, clientSecret, authEndpoint string) (*UAAResponse, error) {
 	log.WithField("authEndpoint", authEndpoint).Debug("getUAAToken")
 	req, err := http.NewRequest("POST", authEndpoint, strings.NewReader(body.Encode()))
 	if err != nil {
@@ -933,7 +929,7 @@ func (p *proxy.PortalProxy) getUAAToken(body url.Values, skipSSLValidation bool,
 
 	defer res.Body.Close()
 
-	var response interfaces.UAAResponse
+	var response UAAResponse
 
 	dec := json.NewDecoder(res.Body)
 	if err = dec.Decode(&response); err != nil {
@@ -988,16 +984,16 @@ func (p *proxy.PortalProxy) deleteCNSIToken(cnsiID string, userGUID string) erro
 	return nil
 }
 
-func (p *proxy.PortalProxy) GetUAATokenRecord(userGUID string) (TokenRecord, error) {
+func (a *Auth) GetUAATokenRecord(userGUID string) (TokenRecord, error) {
 	log.Debug("GetUAATokenRecord")
 
-	tokenRepo, err := tokens.NewPgsqlTokenRepository(p.DatabaseConnectionPool)
+	tokenRepo, err := tokens.NewPgsqlTokenRepository(a.DatabaseConnectionPool)
 	if err != nil {
 		log.Errorf("Database error getting repo for UAA token: %v", err)
 		return TokenRecord{}, err
 	}
 
-	tr, err := tokenRepo.FindAuthToken(userGUID, p.Config.EncryptionKeyInBytes)
+	tr, err := tokenRepo.FindAuthToken(userGUID, a.EncryptionKeyInBytes)
 	if err != nil {
 		log.Errorf("Database error finding UAA token: %v", err)
 		return TokenRecord{}, err
@@ -1006,15 +1002,15 @@ func (p *proxy.PortalProxy) GetUAATokenRecord(userGUID string) (TokenRecord, err
 	return tr, nil
 }
 
-func (p *proxy.PortalProxy) setUAATokenRecord(key string, t TokenRecord) error {
+func (a *Auth) setUAATokenRecord(key string, t TokenRecord) error {
 	log.Debug("setUAATokenRecord")
 
-	tokenRepo, err := tokens.NewPgsqlTokenRepository(p.DatabaseConnectionPool)
+	tokenRepo, err := tokens.NewPgsqlTokenRepository(a.DatabaseConnectionPool)
 	if err != nil {
 		return fmt.Errorf("Database error getting repo for UAA token: %v", err)
 	}
 
-	err = tokenRepo.SaveAuthToken(key, t, p.Config.EncryptionKeyInBytes)
+	err = tokenRepo.SaveAuthToken(key, t, a.EncryptionKeyInBytes)
 	if err != nil {
 		return fmt.Errorf("Database error saving UAA token: %v", err)
 	}
@@ -1022,7 +1018,7 @@ func (p *proxy.PortalProxy) setUAATokenRecord(key string, t TokenRecord) error {
 	return nil
 }
 
-func (p *proxy.PortalProxy) verifySession(c echo.Context) error {
+func (a *Auth) verifySession(c echo.Context) error {
 	log.Debug("verifySession")
 
 	sessionExpireTime, err := p.GetSessionInt64Value(c, "exp")
@@ -1039,10 +1035,10 @@ func (p *proxy.PortalProxy) verifySession(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, msg)
 	}
 
-	if AuthEndpointTypes[p.Config.ConsoleConfig.AuthEndpointType] == Local {
-		err = p.verifySessionLocal(c, sessionUser, sessionExpireTime)
+	if AuthEndpointTypes[a.AuthEndpointType] == Local {
+		err = a.verifySessionLocal(c, sessionUser, sessionExpireTime)
 	} else {
-		err = p.verifySessionUAA(c, sessionUser, sessionExpireTime)
+		err = a.verifySessionUAA(c, sessionUser, sessionExpireTime)
 	}
 
 	// Could not verify session
@@ -1260,12 +1256,12 @@ func (p *proxy.PortalProxy) getLocalUser(userGUID string) (*users.ConnectedUser,
 	return uaaEntry, nil
 }
 
-func (p *proxy.PortalProxy) GetCNSIUser(cnsiGUID string, userGUID string) (*users.ConnectedUser, bool) {
-	user, _, ok := p.GetCNSIUserAndToken(cnsiGUID, userGUID)
+func (p *proxy.PortalProxy) GetCNSIUser(cnsiGUID string, userGUID string) (*structs.ConnectedUser, bool) {
+	user, _, ok := p.auth.GetCNSIUserAndToken(cnsiGUID, userGUID)
 	return user, ok
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string) (*users.ConnectedUser, *TokenRecord, bool) {
+func (a *Auth) GetCNSIUserAndToken(cnsiGUID string, userGUID string) (*structs.ConnectedUser, *TokenRecord, bool) {
 	log.Debug("GetCNSIUserAndToken")
 
 	// get the uaa token record
@@ -1276,7 +1272,7 @@ func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string
 		return nil, nil, false
 	}
 
-	cnsiUser, ok := p.GetCNSIUserFromToken(cnsiGUID, &cfTokenRecord)
+	cnsiUser, ok := a.GetCNSIUserFromToken(cnsiGUID, &cfTokenRecord)
 
 	// If this is a system shared endpoint, then remove some metadata that should not be send back to other users
 	santizeInfoForSystemSharedTokenUser(cnsiUser, cfTokenRecord.SystemShared)
@@ -1284,28 +1280,28 @@ func (p *proxy.PortalProxy) GetCNSIUserAndToken(cnsiGUID string, userGUID string
 	return cnsiUser, &cfTokenRecord, ok
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
+func (a *Auth) GetCNSIUserFromToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*structs.ConnectedUser, bool) {
 	log.Debug("GetCNSIUserFromToken")
 
 	// Custom handler for the Auth type available?
-	authProvider := p.GetAuthProvider(cfTokenRecord.AuthType)
+	authProvider := a.GetAuthProvider(cfTokenRecord.AuthType)
 	if authProvider.UserInfo != nil {
 		return authProvider.UserInfo(cnsiGUID, cfTokenRecord)
 	}
 
 	// Default
-	return p.GetCNSIUserFromOAuthToken(cnsiGUID, cfTokenRecord)
+	return a.GetCNSIUserFromOAuthToken(cnsiGUID, cfTokenRecord)
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromBasicToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
-	return &users.ConnectedUser{
+func (p *proxy.PortalProxy) GetCNSIUserFromBasicToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*structs.ConnectedUser, bool) {
+	return &structs.ConnectedUser{
 		GUID: cfTokenRecord.RefreshToken,
 		Name: cfTokenRecord.RefreshToken,
 	}, true
 }
 
-func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*users.ConnectedUser, bool) {
-	var cnsiUser *users.ConnectedUser
+func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRecord *TokenRecord) (*structs.ConnectedUser, bool) {
+	var cnsiUser *structs.ConnectedUser
 	var scope = []string{}
 
 	// get the scope out of the JWT token data
@@ -1317,7 +1313,7 @@ func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRe
 	}
 
 	// add the uaa entry to the output
-	cnsiUser = &users.ConnectedUser{
+	cnsiUser = &structs.ConnectedUser{
 		GUID:   userTokenInfo.UserGUID,
 		Name:   userTokenInfo.UserName,
 		Scopes: userTokenInfo.Scope,
@@ -1340,10 +1336,10 @@ func (p *proxy.PortalProxy) GetCNSIUserFromOAuthToken(cnsiGUID string, cfTokenRe
 	return cnsiUser, true
 }
 
-func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error) {
+func (a *Auth) DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler AuthHandlerFunc) (*http.Response, error) {
 
 	// get a cnsi token record and a cnsi record
-	tokenRec, cnsi, err := p.getCNSIRequestRecords(cnsiRequest)
+	tokenRec, cnsi, err := a.getCNSIRequestRecords(cnsiRequest)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve Endpoint records: %v", err)
 	}
@@ -1351,28 +1347,28 @@ func (p *proxy.PortalProxy) DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, 
 }
 
 // Refresh the UAA Token for the user
-func (p *proxy.PortalProxy) RefreshUAAToken(userGUID string) (t TokenRecord, err error) {
+func (a *Auth) RefreshUAAToken(userGUID string) (t TokenRecord, err error) {
 	log.Debug("RefreshUAAToken")
 
-	userToken, err := p.GetUAATokenRecord(userGUID)
+	userToken, err := a.GetUAATokenRecord(userGUID)
 	if err != nil {
 		return t, fmt.Errorf("UAA Token info could not be found for user with GUID %s", userGUID)
 	}
 
-	uaaRes, err := p.getUAATokenWithRefreshToken(p.Config.ConsoleConfig.SkipSSLValidation, userToken.RefreshToken,
-		p.Config.ConsoleConfig.ConsoleClient, p.Config.ConsoleConfig.ConsoleClientSecret, p.getUAAIdentityEndpoint(), "")
+	uaaRes, err := a.getUAATokenWithRefreshToken(a.SkipSSLValidation, userToken.RefreshToken,
+		a.ConsoleClient, a.ConsoleClientSecret, a.getUAAIdentityEndpoint(), "")
 	if err != nil {
 		return t, fmt.Errorf("UAA Token refresh request failed: %v", err)
 	}
 
-	u, err := p.GetUserTokenInfo(uaaRes.AccessToken)
+	u, err := a.GetUserTokenInfo(uaaRes.AccessToken)
 	if err != nil {
 		return t, fmt.Errorf("Could not get user token info from access token")
 	}
 
 	u.UserGUID = userGUID
 
-	t, err = p.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
+	t, err = a.saveAuthToken(*u, uaaRes.AccessToken, uaaRes.RefreshToken)
 	if err != nil {
 		return t, fmt.Errorf("Couldn't save new UAA token: %v", err)
 	}

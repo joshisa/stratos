@@ -1,11 +1,11 @@
-package interfaces
+package plugins
 
 import (
 	"github.com/govau/cf-common/env"
 	"github.com/labstack/echo"
 
 	"github.com/cloudfoundry-incubator/stratos/src/jetstream/proxy"
-	"github.com/cloudfoundry-incubator/stratos/src/jetstream/structs"
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/structs"
 )
 
 // StratosPlugin is the interface for a Jetstream plugin

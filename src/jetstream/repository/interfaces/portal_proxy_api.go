@@ -18,7 +18,7 @@ type PortalProxyAPI interface {
 	GetHttpClient(skipSSLValidation bool) http.Client
 	GetHttpClientForRequest(req *http.Request, skipSSLValidation bool) http.Client
 	RegisterEndpoint(c echo.Context, fetchInfo structs.InfoFunc) error
-	DoRegisterEndpoint(cnsiName string, apiEndpoint string, skipSSLValidation bool, clientId string, clientSecret string, ssoAllowed bool, subType string, fetchInfo InfoFunc) (CNSIRecord, error)
+	DoRegisterEndpoint(cnsiName string, apiEndpoint string, skipSSLValidation bool, clientId string, clientSecret string, ssoAllowed bool, subType string, fetchInfo structs.InfoFunc) (structs.CNSIRecord, error)
 	GetEndpointTypeSpec(typeName string) (structs.EndpointPlugin, error)
 
 	// Session
@@ -33,9 +33,7 @@ type PortalProxyAPI interface {
 	// Expose internal portal proxy records to extensions
 	GetCNSIRecord(guid string) (structs.CNSIRecord, error)
 	GetCNSIRecordByEndpoint(endpoint string) (structs.CNSIRecord, error)
-	GetCNSITokenRecord(cnsiGUID string, userGUID string) (authx.TokenRecord, bool)
-	GetCNSITokenRecordWithDisconnected(cnsiGUID string, userGUID string) (authx.TokenRecord, bool)
-
+	GetCNSIUser(cnsiGUID string, userGUID string) (*structs.ConnectedUser, bool)
 	GetConfig() *proxy.PortalConfig
 	Env() *env.VarSet
 	ListEndpointsByUser(userGUID string) ([]*structs.ConnectedEndpoint, error)
@@ -50,10 +48,6 @@ type PortalProxyAPI interface {
 
 	// Database Connections
 	GetDatabaseConnection() *sql.DB
-	AddAuthProvider(name string, provider authx.AuthProvider)
-	GetAuthProvider(name string) authx.AuthProvider
-	DoAuthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request, authHandler authx.AuthHandlerFunc) (*http.Response, error)
-	OAuthHandlerFunc(cnsiRequest *structs.CNSIRequest, req *http.Request, refreshOAuthTokenFunc authx.RefreshOAuthTokenFunc) authx.AuthHandlerFunc
 
 	// Tokens - lower-level access
 	SaveEndpointToken(cnsiGUID string, userGUID string, tokenRecord authx.TokenRecord) error
@@ -71,5 +65,5 @@ type PortalProxyAPI interface {
 	// CanPerformMigrations returns if we can perform Database migrations
 	CanPerformMigrations() bool
 
-	authx.Auth
+	authx.AuthService
 }

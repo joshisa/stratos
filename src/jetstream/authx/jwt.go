@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (p *portalProxy) GetUserTokenInfo(tok string) (u *JWTUserTokenInfo, err error) {
+func (a *Auth) GetUserTokenInfo(tok string) (u *JWTUserTokenInfo, err error) {
 	log.Debug("getUserTokenInfo")
 	accessToken := strings.TrimPrefix(tok, "bearer ")
 	splits := strings.Split(accessToken, ".")

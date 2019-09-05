@@ -7,11 +7,13 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/cloudfoundry-incubator/stratos/src/jetstream/repository/structs"
 )
 
-func (p *portalProxy) OAuthHandlerFunc(cnsiRequest *structs.CNSIRequest, req *http.Request, refreshOAuthTokenFunc RefreshOAuthTokenFunc) AuthHandlerFunc {
+func (a *Auth) OAuthHandlerFunc(cnsiRequest *structs.CNSIRequest, req *http.Request, refreshOAuthTokenFunc RefreshOAuthTokenFunc) AuthHandlerFunc {
 
-	return func(tokenRec TokenRecord, cnsi cnsis.CNSIRecord) (*http.Response, error) {
+	return func(tokenRec TokenRecord, cnsi structs.CNSIRecord) (*http.Response, error) {
 
 		got401 := false
 
@@ -46,17 +48,17 @@ func (p *portalProxy) OAuthHandlerFunc(cnsiRequest *structs.CNSIRequest, req *ht
 	}
 }
 
-func (p *portalProxy) doOauthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request) (*http.Response, error) {
+func (a *Auth) doOauthFlowRequest(cnsiRequest *structs.CNSIRequest, req *http.Request) (*http.Response, error) {
 	log.Debug("doOauthFlowRequest")
-	authHandler := p.OAuthHandlerFunc(cnsiRequest, req, p.RefreshOAuthToken)
-	return p.DoAuthFlowRequest(cnsiRequest, req, authHandler)
+	authHandler := a.OAuthHandlerFunc(cnsiRequest, req, p.RefreshOAuthToken)
+	return a.DoAuthFlowRequest(cnsiRequest, req, authHandler)
 
 }
 
-func (p *portalProxy) getCNSIRequestRecords(r *structs.CNSIRequest) (t TokenRecord, c cnsis.CNSIRecord, err error) {
+func (p *portalProxy) getCNSIRequestRecords(r *structs.CNSIRequest) (t TokenRecord, c structs.CNSIRecord, err error) {
 	log.Debug("getCNSIRequestRecords")
 	// look up token
-	t, ok := p.GetCNSITokenRecord(r.GUID, r.UserGUID)
+	t, ok := p.auth.GetCNSITokenRecord(r.GUID, r.UserGUID)
 	if !ok {
 		return t, c, fmt.Errorf("Could not find token for csni:user %s:%s", r.GUID, r.UserGUID)
 	}
@@ -69,30 +71,30 @@ func (p *portalProxy) getCNSIRequestRecords(r *structs.CNSIRequest) (t TokenReco
 	return t, c, nil
 }
 
-func (p *portalProxy) RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error) {
+func (p *Auth) RefreshOAuthToken(skipSSLValidation bool, cnsiGUID, userGUID, client, clientSecret, tokenEndpoint string) (t TokenRecord, err error) {
 	log.Debug("refreshToken")
-	userToken, ok := p.GetCNSITokenRecordWithDisconnected(cnsiGUID, userGUID)
+	userToken, ok := a.GetCNSITokenRecordWithDisconnected(cnsiGUID, userGUID)
 	if !ok {
 		return t, fmt.Errorf("Info could not be found for user with GUID %s", userGUID)
 	}
 
 	tokenEndpointWithPath := fmt.Sprintf("%s/oauth/token", tokenEndpoint)
 
-	uaaRes, err := p.getUAATokenWithRefreshToken(skipSSLValidation, userToken.RefreshToken, client, clientSecret, tokenEndpointWithPath, "")
+	uaaRes, err := a.getUAATokenWithRefreshToken(skipSSLValidation, userToken.RefreshToken, client, clientSecret, tokenEndpointWithPath, "")
 	if err != nil {
 		return t, fmt.Errorf("Token refresh request failed: %v", err)
 	}
 
-	u, err := p.GetUserTokenInfo(uaaRes.AccessToken)
+	u, err := a.GetUserTokenInfo(uaaRes.AccessToken)
 	if err != nil {
 		return t, fmt.Errorf("Could not get user token info from access token")
 	}
 
 	u.UserGUID = userGUID
 
-	tokenRecord := p.InitEndpointTokenRecord(u.TokenExpiry, uaaRes.AccessToken, uaaRes.RefreshToken, userToken.Disconnected)
+	tokenRecord := a.InitEndpointTokenRecord(u.TokenExpiry, uaaRes.AccessToken, uaaRes.RefreshToken, userToken.Disconnected)
 	tokenRecord.TokenGUID = userToken.TokenGUID
-	err = p.updateTokenAuth(userGUID, tokenRecord)
+	err = a.updateTokenAuth(userGUID, tokenRecord)
 	if err != nil {
 		return t, fmt.Errorf("Couldn't update token: %v", err)
 	}
