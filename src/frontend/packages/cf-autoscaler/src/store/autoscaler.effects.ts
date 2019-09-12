@@ -33,6 +33,8 @@ import {
   APP_AUTOSCALER_SCALING_HISTORY,
   AUTOSCALER_INFO,
   AutoscalerPaginationParams,
+  UPDATE_APP_AUTOSCALER_CREDENTIAL,
+  DELETE_APP_AUTOSCALER_CREDENTIAL,
   AutoscalerQuery,
   CREATE_APP_AUTOSCALER_POLICY,
   CreateAppAutoscalerPolicyAction,
@@ -47,6 +49,8 @@ import {
   GetAppAutoscalerScalingHistoryAction,
   UPDATE_APP_AUTOSCALER_POLICY,
   UpdateAppAutoscalerPolicyAction,
+  UpdateAppAutoscalerCredentialAction,
+  DeleteAppAutoscalerCredentialAction,
 } from './app-autoscaler.actions';
 import {
   AppAutoscalerEvent,
@@ -176,6 +180,62 @@ export class AutoscalerEffects {
     ofType<GetAppAutoscalerPolicyTriggerAction>(APP_AUTOSCALER_POLICY_TRIGGER),
     mergeMap(action => this.fetchPolicy(new GetAppAutoscalerPolicyAction(action.guid, action.endpointGuid), action))
   );
+
+  @Effect()
+  updateAppAutoscalerCredential$ = this.actions$.pipe(
+    ofType<UpdateAppAutoscalerCredentialAction>(UPDATE_APP_AUTOSCALER_CREDENTIAL),
+    mergeMap(action => {
+      const actionType = 'update';
+      this.store.dispatch(new StartRequestAction(action, actionType));
+      const options = new RequestOptions();
+      options.url = `${commonPrefix}/apps/${action.guid}/credential`;
+      options.method = 'put';
+      options.headers = this.addHeaders(action.endpointGuid);
+      options.body = action.credential;
+      return this.http
+        .request(new Request(options)).pipe(
+          mergeMap(response => {
+            const credentialInfo = response.json();
+            const mappedData = {
+              entities: { [action.entityKey]: {} },
+              result: []
+            } as NormalizedResponse;
+            this.transformData(action.entityKey, mappedData, action.guid, credentialInfo);
+            return [
+              new WrapperRequestActionSuccess(mappedData, action, actionType)
+            ];
+          }),
+          catchError(err => [
+            new WrapperRequestActionFailed(createAutoscalerRequestMessage('update credential', err), action, actionType)
+          ]));
+    }));
+
+  @Effect()
+  deleteAppAutoscalerCredential$ = this.actions$.pipe(
+    ofType<DeleteAppAutoscalerCredentialAction>(DELETE_APP_AUTOSCALER_CREDENTIAL),
+    mergeMap(action => {
+      const actionType = 'delete';
+      this.store.dispatch(new StartRequestAction(action, actionType));
+      const options = new RequestOptions();
+      options.url = `${commonPrefix}/apps/${action.guid}/credential`;
+      options.method = 'delete';
+      options.headers = this.addHeaders(action.endpointGuid);
+      return this.http
+        .request(new Request(options)).pipe(
+          mergeMap(response => {
+            const mappedData = {
+              entities: { [action.entityKey]: {} },
+              result: []
+            } as NormalizedResponse;
+            this.transformData(action.entityKey, mappedData, action.guid, { enabled: false });
+            return [
+              new WrapperRequestActionSuccess(mappedData, action, actionType)
+            ];
+          }),
+          catchError(err => [
+            new WrapperRequestActionFailed(createAutoscalerRequestMessage('delete credential', err), action, actionType)
+          ]));
+    }));
 
   @Effect()
   fetchAppAutoscalerScalingHistory$ = this.actions$.pipe(

@@ -8,6 +8,7 @@ import { getAPIResourceGuid } from '../../../store/src/selectors/api.selectors';
 export const appAutoscalerHealthSchemaKey = 'autoscalerHealth';
 export const appAutoscalerInfoSchemaKey = 'autoscalerInfo';
 export const appAutoscalerPolicySchemaKey = 'autoscalerPolicy';
+export const appAutoscalerCredentialSchemaKey = 'autoscalerCredential';
 export const appAutoscalerPolicyTriggerSchemaKey = 'autoscalerPolicyTrigger';
 export const appAutoscalerScalingHistorySchemaKey = 'autoscalerScalingHistory';
 export const appAutoscalerAppMetricSchemaKey = 'autoscalerAppMetric';
@@ -20,6 +21,11 @@ export const autoscalerEntities: ExtensionEntitySchema[] = [
   },
   {
     entityKey: appAutoscalerPolicySchemaKey,
+    definition: {},
+    options: { idAttribute: getAPIResourceGuid }
+  },
+  {
+    entityKey: appAutoscalerCredentialSchemaKey,
     definition: {},
     options: { idAttribute: getAPIResourceGuid }
   },
