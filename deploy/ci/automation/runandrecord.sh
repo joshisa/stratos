@@ -16,6 +16,16 @@ echo "Test URL  : $URL"
 DIRPATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIRPATH/../../.."
 
+# See if we can get the Google Chrome version and use it if we can to install the specific chrome driver version
+WEBDRIVER_ARG=""
+google-chrome --version
+if [ $? -eq 0 ]; then
+  CHROME_VERSION=$(google-chrome --version | grep -iEo "[0-9.]{10,20}")
+  WEBDRIVER_ARG="--no-webdriver-update"
+  echo "Updating web driver - chrome version ${CHROME_VERSION}"
+  npm run update-webdriver -- --versions.chrome=${CHROME_VERSION}
+fi
+
 export E2E_REPORT_FOLDER=./e2e-reports
 export DISPLAY=:99.0
 mkdir -p "${E2E_REPORT_FOLDER}"
