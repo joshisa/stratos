@@ -34,6 +34,7 @@ ffmpeg -video_size 1366x768 -framerate 25 -f x11grab -draw_mouse 0 -i :99.0 "${E
 FFMPEG=$!
 
 export STRATOS_E2E_LOG_TIME=true
+export STRATOS_E2E_BASE_URL=${URL}
 ./node_modules/.bin/ng e2e ${WEBDRIVER_ARG} --dev-server-target= --base-url=${URL} ${SUITE}
 RESULT=$?
 
