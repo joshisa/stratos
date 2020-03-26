@@ -26,6 +26,7 @@ export interface PaginationClientPagination {
   totalResults: number;
 }
 
+// TODO: RC Comment List specific stuff. user has manually set something or list has maxed iteslef
 export interface PaginationMaxedState {
   /**
    * Is the pagination in maxed mode?
@@ -34,11 +35,12 @@ export interface PaginationMaxedState {
    * - Pagination notionally now changes from local (has all entities & filtering locally) to non-local (has a single page &
    * filtering remotely)
    */
-  isMaxedMode: boolean;
+  isMaxedMode?: boolean; // TODO: RC set optional everywhere
   /**
    * Disregard flattenPaginationMax and never reach isMaxedMode true
    */
   ignoreMaxed?: boolean;
+  max?: number; // TODO: RC REMOVE
 }
 
 

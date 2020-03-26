@@ -19,10 +19,12 @@ import {
   SET_CLIENT_PAGE,
   SET_CLIENT_PAGE_SIZE,
   SET_INITIAL_PARAMS,
+  SET_MAXED,
   SET_PAGE,
   SET_PAGE_BUSY,
   SET_PARAMS,
   SET_RESULT_COUNT,
+  SetPaginationMax,
   UPDATE_MAXED_STATE,
 } from '../../actions/pagination.actions';
 import { ApiActionTypes } from '../../actions/request.actions';
@@ -30,7 +32,7 @@ import { InitCatalogEntitiesAction } from '../../entity-catalog.actions';
 import { entityCatalog } from '../../entity-catalog/entity-catalog.service';
 import { getDefaultStateFromEntityCatalog } from '../../entity-catalog/entity-catalog.store-setup';
 import { mergeState } from '../../helpers/reducer.helper';
-import { PaginationEntityState, PaginationState } from '../../types/pagination.types';
+import { PaginationEntityState, PaginationEntityTypeState, PaginationState } from '../../types/pagination.types';
 import { UpdatePaginationMaxedState } from './../../actions/pagination.actions';
 import { paginationAddParams } from './pagination-reducer-add-params';
 import { paginationClearPages } from './pagination-reducer-clear-pages';
@@ -141,6 +143,28 @@ function paginate(action, state = {}, updatePagination) {
 
   if (action.type === IGNORE_MAXED_STATE) {
     return paginationIgnoreMaxed(state, action as IgnorePaginationMaxedState);
+  }
+
+  // TODO: RC REMOVE
+  if (action.type === SET_MAXED) {
+    const maxedAction = action as SetPaginationMax;
+    const entityKey = entityCatalog.getEntityKey(maxedAction);
+    const paginationEntityState = state[entityKey][maxedAction.paginationKey] || getDefaultPaginationEntityState();
+    const entityState: PaginationEntityTypeState = {
+      ...state[entityKey],
+      [maxedAction.paginationKey]: {
+        ...paginationEntityState,
+        maxedState: {
+          // Retain the original maxed state. This will be true, but is ignored anyway
+          ...paginationEntityState.maxedState,
+          max: maxedAction.max,
+        }
+      }
+    };
+    return {
+      ...state,
+      [entityKey]: entityState
+    };
   }
 
   return enterPaginationReducer(state, action, updatePagination);

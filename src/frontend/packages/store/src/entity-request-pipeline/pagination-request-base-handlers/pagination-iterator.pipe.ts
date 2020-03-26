@@ -1,10 +1,12 @@
 import { HttpRequest } from '@angular/common/http';
+import { Store } from '@ngrx/store';
 import { combineLatest, Observable, of, range } from 'rxjs';
-import { map, mergeMap, reduce } from 'rxjs/operators';
+import { map, mergeMap, reduce, switchMap } from 'rxjs/operators';
 
 import { UpdatePaginationMaxedState } from '../../actions/pagination.actions';
+import { AppState } from '../../app-state';
 import { entityCatalog } from '../../entity-catalog/entity-catalog.service';
-import { PaginatedAction } from '../../types/pagination.types';
+import { PaginatedAction, PaginationMaxedState } from '../../types/pagination.types';
 import { ActionDispatcher, JetstreamResponse, PagedJetstreamResponse } from '../entity-request-pipeline.types';
 import { PipelineHttpClient } from '../pipline-http-client.service';
 
@@ -15,16 +17,21 @@ export interface PaginationPageIteratorConfig<R = any, E = any> {
   getTotalPages: (initialResponses: JetstreamResponse<R>) => number;
   getTotalEntities: (initialResponses: JetstreamResponse<R>) => number;
   getEntitiesFromResponse: (responses: R) => E[];
+  // // only applicable to is local
+  getMaxEntities: (store: Store<AppState>, action: PaginatedAction) => Observable<number>;
+  canIgnoreMaxedState: (store: Store<AppState>) => Observable<boolean>;
 }
 
 export class PaginationPageIterator<R = any, E = any> {
   constructor(
+    private store: Store<AppState>,
     private httpClient: PipelineHttpClient,
     public baseHttpRequest: HttpRequest<JetstreamResponse<R>>,
     public action: PaginatedAction,
     public actionDispatcher: ActionDispatcher,
     public config: PaginationPageIteratorConfig<R, E>,
-    private ignorePaginationMaxed?: boolean
+    // private ignorePaginationMaxed?: boolean,
+    private paginationMaxedState?: PaginationMaxedState
   ) { }
 
   private makeRequest(httpRequest: HttpRequest<JetstreamResponse<R>>) {
@@ -43,7 +50,7 @@ export class PaginationPageIterator<R = any, E = any> {
       return of([]);
     }
     return range(2, count + 1).pipe(
-      mergeMap(currentPage => this.makeRequest(this.addPageToRequest(currentPage)), 5),
+      mergeMap(currentPage => this.makeRequest(this.addPageToRequest(currentPage)), 5), // TODO: RC why only 5 concurrent?
       reduce((acc, res: JetstreamResponse<R>) => {
         acc.push(res);
         return acc;
@@ -81,19 +88,46 @@ export class PaginationPageIterator<R = any, E = any> {
 
   private handleRequests(initialResponse: JetstreamResponse<R>, action: PaginatedAction, totalPages: number, totalResults: number):
     Observable<[JetstreamResponse<R>, JetstreamResponse<R>[]]> {
-    if (totalResults > 0) {
-      const maxCount = action.flattenPaginationMax;
-      if (!this.ignorePaginationMaxed && maxCount < totalResults) {
-        // We're maxed so only respond with the first page of results.
-        const { entityType, endpointType, paginationKey, __forcedPageEntityConfig__ } = action;
-        const forcedEntityKey = entityCatalog.getEntityKey(__forcedPageEntityConfig__);
-        this.actionDispatcher(
-          new UpdatePaginationMaxedState(maxCount, totalResults, entityType, endpointType, paginationKey, forcedEntityKey)
-        );
-        return of([initialResponse, []]);
-      }
+
+    const allResults = combineLatest(of(initialResponse), this.getAllOtherPageRequests(totalPages));
+
+    if (totalResults === 0 || this.paginationMaxedState.ignoreMaxed) {
+      return allResults;
     }
-    return combineLatest(of(initialResponse), this.getAllOtherPageRequests(totalPages));
+
+    return this.config.getMaxEntities().pipe(
+      switchMap(maxEntities => {
+        if (maxEntities && maxEntities < totalResults) {
+          // console.log(this.paginationMaxedState);
+          // We're maxed so only respond with the first page of results.
+          const { entityType, endpointType, paginationKey, __forcedPageEntityConfig__ } = action;
+          const forcedEntityKey = entityCatalog.getEntityKey(__forcedPageEntityConfig__);
+          this.actionDispatcher(
+            new UpdatePaginationMaxedState(maxEntities, totalResults, entityType, endpointType, paginationKey, forcedEntityKey)
+          );
+          const otherPages: JetstreamResponse<R>[] = [];
+          // const obs: Observable<JetstreamResponse<R>[]> = of(otherPages);
+          return combineLatest([of(initialResponse), of(otherPages)]);
+        }
+        return allResults;
+      })
+    );
+
+    // if (totalResults > 0) {
+    //   // const maxCount = action.flattenPaginationMax;
+    //   const maxCount = this.paginationMaxedState.max || Number.MAX_SAFE_INTEGER;
+    //   console.log(this.paginationMaxedState);
+    //   if (!this.paginationMaxedState.ignoreMaxed && maxCount < totalResults) {
+    //     // We're maxed so only respond with the first page of results.
+    //     const { entityType, endpointType, paginationKey, __forcedPageEntityConfig__ } = action;
+    //     const forcedEntityKey = entityCatalog.getEntityKey(__forcedPageEntityConfig__);
+    //     this.actionDispatcher(
+    //       new UpdatePaginationMaxedState(maxCount, totalResults, entityType, endpointType, paginationKey, forcedEntityKey)
+    //     );
+    //     return of([initialResponse, []]);
+    //   }
+    // }
+    // return combineLatest(of(initialResponse), this.getAllOtherPageRequests(totalPages));
   }
 
   private getValidNumber(num: number) {

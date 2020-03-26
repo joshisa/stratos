@@ -95,11 +95,48 @@ export const getPaginationObservables = <T = any, Y extends AppState = AppState>
     action: PaginatedAction | PaginatedAction[],
     paginationMonitor: PaginationMonitor
   },
-  isLocal = false
+  isLocal = false,
+  configureMax = false
 ): PaginationObservables<T> => {
   const baseAction = Array.isArray(action) ? action[0] : action;
   const paginationKey = paginationMonitor.paginationKey;
   const entityKey = paginationMonitor.schema.key;
+  // const catalogueEntity = entityCatalog.getEntity(baseAction);
+  // const pagConfig = catalogueEntity.definition.paginationConfig;
+
+
+  // TODO: RC REMOVE
+  // // Currently lists are only onces using configured via
+  // // TODO: RC turn flattenPaginationMax into bool? have it as setting in entityConfig?
+  // if (isLocal && baseAction.flattenPagination) {
+  //   store.select(selectSessionData()).pipe(
+  //     first(),
+  //     switchMap(auth => {
+  //       return combineLatest([
+  //         of(auth),
+  //         pagConfig ? pagConfig.getCanIgnoreMaxed() : of(false)
+  //       ]);
+  //     }),
+  //     switchMap(([auth, canGetLoadMaxed]) => {
+  //       return canGetLoadMaxed ? pagConfig.getMaxEntities() : of(null);
+  //     })
+  //   ).subscribe(max => {
+  //     if (!!max) {
+  //       // Some point on per list basis
+  //       store.dispatch(
+  //         // Store max setting per list
+  //         new SetPaginationMax(max, baseAction.entityType, baseAction.endpointType, baseAction.paginationKey, null) // TODO: RC null
+  //       );
+  //     }
+
+
+
+
+
+  //   });
+  // }
+
+
   // FIXME: This will reset pagination every time regardless of if we need to (or just want the pag settings/entities from pagination
   // section)
   if (baseAction.initialParams) {

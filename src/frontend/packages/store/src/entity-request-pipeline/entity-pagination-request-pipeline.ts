@@ -115,12 +115,15 @@ export const basePaginatedRequestPipeline: EntityRequestPipeline = (
     switchMap(requestObject => {
       const pageIterator = flattenerConfig ?
         new PaginationPageIterator(
+          store,
           httpClient,
           requestObject,
           completePaginationAction,
           actionDispatcher,
           flattenerConfig,
-          paginationState ? paginationState.maxedState.ignoreMaxed : false) :
+          // paginationState ? paginationState.maxedState.ignoreMaxed : false,
+          paginationState ? paginationState.maxedState : null
+        ) :
         null;
       return getRequestObservable(
         httpClient,

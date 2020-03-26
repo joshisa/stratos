@@ -22,6 +22,7 @@ export const SET_PAGE_BUSY = '[Pagination] Set Page Busy';
 export const REMOVE_ID_FROM_PAGINATION = '[Pagination] Remove id from pagination';
 export const UPDATE_MAXED_STATE = '[Pagination] Update maxed state';
 export const IGNORE_MAXED_STATE = '[Pagination] Ignore maxed state';
+export const SET_MAXED = '[Pagination] Set max!!!!!!!!!!!!!';
 
 export function getPaginationKey(type: string, id: string, endpointGuid?: string) {
   const key = `${type}-${id}`;
@@ -212,6 +213,17 @@ export class UpdatePaginationMaxedState implements Action, EntityCatalogEntityCo
 export class IgnorePaginationMaxedState implements Action, EntityCatalogEntityConfig {
   type = IGNORE_MAXED_STATE;
   constructor(
+    public entityType: string,
+    public endpointType: string,
+    public paginationKey: string,
+    public forcedEntityKey?: string
+  ) { }
+}
+
+export class SetPaginationMax implements Action, EntityCatalogEntityConfig {
+  type = SET_MAXED;
+  constructor(
+    public max: number,
     public entityType: string,
     public endpointType: string,
     public paginationKey: string,

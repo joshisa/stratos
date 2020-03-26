@@ -31,6 +31,8 @@ export interface SessionEndpoint {
 }
 export interface SessionDataConfig {
   enableTechPreview?: boolean;
+  listMaxSize?: number;
+  listAllowLoadMaxed?: 'true' | 'false';
 }
 export interface SessionData {
   endpoints?: SessionEndpoints;
