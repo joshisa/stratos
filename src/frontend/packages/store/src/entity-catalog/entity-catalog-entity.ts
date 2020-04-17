@@ -1,15 +1,19 @@
-import { ActionReducer, Store } from '@ngrx/store';
+import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
-import { AppState, IRequestEntityTypeState } from '../app-state';
+import { IRequestEntityTypeState } from '../app-state';
 import {
   PaginationPageIteratorConfig,
 } from '../entity-request-pipeline/pagination-request-base-handlers/pagination-iterator.pipe';
 import { EntityPipelineEntity, stratosEndpointGuidKey } from '../entity-request-pipeline/pipeline.types';
+import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
+import { PaginationMonitor } from '../monitors/pagination-monitor';
+import { getPaginationObservables, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
 import { EndpointModel } from '../types/endpoint.types';
+import { PaginatedAction } from '../types/pagination.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
 import { ActionBuilderConfigMapper } from './action-builder-config.mapper';
@@ -21,6 +25,7 @@ import {
   OrchestratedActionBuilders,
 } from './action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
+import { EntityCatalogHelper } from './entity-catalog.service';
 import {
   EntityCatalogSchemas,
   IEntityMetadata,
@@ -145,15 +150,95 @@ export class StratosBaseCatalogEntity<
     return entity[stratosEndpointGuidKey];
   }
 
-  public getEntityMonitor<Q extends AppState, B = any>(
-    store: Store<Q>,
+  // public getEntityMonitor<Q extends AppState, B = any>(
+  //   store: Store<Q>,
+  //   entityId: string,
+  //   {
+  //     schemaKey = '',
+  //     startWithNull = false
+  //   } = {}
+  // ) {
+  //   return new EntityMonitor<B>(store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
+  // }
+
+  public getEntityMonitor(
+    helper: EntityCatalogHelper,
     entityId: string,
     {
       schemaKey = '',
       startWithNull = false
     } = {}
-  ) {
-    return new EntityMonitor<B>(store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
+  ): EntityMonitor<Y> {
+    return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
+  }
+
+  // public getEntityService<YY = Y>(
+  //   helper: EntityCatalogHelper,
+  //   entityId: string,
+  //   endpointId: string,
+  //   // actionBuilderConfig: ActionBuilderConfig, // TODO: RC TYPing
+  //   {
+  //     schemaKey = ''
+  //   }
+  // ): EntityService<YY> {
+  //   const { type: entityType, subType } = this.getTypeAndSubtype();
+  //   return helper.esf.create<YY>({
+  //     entityType,
+  //     endpointType: this.getEndpointType(this.definition),
+  //     subType,
+  //     schemaKey,
+  //     entityGuid: entityId,
+  //     endpointGuid: endpointId
+  //   });
+  // }
+
+  public getEntityService<YY = Y>(
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['get']>
+  ): EntityService<YY> {
+    const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
+    const b = actionBuilder(...args);
+    const action: EntityRequestAction = b as EntityRequestAction;
+    return helper.esf.create<YY>(
+      action.guid,
+      action
+    );
+  }
+
+  public getPaginationMonitor<B extends keyof ABC, YY = Y>(
+    helper: EntityCatalogHelper,
+    actionType: B, // 'getAll/getAllInSpace' etc
+    ...args: Parameters<ABC[B]>
+  ): PaginationMonitor<YY> {
+    const actionBuilder = this.actionOrchestrator.getActionBuilder(actionType);
+    const b = actionBuilder(...args);
+    const action: PaginatedAction = b as PaginatedAction;
+
+    return helper.pmf.create<YY>(
+      action.paginationKey,
+      action,
+      action.flattenPagination
+    );
+  }
+
+  public getPaginationObservables<B extends keyof ABC, YY = Y>(
+    helper: EntityCatalogHelper,
+    actionType: B, // 'getAll/getAllInSpace' etc
+    ...args: Parameters<ABC[B]>
+  ): PaginationObservables<YY> {
+    const actionBuilder = this.actionOrchestrator.getActionBuilder(actionType);
+    const b = actionBuilder(...args);
+    const action: PaginatedAction = b as PaginatedAction;
+
+    return getPaginationObservables<YY>({
+      store: helper.store,
+      action,
+      paginationMonitor: this.getPaginationMonitor(
+        helper,
+        actionType,
+        ...args
+      )
+    }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
   }
 
   public getTypeAndSubtype() {

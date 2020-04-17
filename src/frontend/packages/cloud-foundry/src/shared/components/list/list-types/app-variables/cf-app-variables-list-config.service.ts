@@ -16,6 +16,7 @@ import {
   ListViewTypes,
 } from '../../../../../../../core/src/shared/components/list/list.component.types';
 import { entityCatalog } from '../../../../../../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { UpdateExistingApplication } from '../../../../../actions/application.actions';
 import { CFAppState } from '../../../../../cf-app-state';
 import { appEnvVarsEntityType, applicationEntityType } from '../../../../../cf-entity-types';
@@ -120,7 +121,7 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     });
     return catalogEntity
       .getEntityMonitor(
-        this.store,
+        this.ecf,
         this.envVarsDataSource.appGuid
       )
       .entityRequest$.pipe(
@@ -151,7 +152,8 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
   constructor(
     private store: Store<CFAppState>,
     private appService: ApplicationService,
-    private confirmDialog: ConfirmationDialogService
+    private confirmDialog: ConfirmationDialogService,
+    private ech: EntityCatalogHelper
   ) {
     this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this);
   }

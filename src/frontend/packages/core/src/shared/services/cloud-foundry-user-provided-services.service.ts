@@ -26,6 +26,7 @@ import { QParam, QParamJoiners } from '../../../../cloud-foundry/src/shared/q-pa
 import { selectCfRequestInfo } from '../../../../cloud-foundry/src/store/selectors/api.selectors';
 import { ClearPaginationOfType } from '../../../../store/src/actions/pagination.actions';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig, IEntityMetadata } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
@@ -49,21 +50,79 @@ export class CloudFoundryUserProvidedServicesService {
     entityType: userProvidedServiceInstanceEntityType
   };
 
-  private userProvidedServiceEntity = entityCatalog.getEntity<IEntityMetadata, any, UserProvidedServiceActionBuilder>(
-    CF_ENDPOINT_TYPE,
-    userProvidedServiceInstanceEntityType
-  );
+  private userProvidedServiceEntity = entityCatalog.getEntity<
+    IEntityMetadata,
+    IUserProvidedServiceInstance,
+    UserProvidedServiceActionBuilder>
+    (
+      CF_ENDPOINT_TYPE,
+      userProvidedServiceInstanceEntityType
+    );
 
   constructor(
     private store: Store<CFAppState>,
     private entityServiceFactory: EntityServiceFactory,
     private paginationMonitorFactory: PaginationMonitorFactory,
+    private ech: EntityCatalogHelper
   ) {
 
   }
 
   public getUserProvidedServices(cfGuid: string, spaceGuid?: string, relations = getUserProvidedServiceInstanceRelations)
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
+
+    // TODO: compiling
+    // TODO: Test 4 functs work as expected
+    // TODO: Review
+    // TODO: Use in place of EntityServiceFactory and getPaginationObservables
+
+    const pagMon = this.userProvidedServiceEntity.getPaginationMonitor(
+      this.ech,
+      'getAllInSpace',
+      cfGuid, // Per action builder
+      spaceGuid, // Per action builder
+      null, // Per action builder
+      relations, // Per action builder
+      true // Per action builder
+    );
+
+    const pagOns = this.userProvidedServiceEntity.getPaginationObservables(
+      this.ech,
+      'getAllInSpace',
+      cfGuid, // Per action builder
+      spaceGuid, // Per action builder
+      null, // Per action builder
+      relations, // Per action builder
+      true// Per action builder
+    );
+
+    const entMon = this.userProvidedServiceEntity.getEntityMonitor(
+      this.ech,
+      'entityGuid',
+      {
+        schemaKey: '',
+        startWithNull: false,
+      }
+    );
+
+    const entService = this.userProvidedServiceEntity.getEntityService(
+      this.ech,
+      'entityGuid', // Per action builder
+      'endpointGuid' // Per action builder
+    );
+
+    // Alt approach?
+    // this.entityCatalogService.getPaginationMonitor(
+    //   this.userProvidedServiceEntity,
+    //   'getAllInSpace',
+    //   cfGuid, // Per action builder
+    //   spaceGuid, // Per action builder
+    //   null, // Per action builder
+    //   relations, // Per action builder
+    //   true // Per action builder
+    // )
+
+
     const actionBuilder = this.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('getAllInSpace');
     const action = actionBuilder(cfGuid, spaceGuid, null, relations, true);
     const pagObs = getPaginationObservables({
@@ -151,7 +210,7 @@ export class CloudFoundryUserProvidedServicesService {
       this.userProvidedServiceInstancesEntityConfig
     );
     return this.userProvidedServiceEntity.getEntityMonitor(
-      this.store,
+      this.ech,
       guid
     ).entityRequest$.pipe(
       filter(v => !!v.updating[UpdateUserProvidedServiceInstance.updateServiceInstance]),

@@ -3,13 +3,17 @@ import { Store } from '@ngrx/store';
 
 import { AppState } from '../app-state';
 import { entityCatalog } from '../entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../entity-catalog/entity-catalog.types';
 import { EntityMonitor } from './entity-monitor';
 
 @Injectable()
 export class EntityMonitorFactory {
 
-  constructor(private store: Store<AppState>) { }
+  constructor(
+    private store: Store<AppState>,
+    private ech: EntityCatalogHelper
+  ) { }
 
   private monitorCache: {
     [key: string]: EntityMonitor
@@ -30,7 +34,7 @@ export class EntityMonitorFactory {
         throw new Error(`Could not find catalog entity for endpoint type '${endpointType}' and entity type '${entityType}'`);
       }
       const monitor = catalogEntity.getEntityMonitor(
-        this.store,
+        this.ech,
         id,
         {
           startWithNull,
