@@ -10,6 +10,7 @@ import {
   UpdateUserProvidedServiceInstance,
 } from '../../../../cloud-foundry/src/actions/user-provided-service.actions';
 import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
+import { cfEntityCatalog } from '../../../../cloud-foundry/src/cf-entity-generator';
 import {
   organizationEntityType,
   serviceInstancesEntityType,
@@ -17,17 +18,13 @@ import {
   userProvidedServiceInstanceEntityType,
 } from '../../../../cloud-foundry/src/cf-entity-types';
 import { CF_ENDPOINT_TYPE } from '../../../../cloud-foundry/src/cf-types';
-import {
-  UserProvidedServiceActionBuilder,
-} from '../../../../cloud-foundry/src/entity-action-builders/user-provided-service.action-builders';
 import { createEntityRelationPaginationKey } from '../../../../cloud-foundry/src/entity-relations/entity-relations.types';
 import { fetchTotalResults } from '../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 import { QParam, QParamJoiners } from '../../../../cloud-foundry/src/shared/q-param';
 import { selectCfRequestInfo } from '../../../../cloud-foundry/src/store/selectors/api.selectors';
 import { ClearPaginationOfType } from '../../../../store/src/actions/pagination.actions';
-import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
 import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
-import { EntityCatalogEntityConfig, IEntityMetadata } from '../../../../store/src/entity-catalog/entity-catalog.types';
+import { EntityCatalogEntityConfig } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../store/src/reducers/api-request-reducer/types';
@@ -50,14 +47,16 @@ export class CloudFoundryUserProvidedServicesService {
     entityType: userProvidedServiceInstanceEntityType
   };
 
-  private userProvidedServiceEntity = entityCatalog.getEntity<
-    IEntityMetadata,
-    IUserProvidedServiceInstance,
-    UserProvidedServiceActionBuilder>
-    (
-      CF_ENDPOINT_TYPE,
-      userProvidedServiceInstanceEntityType
-    );
+  // TODO: RC Better way to define i.e without typing/automatic typing
+  // private userProvidedServiceEntity = entityCatalog.getEntity<
+  //   IEntityMetadata,
+  //   IUserProvidedServiceInstance,
+  //   UserProvidedServiceActionBuilder>
+  //   (
+  //     CF_ENDPOINT_TYPE,
+  //     userProvidedServiceInstanceEntityType
+  //   );
+  private userProvidedServiceEntity = cfEntityCatalog.userProvidedServiceEntity;
 
   constructor(
     private store: Store<CFAppState>,
@@ -71,10 +70,6 @@ export class CloudFoundryUserProvidedServicesService {
   public getUserProvidedServices(cfGuid: string, spaceGuid?: string, relations = getUserProvidedServiceInstanceRelations)
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
 
-    // TODO: compiling
-    // TODO: Test 4 functs work as expected
-    // TODO: Review
-    // TODO: Use in place of EntityServiceFactory and getPaginationObservables
 
     const pagMon = this.userProvidedServiceEntity.getPaginationMonitor(
       this.ech,
@@ -85,6 +80,18 @@ export class CloudFoundryUserProvidedServicesService {
       relations, // Per action builder
       true // Per action builder
     );
+    const pagMonByAction = this.userProvidedServiceEntity.getPaginationMonitorByAction(
+      this.ech,
+      this.userProvidedServiceEntity.actionBuilders.getAllInSpace(
+        cfGuid, // Per action builder
+        spaceGuid, // Per action builder
+        null, // Per action builder
+        relations, // Per action builder
+        true // Per action builder
+      )
+    );
+    this.userProvidedServiceEntity.getProperty('fghfg');
+    this.userProvidedServiceEntity.entityAccess.
 
     const pagOns = this.userProvidedServiceEntity.getPaginationObservables(
       this.ech,
@@ -95,21 +102,48 @@ export class CloudFoundryUserProvidedServicesService {
       relations, // Per action builder
       true// Per action builder
     );
+    const pagOnsByAction = this.userProvidedServiceEntity.getPaginationObservablesByAction(
+      this.ech,
+      this.userProvidedServiceEntity.actionBuilders.getAllInSpace(
+        cfGuid, // Per action builder
+        spaceGuid, // Per action builder
+        null, // Per action builder
+        relations, // Per action builder
+        true // Per action builder
+      )
+    );
+
 
     const entMon = this.userProvidedServiceEntity.getEntityMonitor(
       this.ech,
-      'entityGuid',
-      {
-        schemaKey: '',
-        startWithNull: false,
-      }
+      'entityGuid123456',
     );
 
     const entService = this.userProvidedServiceEntity.getEntityService(
       this.ech,
-      'entityGuid', // Per action builder
-      'endpointGuid' // Per action builder
+      'entityGuid123456', // Per action builder
+      'endpointGuid123456' // Per action builder
     );
+    const entServiceByAction = this.userProvidedServiceEntity.getEntityServiceByAction(
+      this.ech,
+      this.userProvidedServiceEntity.actionBuilders.get(
+        'entityGuid123456', // Per action builder
+        'endpointGuid123456', // Per action builder,
+        {
+          includeRelations: [],
+          populateMissing: true
+        }// Per action builder,
+      )
+    );
+
+
+    const updateAction = this.userProvidedServiceEntity.createAction(
+      'update',
+      'entityGuid123456', // Per action builder
+      'endpointGuid123456', // Per action builder
+      {} as Partial<IUserProvidedServiceInstanceData>, // Per action builder
+    );
+    this.store.dispatch(updateAction);
 
     // Alt approach?
     // this.entityCatalogService.getPaginationMonitor(
@@ -125,6 +159,7 @@ export class CloudFoundryUserProvidedServicesService {
 
     const actionBuilder = this.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('getAllInSpace');
     const action = actionBuilder(cfGuid, spaceGuid, null, relations, true);
+    // const action = new GetAllU
     const pagObs = getPaginationObservables({
       store: this.store,
       action,

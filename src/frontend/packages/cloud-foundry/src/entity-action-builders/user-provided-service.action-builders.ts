@@ -1,4 +1,12 @@
+import { IUserProvidedServiceInstance } from '../../../core/src/core/cf-api-svc.types';
+import {
+  GahActionBuilders,
+  GahEntitiesAccess,
+  GahEntityAccess,
+} from '../../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
+import { APIResource } from '../../../store/src/types/api.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
   GetAllUserProvidedServices,
@@ -9,7 +17,81 @@ import {
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
 
-export interface UserProvidedServiceActionBuilder extends CFOrchestratedActionBuilders {
+interface UserProvidedServiceBase {
+  get: (
+    guid: string,
+    endpointGuid: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => any;
+  remove: (guid: string, endpointGuid: string) => any;
+  update: (
+    guid: string,
+    endpointGuid: string,
+    existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+  ) => any;
+  getMultiple: (
+    paginationKey?: string,
+    endpointGuid?: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => any;
+  getAllInSpace: (
+    endpointGuid: string,
+    spaceGuid: string,
+    paginationKey?: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => any;
+}
+
+
+
+
+export interface UserProvidedServiceAccessBuilders extends GahActionBuilders<APIResource<IUserProvidedServiceInstance>> {
+  getEntity: (
+    helper: EntityCatalogHelper,
+    guid: string,
+    endpointGuid: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => GahEntityAccess<APIResource<IUserProvidedServiceInstance>>;
+  getEntities: (
+    helper: EntityCatalogHelper,
+    paginationKey?: string,
+    endpointGuid?: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>>;
+  getAllInSpace: (
+    helper: EntityCatalogHelper,
+    endpointGuid: string,
+    spaceGuid: string,
+    paginationKey?: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>>;
+
+
+  // remove: (guid: string, endpointGuid: string) => any; // TODO: RC
+  // update: (
+  //   guid: string,
+  //   endpointGuid: string,
+  //   existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
+  //   proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+  // ) => any; // TODO: RC
+  // getMultiple: (
+  //   paginationKey?: string,
+  //   endpointGuid?: string,
+  //   { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  // ) => PaginationObservables<APIResource<IUserProvidedServiceInstance>>;
+  // getAllInSpace: (
+  //   endpointGuid: string,
+  //   spaceGuid: string,
+  //   paginationKey?: string,
+  //   includeRelations?: string[],
+  //   populateMissing?: boolean,
+  // ) => PaginationObservables<APIResource<IUserProvidedServiceInstance>>;
+}
+
+export interface UserProvidedServiceActionBuilder extends UserProvidedServiceBase, CFOrchestratedActionBuilders {
   get: (
     guid: string,
     endpointGuid: string,
