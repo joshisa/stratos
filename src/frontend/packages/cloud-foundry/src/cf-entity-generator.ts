@@ -33,7 +33,6 @@ import { AppState } from '../../store/src/app-state';
 import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
 import {
   GahEntitiesAccess,
-  GahEntityAccess,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
@@ -48,7 +47,6 @@ import {
 } from '../../store/src/entity-request-pipeline/entity-request-base-handlers/handle-multi-endpoints.pipe';
 import { JetstreamResponse } from '../../store/src/entity-request-pipeline/entity-request-pipeline.types';
 import { EntitySchema } from '../../store/src/helpers/entity-schema';
-import { EntityMonitor } from '../../store/src/monitors/entity-monitor';
 import { selectSessionData } from '../../store/src/reducers/auth.reducer';
 import { endpointDisconnectRemoveEntitiesReducer } from '../../store/src/reducers/endpoint-disconnect-application.reducer';
 import { getPaginationObservables } from '../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
@@ -168,9 +166,9 @@ export interface CFBasePipelineRequestActionMeta {
 // }
 
 // export type User = { [K in keyof typeof UserSchema]: any } ;
-type GAH<ABC> = {
-  [K in keyof ABC]: any;
-};
+// type GAH<ABC> = {
+//   [K in keyof ABC]: any;
+// };
 
 // export class EntityAccess<
 //   T extends IEntityMetadata = IEntityMetadata,
@@ -571,85 +569,90 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
     labelPlural: 'User Provided Service Instances',
     endpoint: endpointDefinition,
   };
-  return new StratosCatalogEntity<IFavoriteMetadata, APIResource<IUserProvidedServiceInstance>, UserProvidedServiceAccessBuilders, UserProvidedServiceActionBuilder>(
-    definition,
-    {
-      actionBuilders: userProvidedServiceActionBuilder,
-      dataReducers: [
-        serviceInstanceReducer,
-        endpointDisconnectRemoveEntitiesReducer()
-      ],
-      entityBuilder: {
-        getMetadata: ent => ({
-          name: ent.entity.name
-        }),
-        getGuid: metadata => metadata.guid,
-      },
-      entityAccess: {
-        getEntity: (
-          helper: EntityCatalogHelper,
-          guid: string,
-          endpointGuid: string,
-          base?: CFBasePipelineRequestActionMeta
-        ): GahEntityAccess<APIResource<IUserProvidedServiceInstance>> => {
-          const action = userProvidedServiceActionBuilder.get(guid, endpointGuid, base);
-          return {
+  return new StratosCatalogEntity<
+    IFavoriteMetadata,
+    APIResource<IUserProvidedServiceInstance>,
+    UserProvidedServiceAccessBuilders,
+    UserProvidedServiceActionBuilder>(
+      definition,
+      {
+        actionBuilders: userProvidedServiceActionBuilder,
+        dataReducers: [
+          serviceInstanceReducer,
+          endpointDisconnectRemoveEntitiesReducer()
+        ],
+        entityBuilder: {
+          getMetadata: ent => ({
+            name: ent.entity.name
+          }),
+          getGuid: metadata => metadata.guid,
+        },
+        entityAccess: {
+          // getEntity: (
+          //   helper: EntityCatalogHelper,
+          //   guid: string,
+          //   endpointGuid: string,
+          //   base?: CFBasePipelineRequestActionMeta
+          // ): GahEntityAccess<APIResource<IUserProvidedServiceInstance>> => {
+          //   const action = userProvidedServiceActionBuilder.get(guid, endpointGuid, base);
+          //   return {
+          //     // tslint:disable-next-line:max-line-length
+          //     entityMonitor: new EntityMonitor<APIResource<IUserProvidedServiceInstance>>(
+          // helper.store, guid, this.entityKey, this.getSchema(schemaKey), startWithNull),
+          //     entityService: helper.esf.create<APIResource<IUserProvidedServiceInstance>>(
+          //       action.guid,
+          //       action
+          //     )
+          //   };
+          // },
+          // getEntities: (
+          //   helper: EntityCatalogHelper,
+          //   paginationKey?: string,
+          //   endpointGuid?: string,
+          //   base?: CFBasePipelineRequestActionMeta
+          // ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
+          //   const action = userProvidedServiceActionBuilder.getMultiple(paginationKey, endpointGuid, base);
+          //   const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
+          //     action.paginationKey,
+          //     action,
+          //     action.flattenPagination
+          //   );
+          //   return {
+          //     monitor: mon,
+          //     obs: getPaginationObservables<APIResource<IUserProvidedServiceInstance>>({
+          //       store: helper.store,
+          //       action,
+          //       paginationMonitor: mon
+          //     }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
+          //   };
+          // },
+          getAllInSpace: (
+            helper: EntityCatalogHelper,
+            endpointGuid: string,
+            spaceGuid: string,
+            paginationKey?: string,
+            includeRelations?: string[],
+            populateMissing?: boolean,
+          ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
             // tslint:disable-next-line:max-line-length
-            entityMonitor: new EntityMonitor<APIResource<IUserProvidedServiceInstance>>(helper.store, guid, this.entityKey, this.getSchema(schemaKey), startWithNull),
-            entityService: helper.esf.create<APIResource<IUserProvidedServiceInstance>>(
-              action.guid,
-              action
-            )
-          };
-        },
-        getEntities: (
-          helper: EntityCatalogHelper,
-          paginationKey?: string,
-          endpointGuid?: string,
-          base?: CFBasePipelineRequestActionMeta
-        ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
-          const action = userProvidedServiceActionBuilder.getMultiple(paginationKey, endpointGuid, base);
-          const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
-            action.paginationKey,
-            action,
-            action.flattenPagination
-          );
-          return {
-            monitor: mon,
-            obs: getPaginationObservables<APIResource<IUserProvidedServiceInstance>>({
-              store: helper.store,
+            const action = userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing);
+            const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
+              action.paginationKey,
               action,
-              paginationMonitor: mon
-            }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
-          };
-        },
-        getAllInSpace: (
-          helper: EntityCatalogHelper,
-          endpointGuid: string,
-          spaceGuid: string,
-          paginationKey?: string,
-          includeRelations?: string[],
-          populateMissing?: boolean,
-        ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
-          // tslint:disable-next-line:max-line-length
-          const action = userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing);
-          const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
-            action.paginationKey,
-            action,
-            action.flattenPagination
-          );
-          return {
-            monitor: mon,
-            obs: getPaginationObservables<APIResource<IUserProvidedServiceInstance>>({
-              store: helper.store,
-              action,
-              paginationMonitor: mon
-            }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
-          };
+              action.flattenPagination
+            );
+            return {
+              monitor: mon,
+              obs: getPaginationObservables<APIResource<IUserProvidedServiceInstance>>({
+                store: helper.store,
+                action,
+                paginationMonitor: mon
+              }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
+            };
+          }
         }
       }
-    }
-  );
+    );
 }
 
 function generateCFAppStatsEntity(endpointDefinition: StratosEndpointExtensionDefinition) {

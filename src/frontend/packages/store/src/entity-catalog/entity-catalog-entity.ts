@@ -57,9 +57,9 @@ import {
 // type Test2<ABC, B extends keyof ABC> = {
 //   [P in B]: OrchestratedActionBuilders;
 // };
-interface Test3<ABC extends {}> {
-  [B in ABC]: OrchestratedActionBuilders;
-}
+// interface Test3<ABC extends {}> {
+//   [B in ABC]: OrchestratedActionBuilders;
+// }
 
 export interface GahEntityAccess<Y> {
   entityMonitor: EntityMonitor<Y>;
@@ -72,14 +72,26 @@ export interface GahEntitiesAccess<Y> {
 }
 
 export interface GahActionBuilders<Y> {
-  getEntity: (
+  getEntityMonitor: (
+    helper: EntityCatalogHelper,
+    entityId: string,
+    params: {
+      schemaKey: string,
+      startWithNull: false
+    }
+  ) => EntityMonitor<Y>;
+  getEntityService: (
     helper: EntityCatalogHelper,
     ...args
-  ) => GahEntityAccess<Y>;
-  getEntities: (
+  ) => EntityService<Y>;
+  getPaginationMonitor: (
     helper: EntityCatalogHelper,
     ...args
-  ) => GahEntitiesAccess<Y>;
+  ) => PaginationMonitor<Y>;
+  getPaginationObservables: (
+    helper: EntityCatalogHelper,
+    ...args
+  ) => PaginationObservables<Y>;
   [others: string]: (
     helper: EntityCatalogHelper,
     ...args
@@ -108,7 +120,7 @@ export interface EntityCatalogBuilders<
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
   dataReducers?: ActionReducer<IRequestEntityTypeState<Y>>[];
   actionBuilders?: AB;
-  entityAccess?: AA;
+  entityAccess?: Partial<AA>;
 }
 type DefinitionTypes = IStratosEntityDefinition<EntityCatalogSchemas> |
   IStratosEndpointDefinition<EntityCatalogSchemas> |
@@ -143,7 +155,13 @@ export class StratosBaseCatalogEntity<
     );
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher();
+    this.entityAccess = {
+      ...this.createEntityAccess(),
+      ...this.builders.entityAccess // TODO: RC change to partial
+    };
   }
+
+
   // [TYF in ABC] => (type: B) => {}
   // test2: Test2<ABC, '', ''>;
   actionBuilders: ABC;
@@ -159,6 +177,63 @@ export class StratosBaseCatalogEntity<
   public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
+
+  private createEntityAccess(): GAH<AA, Y> {
+    const res: GahActionBuilders<Y> = {
+      getEntityMonitor: (
+        helper: EntityCatalogHelper,
+        entityId: string,
+        params = {
+          schemaKey: '',
+          startWithNull: false
+        }
+      ): EntityMonitor<Y> => {
+        return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
+      },
+      getEntityService: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['get']> // TODO: RC into interface
+      ): EntityService<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('get')(...args);
+        return helper.esf.create<Y>(
+          action.guid,
+          action
+        );
+      },
+      getPaginationMonitor: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ): PaginationMonitor<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        return helper.pmf.create<Y>(
+          action.paginationKey,
+          action,
+          action.flattenPagination
+        );
+      },
+      getPaginationObservables: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ): PaginationObservables<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        return getPaginationObservables<Y>({
+          store: helper.store,
+          action,
+          paginationMonitor: helper.pmf.create<Y>(
+            action.paginationKey,
+            action,
+            action.flattenPagination
+          ) // TODO: RC
+        }, action.flattenPagination);
+      },
+      // abc(
+      //   helper: EntityCatalogHelper,
+      //   ...args: Parameters<ABC['getMultiple']>
+      // ) => null;
+    };
+    const res2: GAH<AA, Y> = res as GAH<AA, Y>;
+    return res2;
+  }
 
   // [R in ABC]: () => null;
   // [R in keyof ABC]: () => null;
@@ -466,3 +541,40 @@ export class StratosCatalogEndpointEntity extends StratosBaseCatalogEntity<IEndp
     });
   }
 }
+
+
+// const a = {
+//   getEntity: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['get']>
+//   ): GahEntityAccess<Y> => {
+//     const action = this.actionOrchestrator.getActionBuilder('get')(...args);
+//     return {
+//       // tslint:disable-next-line:max-line-length
+//       entityMonitor: new EntityMonitor<Y>(helper.store, guid, this.entityKey, this.getSchema(schemaKey), startWithNull),
+//       entityService: helper.esf.create<Y>(
+//         action.guid,
+//         action
+//       )
+//     };
+//   },
+//   getEntities: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['getMultiple']>
+//   ): GahEntitiesAccess<Y> => {
+//     const action = this.actionBuilders.getMultiple(...args);
+//     const mon = helper.pmf.create<Y>(
+//       action.paginationKey,
+//       action,
+//       action.flattenPagination
+//     );
+//     return {
+//       monitor: mon,
+//       obs: getPaginationObservables<Y>({
+//         store: helper.store,
+//         action,
+//         paginationMonitor: mon
+//       }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
+//     };
+//   },
+// }
