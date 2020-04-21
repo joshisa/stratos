@@ -13,36 +13,6 @@ import {
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
 
-interface UserProvidedServiceBase {
-  get: (
-    guid: string,
-    endpointGuid: string,
-    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-  ) => any;
-  remove: (guid: string, endpointGuid: string) => any;
-  update: (
-    guid: string,
-    endpointGuid: string,
-    existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
-    proxyPaginationEntityConfig?: EntityCatalogEntityConfig
-  ) => any;
-  getMultiple: (
-    paginationKey?: string,
-    endpointGuid?: string,
-    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-  ) => any;
-  getAllInSpace: (
-    endpointGuid: string,
-    spaceGuid: string,
-    paginationKey?: string,
-    includeRelations?: string[],
-    populateMissing?: boolean,
-  ) => any;
-}
-
-
-
-
 export interface UserProvidedServiceAccessBuilders
   extends GahActionBuilders<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
   getAllInSpace: (
@@ -53,30 +23,9 @@ export interface UserProvidedServiceAccessBuilders
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>>;
-
-
-  // remove: (guid: string, endpointGuid: string) => any; // TODO: RC
-  // update: (
-  //   guid: string,
-  //   endpointGuid: string,
-  //   existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
-  //   proxyPaginationEntityConfig?: EntityCatalogEntityConfig
-  // ) => any; // TODO: RC
-  // getMultiple: (
-  //   paginationKey?: string,
-  //   endpointGuid?: string,
-  //   { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-  // ) => PaginationObservables<APIResource<IUserProvidedServiceInstance>>;
-  // getAllInSpace: (
-  //   endpointGuid: string,
-  //   spaceGuid: string,
-  //   paginationKey?: string,
-  //   includeRelations?: string[],
-  //   populateMissing?: boolean,
-  // ) => PaginationObservables<APIResource<IUserProvidedServiceInstance>>;
 }
 
-export interface UserProvidedServiceActionBuilder extends UserProvidedServiceBase, CFOrchestratedActionBuilders {
+export interface UserProvidedServiceActionBuilder extends CFOrchestratedActionBuilders {
   get: (
     guid: string,
     endpointGuid: string,
@@ -134,5 +83,3 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
     populateMissing?: boolean,
   ) => new GetAllUserProvidedServices(paginationKey, endpointGuid, includeRelations, populateMissing, spaceGuid)
 };
-
-

@@ -21,6 +21,7 @@ import { OrgUserRoleNames } from '../../../cloud-foundry/src/store/types/user.ty
 import { CfRoleChange, UsersRolesState } from '../../../cloud-foundry/src/store/types/users-roles.types';
 import { ResetPagination } from '../actions/pagination.actions';
 import { entityCatalog } from '../entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../entity-catalog/entity-catalog.service';
 import { ActionState } from '../reducers/api-request-reducer/types';
 import { selectSessionData } from '../reducers/auth.reducer';
 import { selectUsersRoles } from '../selectors/users-roles.selector';
@@ -35,7 +36,8 @@ export class UsersRolesEffects {
   constructor(
     private actions$: Actions,
     private store: Store<CFAppState>,
-    private cfUserService: CfUserService
+    private cfUserService: CfUserService,
+    private ech: EntityCatalogHelper,
   ) { }
 
   @Effect() clearEntityUpdates$ = this.actions$.pipe(
@@ -230,8 +232,9 @@ export class UsersRolesEffects {
 
   private createActionObs(action: ChangeUserRole): Observable<any> {
     return entityCatalog.getEntity(action)
+      .entityAccess
       .getEntityMonitor(
-        this.store,
+        this.ech,
         action.guid
       ).getUpdatingSection(action.updatingKey).pipe(
         pairwise(),

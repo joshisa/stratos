@@ -104,7 +104,6 @@ class EntityCatalog {
     return this.entities.get(entityKey) || this.endpoints.get(entityKey);
   }
 
-  /* tslint:disable:max-line-length */
   public getEntity<
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
@@ -219,4 +218,4 @@ export class TestEntityCatalog extends EntityCatalog {
 // https://github.com/cloudfoundry-incubator/stratos/issues/3753 - Reverting the entity catalog to an Angular service
 // makes testing much easier and remove the need for this.
 /* tslint:disable-next-line:no-string-literal  */
-export const entityCatalog = !!window['__karma__'] ? new TestEntityCatalog() : new EntityCatalog();
+export const entityCatalog: EntityCatalog = !!window['__karma__'] ? new TestEntityCatalog() : new EntityCatalog();

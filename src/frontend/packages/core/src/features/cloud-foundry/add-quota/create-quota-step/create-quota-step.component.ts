@@ -44,7 +44,7 @@ export class CreateQuotaStepComponent {
     const entityConfig =
       entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
     entityConfig.actionDispatchManager.dispatchCreate(formValues.name, this.cfGuid, formValues);
-    return entityConfig.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
+    return entityConfig.entityAccess.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
       map(([, newV]) => newV),

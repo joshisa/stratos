@@ -151,46 +151,6 @@ export interface CFBasePipelineRequestActionMeta {
   flatten?: boolean;
 }
 
-
-// interface IEntityAccess<
-//   T extends IEntityMetadata = IEntityMetadata,
-//   Y = any,
-//   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
-//   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders
-//   > {
-//   getEntity: StratosBaseCatalogEntity<T, Y, AB, ABC>;
-//   getEntityMonitor: EntityMonitor<Y>;
-//   getEntityService: EntityService<Y>;
-//   getPaginationMonitor: PaginationMonitor<Y>;
-//   getPaginationObservables: PaginationObservables<Y>;
-// }
-
-// export type User = { [K in keyof typeof UserSchema]: any } ;
-// type GAH<ABC> = {
-//   [K in keyof ABC]: any;
-// };
-
-// export class EntityAccess<
-//   T extends IEntityMetadata = IEntityMetadata,
-//   Y = any,
-//   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
-//   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-//   > implements IEntityAccess<T, Y, AB, ABC> {
-//   constructor(
-//     public esf: EntityServiceFactory,
-//     public pmf: PaginationMonitorFactory,
-//     public store: Store<AppState>,
-//   ) {
-
-//   }
-
-//   gah: GAH<ABC>;
-
-//   // 1) Every property in AC needs to be in EntityAccess
-//   // 2) AC needs to be declared for all types (name --> entity service and not action)
-
-// }
-
 export class CfEntityCatalog {
   public entities: StratosBaseCatalogEntity[];
 
@@ -200,25 +160,25 @@ export class CfEntityCatalog {
     UserProvidedServiceActionBuilder,
     UserProvidedServiceActionBuilder,
     UserProvidedServiceAccessBuilders
-  > = entityCatalog.getEntity <
+  > = entityCatalog.getEntity<
     IFavoriteMetadata,
-  APIResource<IUserProvidedServiceInstance>,
-  UserProvidedServiceActionBuilder>,
-    UserProvidedServiceActionBuilder >,
-    UserProvidedServiceAccessBuilders
-    >
-    (
+    APIResource<IUserProvidedServiceInstance>,
+    UserProvidedServiceActionBuilder,
+    UserProvidedServiceAccessBuilders>(
       CF_ENDPOINT_TYPE,
       userProvidedServiceInstanceEntityType
     );
-// public userProvidedService: IEntityAccess<
-//   IFavoriteMetadata,
-//   APIResource<IUserProvidedServiceInstance>,
-//   UserProvidedServiceActionBuilder
-// >;
 
 
-generateCFEntities(): StratosBaseCatalogEntity[] {
+
+}
+
+// export function registerCFEntities() {
+//   generateCFEntities().forEach(entity => entityCatalog.register(entity));
+// }
+export const cfEntityCatalog: CfEntityCatalog = new CfEntityCatalog();
+
+export const generateCFEntities = (): StratosBaseCatalogEntity[] => {
   const endpointDefinition: StratosEndpointExtensionDefinition = {
     urlValidationRegexString: urlValidationExpression,
     type: CF_ENDPOINT_TYPE,
@@ -351,86 +311,6 @@ generateCFEntities(): StratosBaseCatalogEntity[] {
     generateCFMetrics(endpointDefinition)
   ];
 }
-
-  // public getEntityService<YY = Y>(
-  //   ...args: Parameters<ABC['get']>
-  // ): EntityService<YY> {
-  //   const action: EntityRequestAction = this.createAction<'get'>('get', ...args) as EntityRequestAction;
-  //   return helper.esf.create<YY>(
-  //     action.guid,
-  //     action
-  //   );
-  // }
-
-  // public getEntityServiceByAction<YY = Y>(
-  //   action: EntityRequestAction
-  // ): EntityService<YY> {
-  //   return helper.esf.create<YY>(
-  //     action.guid,
-  //     action
-  //   );
-  // }
-
-  // // this[B] = (args: ABC[B]) =>
-  // public getPaginationMonitor<B extends keyof ABC, YY = Y>(
-  //   actionType: B, // 'getAll/getAllInSpace' etc
-  //   ...args: Parameters<ABC[B]>
-  // ): PaginationMonitor<YY> {
-  //   const action: PaginatedAction = this.createAction<B>(actionType, ...args) as PaginatedAction;
-  //   return helper.pmf.create<YY>(
-  //     action.paginationKey,
-  //     action,
-  //     action.flattenPagination
-  //   );
-  // }
-
-  // public getPaginationMonitorByAction<YY = Y>(
-  //   action: PaginatedAction
-  // ): PaginationMonitor<YY> {
-  //   return helper.pmf.create<YY>(
-  //     action.paginationKey,
-  //     action,
-  //     action.flattenPagination
-  //   );
-  // }
-
-  // public getPaginationObservables<B extends keyof ABC, YY = Y>(
-  //   actionType: B, // 'getAll/getAllInSpace' etc
-  //   ...args: Parameters<ABC[B]>
-  // ): PaginationObservables<YY> {
-  //   const action: PaginatedAction = this.createAction<B>(actionType, ...args) as PaginatedAction;
-
-  //   return getPaginationObservables<YY>({
-  //     store: helper.store,
-  //     action,
-  //     paginationMonitor: this.getPaginationMonitor(
-  //       helper,
-  //       actionType,
-  //       ...args
-  //     )
-  //   }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
-  // }
-
-  // public getPaginationObservablesByAction<YY = Y>(
-  //   helper: EntityCatalogHelper,
-  //   action: PaginatedAction
-  // ): PaginationObservables<YY> {
-  //   return getPaginationObservables<YY>({
-  //     store: helper.store,
-  //     action,
-  //     paginationMonitor: this.getPaginationMonitorByAction(
-  //       helper,
-  //       action
-  //     )
-  //   }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
-  // }
-}
-
-// export function registerCFEntities() {
-//   generateCFEntities().forEach(entity => entityCatalog.register(entity));
-// }
-export const cfEntityCatalog: CfEntityCatalog = new CfEntityCatalog();
-
 
 function generateCFQuotaDefinitionEntity(endpointDefinition: StratosEndpointExtensionDefinition) {
   const definition: IStratosEntityDefinition = {
@@ -592,44 +472,6 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
           getGuid: metadata => metadata.guid,
         },
         entityAccess: {
-          // getEntity: (
-          //   helper: EntityCatalogHelper,
-          //   guid: string,
-          //   endpointGuid: string,
-          //   base?: CFBasePipelineRequestActionMeta
-          // ): GahEntityAccess<APIResource<IUserProvidedServiceInstance>> => {
-          //   const action = userProvidedServiceActionBuilder.get(guid, endpointGuid, base);
-          //   return {
-          //     // tslint:disable-next-line:max-line-length
-          //     entityMonitor: new EntityMonitor<APIResource<IUserProvidedServiceInstance>>(
-          // helper.store, guid, this.entityKey, this.getSchema(schemaKey), startWithNull),
-          //     entityService: helper.esf.create<APIResource<IUserProvidedServiceInstance>>(
-          //       action.guid,
-          //       action
-          //     )
-          //   };
-          // },
-          // getEntities: (
-          //   helper: EntityCatalogHelper,
-          //   paginationKey?: string,
-          //   endpointGuid?: string,
-          //   base?: CFBasePipelineRequestActionMeta
-          // ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
-          //   const action = userProvidedServiceActionBuilder.getMultiple(paginationKey, endpointGuid, base);
-          //   const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
-          //     action.paginationKey,
-          //     action,
-          //     action.flattenPagination
-          //   );
-          //   return {
-          //     monitor: mon,
-          //     obs: getPaginationObservables<APIResource<IUserProvidedServiceInstance>>({
-          //       store: helper.store,
-          //       action,
-          //       paginationMonitor: mon
-          //     }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
-          //   };
-          // },
           getAllInSpace: (
             helper: EntityCatalogHelper,
             endpointGuid: string,
@@ -934,7 +776,7 @@ function generateGitCommitEntity(endpointDefinition: StratosEndpointExtensionDef
       };
     },
   };
-  return new StratosCatalogEntity<IFavoriteMetadata, GitCommit, null, GitCommitActionBuildersConfig, GitCommitActionBuilders>(
+  return new StratosCatalogEntity<IFavoriteMetadata, GitCommit, GitCommitActionBuilders, GitCommitActionBuildersConfig>(
     definition,
     {
       dataReducers: [

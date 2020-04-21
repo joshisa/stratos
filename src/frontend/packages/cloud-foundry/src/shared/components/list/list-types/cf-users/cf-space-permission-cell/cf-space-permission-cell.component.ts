@@ -18,6 +18,7 @@ import { CurrentUserPermissionsService } from '../../../../../../../../core/src/
 import { arrayHelper } from '../../../../../../../../core/src/core/helper-classes/array.helper';
 import { ConfirmationDialogService } from '../../../../../../../../core/src/shared/components/confirmation-dialog.service';
 import { entityCatalog } from '../../../../../../../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { APIResource } from '../../../../../../../../store/src/types/api.types';
 import { CF_ENDPOINT_TYPE } from '../../../../../../cf-types';
 import { getSpaceRoles } from '../../../../../../features/cloud-foundry/cf.helpers';
@@ -38,7 +39,8 @@ export class CfSpacePermissionCellComponent extends CfPermissionCell<SpaceUserRo
     public store: Store<CFAppState>,
     cfUserService: CfUserService,
     private userPerms: CurrentUserPermissionsService,
-    confirmDialog: ConfirmationDialogService
+    confirmDialog: ConfirmationDialogService,
+    private ech: EntityCatalogHelper,
   ) {
     super(store, confirmDialog, cfUserService);
 
@@ -130,8 +132,8 @@ export class CfSpacePermissionCellComponent extends CfPermissionCell<SpaceUserRo
         guid: spacePerms.spaceGuid,
         username: row.entity.username,
         userGuid: row.metadata.guid,
-        busy: catalogEntity.getEntityMonitor(
-          this.store,
+        busy: catalogEntity.entityAccess.getEntityMonitor(
+          this.ech,
           spacePerms.spaceGuid
         )
           .getUpdatingSection(updatingKey).pipe(

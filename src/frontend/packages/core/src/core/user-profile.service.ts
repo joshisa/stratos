@@ -43,7 +43,7 @@ export class UserProfileService {
       return;
     }
 
-    this.entityMonitor = this.stratosUserConfig.getEntityMonitor(this.ech, UserProfileEffect.guid);
+    this.entityMonitor = this.stratosUserConfig.entityAccess.getEntityMonitor(this.ech, UserProfileEffect.guid);
 
     this.userProfile$ = this.entityMonitor.entity$.pipe(
       filter(data => data && !!data.id)

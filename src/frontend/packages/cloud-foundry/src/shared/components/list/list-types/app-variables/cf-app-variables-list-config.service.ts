@@ -120,8 +120,9 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
       endpointType: CF_ENDPOINT_TYPE
     });
     return catalogEntity
+      .entityAccess
       .getEntityMonitor(
-        this.ecf,
+        this.ech,
         this.envVarsDataSource.appGuid
       )
       .entityRequest$.pipe(

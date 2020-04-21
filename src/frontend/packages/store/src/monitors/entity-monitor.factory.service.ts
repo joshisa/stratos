@@ -33,7 +33,7 @@ export class EntityMonitorFactory {
       if (!catalogEntity) {
         throw new Error(`Could not find catalog entity for endpoint type '${endpointType}' and entity type '${entityType}'`);
       }
-      const monitor = catalogEntity.getEntityMonitor(
+      const monitor = catalogEntity.entityAccess.getEntityMonitor(
         this.ech,
         id,
         {

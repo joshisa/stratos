@@ -136,13 +136,13 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     }
   }
 
-  private static getRowStateManager(store: Store<CFAppState>, paginationKey: string, isLocal: boolean): {
+  private static getRowStateManager(ech: EntityCatalogHelper, paginationKey: string, isLocal: boolean): {
     rowStateManager: TableRowStateManager,
     sub: Subscription
   } {
     const rowStateManager = new TableRowStateManager();
     const paginationMonitor = new PaginationMonitor(
-      store,
+      ech.store,
       paginationKey,
       {
         entityType: routeEntityType,
@@ -152,7 +152,7 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     );
 
     const sub = this.setUpManager(
-      store,
+      ech,
       paginationMonitor,
       rowStateManager
     );
@@ -175,7 +175,7 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
             entityType: routeEntityType,
             endpointType: CF_ENDPOINT_TYPE
           });
-          const entityMonitor = catalogEntity.getEntityMonitor(ech, route.metadata.guid);
+          const entityMonitor = catalogEntity.entityAccess.getEntityMonitor(ech, route.metadata.guid);
           const request$ = entityMonitor.entityRequest$.pipe(
             tap(request => {
               const unmapping = request.updating.unmapping || { busy: false };
