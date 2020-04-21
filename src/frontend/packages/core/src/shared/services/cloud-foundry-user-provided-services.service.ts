@@ -91,7 +91,7 @@ export class CloudFoundryUserProvidedServicesService {
       )
     );
     this.userProvidedServiceEntity.getProperty('fghfg');
-    this.userProvidedServiceEntity.entityAccess.
+    this.userProvidedServiceEntity.entityAccess.getEntityService()
 
     const pagOns = this.userProvidedServiceEntity.getPaginationObservables(
       this.ech,

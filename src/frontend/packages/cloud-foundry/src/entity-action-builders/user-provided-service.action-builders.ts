@@ -43,7 +43,8 @@ interface UserProvidedServiceBase {
 
 
 
-export interface UserProvidedServiceAccessBuilders extends GahActionBuilders<APIResource<IUserProvidedServiceInstance>> {
+export interface UserProvidedServiceAccessBuilders
+  extends GahActionBuilders<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
   getAllInSpace: (
     helper: EntityCatalogHelper,
     endpointGuid: string,

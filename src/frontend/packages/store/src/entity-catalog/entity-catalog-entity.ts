@@ -71,7 +71,7 @@ export interface GahEntitiesAccess<Y> {
   obs: PaginationObservables<Y>;
 }
 
-export interface GahActionBuilders<Y> {
+export interface GahActionBuilders<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (
     helper: EntityCatalogHelper,
     entityId: string,
@@ -82,15 +82,15 @@ export interface GahActionBuilders<Y> {
   ) => EntityMonitor<Y>;
   getEntityService: (
     helper: EntityCatalogHelper,
-    ...args
+    ...args: Parameters<ABC['get']>
   ) => EntityService<Y>;
   getPaginationMonitor: (
     helper: EntityCatalogHelper,
-    ...args
+    ...args: Parameters<ABC['getMultiple']>
   ) => PaginationMonitor<Y>;
   getPaginationObservables: (
     helper: EntityCatalogHelper,
-    ...args
+    ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
   [others: string]: (
     helper: EntityCatalogHelper,
@@ -99,7 +99,7 @@ export interface GahActionBuilders<Y> {
   // Update, etc?
 }
 
-type GAH<AA extends GahActionBuilders<Y>, Y> = {
+type GAH<Y, ABC extends OrchestratedActionBuilders, AA extends GahActionBuilders<Y, ABC>> = {
   [K in keyof AA]: (...args: Parameters<AA[K]>) => any;
 };
 
@@ -113,8 +113,9 @@ type GAH<AA extends GahActionBuilders<Y>, Y> = {
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
-  AA extends GahActionBuilders<Y> = GahActionBuilders<Y>, // access builders
-  AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders
+  AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>, // access builders
   > {
   entityBuilder?: IStratosEntityBuilder<T, Y>;
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
@@ -128,15 +129,15 @@ type DefinitionTypes = IStratosEntityDefinition<EntityCatalogSchemas> |
 export class StratosBaseCatalogEntity<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
-  AA extends GahActionBuilders<Y> = GahActionBuilders<Y>, // access builders
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
-  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>, // access builders
   > {
   // implements ABCD
   constructor(
     definition: IStratosEntityDefinition | IStratosEndpointDefinition | IStratosBaseEntityDefinition,
-    public readonly builders: EntityCatalogBuilders<T, Y, AA, AB> = {}
+    public readonly builders: EntityCatalogBuilders<T, Y, AB, ABC, AA> = {}
   ) {
     this.definition = this.populateEntity(definition);
     this.type = this.definition.type || this.definition.schema.default.entityType;
@@ -166,7 +167,7 @@ export class StratosBaseCatalogEntity<
   // test2: Test2<ABC, '', ''>;
   actionBuilders: ABC;
   // gah: GAH<ABC>;
-  entityAccess: GAH<AA, Y>;
+  entityAccess: GAH<Y, ABC, AA>;
 
   // abcType = ABC;
 
@@ -178,8 +179,8 @@ export class StratosBaseCatalogEntity<
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
 
-  private createEntityAccess(): GAH<AA, Y> {
-    const res: GahActionBuilders<Y> = {
+  private createEntityAccess(): GAH<Y, ABC, AA> {
+    const res: GahActionBuilders<Y, ABC> = {
       getEntityMonitor: (
         helper: EntityCatalogHelper,
         entityId: string,
@@ -226,12 +227,8 @@ export class StratosBaseCatalogEntity<
           ) // TODO: RC
         }, action.flattenPagination);
       },
-      // abc(
-      //   helper: EntityCatalogHelper,
-      //   ...args: Parameters<ABC['getMultiple']>
-      // ) => null;
     };
-    const res2: GAH<AA, Y> = res as GAH<AA, Y>;
+    const res2: GAH<Y, ABC, AA> = res as GAH<Y, ABC, AA>;
     return res2;
   }
 
@@ -484,14 +481,14 @@ export class StratosBaseCatalogEntity<
 export class StratosCatalogEntity<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
-  AA extends GahActionBuilders<Y> = GahActionBuilders<Y>,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
-  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders
-  > extends StratosBaseCatalogEntity<T, Y, AA, AB> {
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>,
+  > extends StratosBaseCatalogEntity<T, Y, AB, ABC, AA> {
   public definition: IStratosEntityDefinition<EntityCatalogSchemas, Y, ABC>;
   constructor(
     entity: IStratosEntityDefinition,
-    config?: EntityCatalogBuilders<T, Y, AA, AB>
+    config?: EntityCatalogBuilders<T, Y, AB, ABC, AA>
   ) {
     super(entity, config);
   }

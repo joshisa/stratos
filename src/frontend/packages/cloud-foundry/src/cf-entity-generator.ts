@@ -197,157 +197,160 @@ export class CfEntityCatalog {
   public userProvidedServiceEntity: StratosBaseCatalogEntity<
     IFavoriteMetadata,
     APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceAccessBuilders,
-    UserProvidedServiceActionBuilder
-  > = entityCatalog.getEntity<
+    UserProvidedServiceActionBuilder,
+    UserProvidedServiceActionBuilder,
+    UserProvidedServiceAccessBuilders
+  > = entityCatalog.getEntity <
     IFavoriteMetadata,
-    APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceAccessBuilders,
-    UserProvidedServiceActionBuilder>
-      (
-        CF_ENDPOINT_TYPE,
-        userProvidedServiceInstanceEntityType
-      );
-  // public userProvidedService: IEntityAccess<
-  //   IFavoriteMetadata,
-  //   APIResource<IUserProvidedServiceInstance>,
-  //   UserProvidedServiceActionBuilder
-  // >;
+  APIResource<IUserProvidedServiceInstance>,
+  UserProvidedServiceActionBuilder>,
+    UserProvidedServiceActionBuilder >,
+    UserProvidedServiceAccessBuilders
+    >
+    (
+      CF_ENDPOINT_TYPE,
+      userProvidedServiceInstanceEntityType
+    );
+// public userProvidedService: IEntityAccess<
+//   IFavoriteMetadata,
+//   APIResource<IUserProvidedServiceInstance>,
+//   UserProvidedServiceActionBuilder
+// >;
 
 
-  generateCFEntities(): StratosBaseCatalogEntity[] {
-    const endpointDefinition: StratosEndpointExtensionDefinition = {
-      urlValidationRegexString: urlValidationExpression,
-      type: CF_ENDPOINT_TYPE,
-      label: 'Cloud Foundry',
-      labelPlural: 'Cloud Foundry',
-      icon: 'cloud_foundry',
-      iconFont: 'stratos-icons',
-      logoUrl: '/core/assets/endpoint-icons/cloudfoundry.png',
-      authTypes: [BaseEndpointAuth.UsernamePassword, BaseEndpointAuth.SSO],
-      listDetailsComponent: CfEndpointDetailsComponent,
-      renderPriority: 1,
-      globalPreRequest: (request, action) => {
-        return addCfRelationParams(request, action);
-      },
-      globalPrePaginationRequest: (request, action, catalogEntity, appState) => {
-        const rWithRelations = addCfRelationParams(request, action);
-        return addCfQParams(rWithRelations, action, catalogEntity, appState);
-      },
-      globalSuccessfulRequestDataMapper: (data, endpointGuid, guid) => {
-        if (data) {
-          if (data.entity) {
-            data.entity.cfGuid = endpointGuid;
-            data.entity.guid = guid;
-          } else {
-            data.cfGuid = endpointGuid;
-            data.guid = guid;
-          }
+generateCFEntities(): StratosBaseCatalogEntity[] {
+  const endpointDefinition: StratosEndpointExtensionDefinition = {
+    urlValidationRegexString: urlValidationExpression,
+    type: CF_ENDPOINT_TYPE,
+    label: 'Cloud Foundry',
+    labelPlural: 'Cloud Foundry',
+    icon: 'cloud_foundry',
+    iconFont: 'stratos-icons',
+    logoUrl: '/core/assets/endpoint-icons/cloudfoundry.png',
+    authTypes: [BaseEndpointAuth.UsernamePassword, BaseEndpointAuth.SSO],
+    listDetailsComponent: CfEndpointDetailsComponent,
+    renderPriority: 1,
+    globalPreRequest: (request, action) => {
+      return addCfRelationParams(request, action);
+    },
+    globalPrePaginationRequest: (request, action, catalogEntity, appState) => {
+      const rWithRelations = addCfRelationParams(request, action);
+      return addCfQParams(rWithRelations, action, catalogEntity, appState);
+    },
+    globalSuccessfulRequestDataMapper: (data, endpointGuid, guid) => {
+      if (data) {
+        if (data.entity) {
+          data.entity.cfGuid = endpointGuid;
+          data.entity.guid = guid;
+        } else {
+          data.cfGuid = endpointGuid;
+          data.guid = guid;
         }
-        return data;
-      },
-      globalErrorMessageHandler: (errors: JetstreamError<CfErrorResponse>[]) => {
-        if (!errors || errors.length === 0) {
-          return 'No errors in response';
-        }
-
-        if (errors.length === 1) {
-          return getCfError(errors[0].jetstreamErrorResponse);
-        }
-
-        return errors.reduce((message, error) => {
-          message += `\n${getCfError(error.jetstreamErrorResponse)}`;
-          return message;
-        }, 'Multiple Cloud Foundry Errors. ');
-      },
-      paginationConfig: {
-        getEntitiesFromResponse: (response: CFResponse) => response.resources,
-        getTotalPages: (responseWithPages: JetstreamResponse<CFResponse | CFResponse[]>) =>
-          // Input is keyed per endpoint. Value per endpoint can either be a response or a number of responses (one per page)
-          Object.values(responseWithPages).reduce((max, response: CFResponse | CFResponse[]) => {
-            const resp = (response[0] || response);
-            return max > resp.total_pages ? max : resp.total_pages;
-          }, 0),
-        getTotalEntities: (responseWithPages: JetstreamResponse<CFResponse | CFResponse[]>) =>
-          Object.values(responseWithPages).reduce((all, response: CFResponse | CFResponse[]) => {
-            return all + (response[0] || response).total_results;
-          }, 0),
-        getPaginationParameters: (page: number) => ({ page: page + '' }),
-        canIgnoreMaxedState: (store: Store<AppState>) => {
-          // Does entity type support? Yes
-          // Does BE support ignore?
-          return store.select(selectSessionData()).pipe(
-            map(sessionData => !!sessionData.config.listAllowLoadMaxed)
-          );
-        },
-        maxedStateStartAt: (store: Store<AppState>, action: PaginatedAction) => {
-          // Disable via the action?
-          // Only allowed maxed process if enabled by action. This will be removed via #4204
-          if (!action.flattenPaginationMax) {
-            return of(null);
-          }
-
-          // Maxed Count from Backend?
-          const beValue$ = store.select(selectSessionData()).pipe(
-            map(sessionData => sessionData.config.listMaxSize)
-          );
-
-          // TODO: See #4205
-          // Maxed count as per user config
-          const userOverride$ = of(null);
-          // const userOverride$ = store.select(selectSessionData()).pipe(
-          //   // Check that the user is allowed to load all, if so they can set their own max number
-          //   map(sessionData => !!sessionData.config.listAllowLoadMaxed ? null : null)
-          // );
-
-          // Maxed count from entity type
-          const entityTypeDefault = 600;
-
-          // Choose in order of priority
-          return combineLatest([
-            beValue$,
-            userOverride$
-          ]).pipe(
-            map(([beValue, userOverride]) => userOverride || beValue || entityTypeDefault)
-          );
-        },
       }
-    };
-    // this.userProvidedServiceEntity = generateCFUserProvidedServiceInstanceEntity(endpointDefinition);
-    return [
-      generateCfEndpointEntity(endpointDefinition),
-      generateCfApplicationEntity(endpointDefinition),
-      generateCfSpaceEntity(endpointDefinition),
-      generateCfOrgEntity(endpointDefinition),
-      generateFeatureFlagEntity(endpointDefinition),
-      generateStackEntity(endpointDefinition),
-      generateRouteEntity(endpointDefinition),
-      generateEventEntity(endpointDefinition),
-      generateGitBranchEntity(endpointDefinition),
-      generateGitRepoEntity(endpointDefinition),
-      generateGitCommitEntity(endpointDefinition),
-      generateCFDomainEntity(endpointDefinition),
-      generateCFUserEntity(endpointDefinition),
-      generateCFServiceInstanceEntity(endpointDefinition),
-      generateCFServicePlanEntity(endpointDefinition),
-      generateCFServiceEntity(endpointDefinition),
-      generateCFServiceBindingEntity(endpointDefinition),
-      generateCFSecurityGroupEntity(endpointDefinition),
-      generateCFServicePlanVisibilityEntity(endpointDefinition),
-      generateCFServiceBrokerEntity(endpointDefinition),
-      generateCFBuildPackEntity(endpointDefinition),
-      generateCFAppStatsEntity(endpointDefinition),
-      generateCFUserProvidedServiceInstanceEntity(endpointDefinition),
-      // this.userProvidedServiceEntity,
-      generateCFInfoEntity(endpointDefinition),
-      generateCFPrivateDomainEntity(endpointDefinition),
-      generateCFSpaceQuotaEntity(endpointDefinition),
-      generateCFAppSummaryEntity(endpointDefinition),
-      generateCFAppEnvVarEntity(endpointDefinition),
-      generateCFQuotaDefinitionEntity(endpointDefinition),
-      generateCFMetrics(endpointDefinition)
-    ];
-  }
+      return data;
+    },
+    globalErrorMessageHandler: (errors: JetstreamError<CfErrorResponse>[]) => {
+      if (!errors || errors.length === 0) {
+        return 'No errors in response';
+      }
+
+      if (errors.length === 1) {
+        return getCfError(errors[0].jetstreamErrorResponse);
+      }
+
+      return errors.reduce((message, error) => {
+        message += `\n${getCfError(error.jetstreamErrorResponse)}`;
+        return message;
+      }, 'Multiple Cloud Foundry Errors. ');
+    },
+    paginationConfig: {
+      getEntitiesFromResponse: (response: CFResponse) => response.resources,
+      getTotalPages: (responseWithPages: JetstreamResponse<CFResponse | CFResponse[]>) =>
+        // Input is keyed per endpoint. Value per endpoint can either be a response or a number of responses (one per page)
+        Object.values(responseWithPages).reduce((max, response: CFResponse | CFResponse[]) => {
+          const resp = (response[0] || response);
+          return max > resp.total_pages ? max : resp.total_pages;
+        }, 0),
+      getTotalEntities: (responseWithPages: JetstreamResponse<CFResponse | CFResponse[]>) =>
+        Object.values(responseWithPages).reduce((all, response: CFResponse | CFResponse[]) => {
+          return all + (response[0] || response).total_results;
+        }, 0),
+      getPaginationParameters: (page: number) => ({ page: page + '' }),
+      canIgnoreMaxedState: (store: Store<AppState>) => {
+        // Does entity type support? Yes
+        // Does BE support ignore?
+        return store.select(selectSessionData()).pipe(
+          map(sessionData => !!sessionData.config.listAllowLoadMaxed)
+        );
+      },
+      maxedStateStartAt: (store: Store<AppState>, action: PaginatedAction) => {
+        // Disable via the action?
+        // Only allowed maxed process if enabled by action. This will be removed via #4204
+        if (!action.flattenPaginationMax) {
+          return of(null);
+        }
+
+        // Maxed Count from Backend?
+        const beValue$ = store.select(selectSessionData()).pipe(
+          map(sessionData => sessionData.config.listMaxSize)
+        );
+
+        // TODO: See #4205
+        // Maxed count as per user config
+        const userOverride$ = of(null);
+        // const userOverride$ = store.select(selectSessionData()).pipe(
+        //   // Check that the user is allowed to load all, if so they can set their own max number
+        //   map(sessionData => !!sessionData.config.listAllowLoadMaxed ? null : null)
+        // );
+
+        // Maxed count from entity type
+        const entityTypeDefault = 600;
+
+        // Choose in order of priority
+        return combineLatest([
+          beValue$,
+          userOverride$
+        ]).pipe(
+          map(([beValue, userOverride]) => userOverride || beValue || entityTypeDefault)
+        );
+      },
+    }
+  };
+  // this.userProvidedServiceEntity = generateCFUserProvidedServiceInstanceEntity(endpointDefinition);
+  return [
+    generateCfEndpointEntity(endpointDefinition),
+    generateCfApplicationEntity(endpointDefinition),
+    generateCfSpaceEntity(endpointDefinition),
+    generateCfOrgEntity(endpointDefinition),
+    generateFeatureFlagEntity(endpointDefinition),
+    generateStackEntity(endpointDefinition),
+    generateRouteEntity(endpointDefinition),
+    generateEventEntity(endpointDefinition),
+    generateGitBranchEntity(endpointDefinition),
+    generateGitRepoEntity(endpointDefinition),
+    generateGitCommitEntity(endpointDefinition),
+    generateCFDomainEntity(endpointDefinition),
+    generateCFUserEntity(endpointDefinition),
+    generateCFServiceInstanceEntity(endpointDefinition),
+    generateCFServicePlanEntity(endpointDefinition),
+    generateCFServiceEntity(endpointDefinition),
+    generateCFServiceBindingEntity(endpointDefinition),
+    generateCFSecurityGroupEntity(endpointDefinition),
+    generateCFServicePlanVisibilityEntity(endpointDefinition),
+    generateCFServiceBrokerEntity(endpointDefinition),
+    generateCFBuildPackEntity(endpointDefinition),
+    generateCFAppStatsEntity(endpointDefinition),
+    generateCFUserProvidedServiceInstanceEntity(endpointDefinition),
+    // this.userProvidedServiceEntity,
+    generateCFInfoEntity(endpointDefinition),
+    generateCFPrivateDomainEntity(endpointDefinition),
+    generateCFSpaceQuotaEntity(endpointDefinition),
+    generateCFAppSummaryEntity(endpointDefinition),
+    generateCFAppEnvVarEntity(endpointDefinition),
+    generateCFQuotaDefinitionEntity(endpointDefinition),
+    generateCFMetrics(endpointDefinition)
+  ];
+}
 
   // public getEntityService<YY = Y>(
   //   ...args: Parameters<ABC['get']>
@@ -572,8 +575,9 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
   return new StratosCatalogEntity<
     IFavoriteMetadata,
     APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceAccessBuilders,
-    UserProvidedServiceActionBuilder>(
+    UserProvidedServiceActionBuilder,
+    UserProvidedServiceActionBuilder,
+    UserProvidedServiceAccessBuilders>(
       definition,
       {
         actionBuilders: userProvidedServiceActionBuilder,

@@ -105,24 +105,39 @@ class EntityCatalog {
   }
 
   /* tslint:disable:max-line-length */
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AA extends GahActionBuilders = GahActionBuilders, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends GahActionBuilders<Y, AB> = GahActionBuilders<Y, AB>
+  >(
     entityConfig: EntityCatalogEntityConfig
-  ): StratosBaseCatalogEntity<T, Y, AA, AB>;
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AA extends GahActionBuilders = GahActionBuilders, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends GahActionBuilders<Y, AB> = GahActionBuilders<Y, AB>
+  >(
     endpointType: string,
     entityType: string,
     subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AA, AB>;
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AA extends GahActionBuilders = GahActionBuilders, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends GahActionBuilders<Y, AB> = GahActionBuilders<Y, AB>
+  >(
     endpointTypeOrConfig: string | EntityCatalogEntityConfig,
     entityType?: string,
     subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AA, AB> {
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA> {
     /* tslint:enable:max-line-length */
     const config = this.getConfig(endpointTypeOrConfig, entityType, subType);
     const entityOfType = this.getEntityOfType(config.entityType, config.endpointType);
     if (entityOfType && subType) {
-      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AA, AB>;
+      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
     }
     if (!entityOfType) {
       console.warn(
@@ -130,7 +145,7 @@ class EntityCatalog {
         new Error().stack
       );
     }
-    return entityOfType as StratosBaseCatalogEntity<T, Y, AA, AB>;
+    return entityOfType as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
   }
 
   public getEntityKey(endpointType: string, entityType: string): string;
