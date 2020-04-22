@@ -56,58 +56,58 @@ export class CloudFoundryUserProvidedServicesService {
     private ech: EntityCatalogHelper
   ) {
 
-    // TODO: RC TIDY Remove all this
-    const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
-    const upsiGuid = 'be04b992-1127-4351-b123-0b09b30228d3';
-    const spaceGuid = '23f8c13e-631c-43d1-b412-349198632960';
-    const pagKey = 'paginationKey123456';
+    // // TODO: RC TIDY Remove all this
+    // const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
+    // const upsiGuid = 'be04b992-1127-4351-b123-0b09b30228d3';
+    // const spaceGuid = '23f8c13e-631c-43d1-b412-349198632960';
+    // const pagKey = 'paginationKey123456';
 
-    const entMonitor = this.userProvidedServiceEntity.api.getEntityMonitor(
-      this.ech,
-      upsiGuid,
-    ).entity$.subscribe(a => console.log('entMonitor: ', a));
+    // const entMonitor = this.userProvidedServiceEntity.api.getEntityMonitor(
+    //   this.ech,
+    //   upsiGuid,
+    // ).entity$.subscribe(a => console.log('entMonitor: ', a));
 
-    const entService = this.userProvidedServiceEntity.api.getEntityService(
-      this.ech,
-      upsiGuid, // Per action builder
-      endpointGuid // Per action builder,
-    ).entityObs$.subscribe(a => console.log('entService: ', a));
+    // const entService = this.userProvidedServiceEntity.api.getEntityService(
+    //   this.ech,
+    //   upsiGuid, // Per action builder
+    //   endpointGuid // Per action builder,
+    // ).entityObs$.subscribe(a => console.log('entService: ', a));
 
-    const pagMon = this.userProvidedServiceEntity.api.getPaginationMonitor(
-      this.ech,
-      pagKey, // Per action builder
-      endpointGuid, // Per action builder
-    ).currentPage$.subscribe(a => console.log('pagMon: ', a));
+    // const pagMon = this.userProvidedServiceEntity.api.getPaginationMonitor(
+    //   this.ech,
+    //   pagKey, // Per action builder
+    //   endpointGuid, // Per action builder
+    // ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
-    const pagObservables = this.userProvidedServiceEntity.api.getPaginationService(
-      this.ech,
-      pagKey, // Per action builder
-      endpointGuid, // Per action builder
-    ).entities$.subscribe(a => console.log('pagObservables: ', a));
+    // const pagObservables = this.userProvidedServiceEntity.api.getPaginationService(
+    //   this.ech,
+    //   pagKey, // Per action builder
+    //   endpointGuid, // Per action builder
+    // ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
-    const allInSpacePagMonitor = this.userProvidedServiceEntity.api.custom.getAllInSpace(
-      this.ech,
-      endpointGuid, // Per action builder
-      spaceGuid, // Per action builder
-      null, // Per action builder
-      getUserProvidedServiceInstanceRelations, // Per action builder
-      true// Per action builder
-    ).monitor.currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
+    // const allInSpacePagMonitor = this.userProvidedServiceEntity.api.custom.getAllInSpace(
+    //   this.ech,
+    //   endpointGuid, // Per action builder
+    //   spaceGuid, // Per action builder
+    //   null, // Per action builder
+    //   getUserProvidedServiceInstanceRelations, // Per action builder
+    //   true// Per action builder
+    // ).monitor.currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
-    const allInSpacePagObservables = this.userProvidedServiceEntity.api.custom.getAllInSpace(
-      this.ech,
-      endpointGuid, // Per action builder
-      spaceGuid, // Per action builder
-      null, // Per action builder
-      getUserProvidedServiceInstanceRelations, // Per action builder
-      true// Per action builder
-    ).obs.entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
+    // const allInSpacePagObservables = this.userProvidedServiceEntity.api.custom.getAllInSpace(
+    //   this.ech,
+    //   endpointGuid, // Per action builder
+    //   spaceGuid, // Per action builder
+    //   null, // Per action builder
+    //   getUserProvidedServiceInstanceRelations, // Per action builder
+    //   true// Per action builder
+    // ).obs.entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
 
-    const updateAction = this.userProvidedServiceEntity.actionBuilders.update(
-      upsiGuid, // Per action builder
-      endpointGuid, // Per action builder
-      {} as Partial<IUserProvidedServiceInstanceData> // Per action builder
-    );
+    // const updateAction = this.userProvidedServiceEntity.actionBuilders.update(
+    //   upsiGuid, // Per action builder
+    //   endpointGuid, // Per action builder
+    //   {} as Partial<IUserProvidedServiceInstanceData> // Per action builder
+    // );
     // this.store.dispatch(updateAction);
   }
 

@@ -19,7 +19,8 @@ import { entityCatalog } from '../../../../../../../store/src/entity-catalog/ent
 import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { UpdateExistingApplication } from '../../../../../actions/application.actions';
 import { CFAppState } from '../../../../../cf-app-state';
-import { appEnvVarsEntityType, applicationEntityType } from '../../../../../cf-entity-types';
+import { cfEntityCatalog } from '../../../../../cf-entity-service';
+import { applicationEntityType } from '../../../../../cf-entity-types';
 import { CF_ENDPOINT_TYPE } from '../../../../../cf-types';
 import { ApplicationService } from '../../../../../features/applications/application.service';
 import { CfAppVariablesDataSource, ListAppEnvVar } from './cf-app-variables-data-source';
@@ -90,21 +91,28 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
   private dispatchDeleteAction(newValues: ListAppEnvVar[]) {
     const confirmation = this.getConfirmationModal(newValues);
 
-    const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('removeFromApplication');
-    const action = actionBuilder(
-      this.envVarsDataSource.appGuid,
-      this.envVarsDataSource.cfGuid,
-      this.envVarsDataSource.transformedEntities,
-      newValues
-    );
+    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
+    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('removeFromApplication');
+    // const action = actionBuilder(
+    //   this.envVarsDataSource.appGuid,
+    //   this.envVarsDataSource.cfGuid,
+    //   this.envVarsDataSource.transformedEntities,
+    //   newValues
+    // );
 
     const entityReq$ = this.getEntityMonitor();
     const trigger$ = new Subject();
     this.confirmDialog.open(
       confirmation,
       () => {
-        this.store.dispatch(action);
+        cfEntityCatalog.appEnvVar.api.custom.removeFromApplication(
+          this.ech,
+          this.envVarsDataSource.appGuid,
+          this.envVarsDataSource.cfGuid,
+          this.envVarsDataSource.transformedEntities,
+          newValues
+        );
+        // this.store.dispatch(action);
         trigger$.next();
       }
     );
@@ -156,7 +164,7 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     private confirmDialog: ConfirmationDialogService,
     private ech: EntityCatalogHelper
   ) {
-    this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this);
+    this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this, this.ech);
   }
 
 }

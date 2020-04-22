@@ -1,4 +1,4 @@
-import { ActionReducer } from '@ngrx/store';
+import { Action, ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
@@ -37,6 +37,15 @@ import {
 } from './entity-catalog.types';
 
 // ------------ 1
+
+export function apiCustomDispatch(
+  helper: EntityCatalogHelper,
+  action: Action
+) {
+  helper.store.dispatch(action);
+}
+
+
 // TODO: RC TIDY Have this still?
 export interface EntityAccessEntity<Y> {
   entityMonitor: EntityMonitor<Y>;
@@ -103,6 +112,32 @@ export interface EntityApi<Y, ABC extends OrchestratedActionBuilders, AA extends
   custom?: EntityApiProxy<AA>;
 }
 
+// TODO: RC Flip. { ..., core (allows overwrite)}
+
+// interface api<T> {
+//   actions: {
+//     create: {
+//       [key: string]: () => Action
+//     };
+//     dispatch: {
+//       [key: string]: () => void
+//     };
+//   };
+//   store: {
+//     core: {
+//       getEntityMonitor: () => EntityMonitor<T>
+//       getEntityService: () => EntityService<T>
+//       getPaginationMonitor: () => PaginationMonitor<T>
+//       getPaginationService: () => PaginationObservables<T>
+//     },
+//     custom: {
+//       [key: string]: () => any
+//     }
+//   };
+// }
+// cfEntityCatalog.appEnvVar.api.action.dispatch.removeFromApplication
+// cfEntityCatalog.appEnvVar.api.store.custom.getFromMultipleApps
+
 // ------------ end 1
 
 
@@ -149,8 +184,8 @@ export class StratosBaseCatalogEntity<
       (schemaKey: string) => this.getSchema(schemaKey)
     );
     this.actionBuilders = actionBuilders as ABC;
-    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
-    this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher();
+    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
+    this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
     this.api = {
       ...this.createEntityAccess(),
       custom: {
@@ -160,9 +195,6 @@ export class StratosBaseCatalogEntity<
   }
 
   public readonly actionBuilders: ABC; // TODO: RC TIDY Comments
-  /**
-   * fsdfdsf
-   */
   public readonly api: EntityApi<Y, ABC, AA>; // TODO: RC TIDY Comments
 
   public readonly entityKey: string;

@@ -8,13 +8,12 @@ import {
   ListDataSource,
 } from '../../../../../../../core/src/shared/components/list/data-sources-controllers/list-data-source';
 import { IListConfig } from '../../../../../../../core/src/shared/components/list/list.component.types';
-import { entityCatalog } from '../../../../../../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
-import { PaginatedAction } from '../../../../../../../store/src/types/pagination.types';
 import { CFAppState } from '../../../../../cf-app-state';
 import { cfEntityFactory } from '../../../../../cf-entity-factory';
+import { cfEntityCatalog } from '../../../../../cf-entity-service';
 import { appEnvVarsEntityType, applicationEntityType } from '../../../../../cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../../cf-types';
 import { ApplicationService } from '../../../../../features/applications/application.service';
 import { AppEnvVarsState } from '../../../../../store/types/app-metadata.types';
 
@@ -27,15 +26,19 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
 
   public cfGuid: string;
   public appGuid: string;
+  private ech: EntityCatalogHelper;
 
   constructor(
     store: Store<CFAppState>,
     appService: ApplicationService,
-    listConfig: IListConfig<ListAppEnvVar>
+    listConfig: IListConfig<ListAppEnvVar>,
+    ech: EntityCatalogHelper
   ) {
-    const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
-    const getAppEnvVarsAction = actionBuilder(appService.appGuid, appService.cfGuid) as PaginatedAction;
+    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
+    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
+    // const getAppEnvVarsAction = actionBuilder(appService.appGuid, appService.cfGuid) as PaginatedAction;
+    const getAppEnvVarsAction = cfEntityCatalog.appEnvVar.actionBuilders.get(appService.appGuid, appService.cfGuid);
+
     super({
       store,
       action: getAppEnvVarsAction,
@@ -58,14 +61,17 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
 
     this.cfGuid = appService.cfGuid;
     this.appGuid = appService.appGuid;
+    this.ech = ech;
   }
 
   saveAdd() {
-    const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('addNewToApplication');
-    const appVariablesAddAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
+    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
+    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('addNewToApplication');
+    // const appVariablesAddAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
+    // this.store.dispatch(appVariablesAddAction);
+    cfEntityCatalog.appEnvVar.api.custom.addNewToApplication(this.ech, this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
 
-    this.store.dispatch(appVariablesAddAction);
+
     super.saveAdd();
   }
 
@@ -74,11 +80,12 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
   }
 
   saveEdit() {
-    const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('editInApplication');
-    const appVariablesEditAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
+    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
+    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('editInApplication');
+    // const appVariablesEditAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
+    // this.store.dispatch(appVariablesEditAction);
+    cfEntityCatalog.appEnvVar.api.custom.editInApplication(this.ech, this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
 
-    this.store.dispatch(appVariablesEditAction);
     super.saveEdit();
   }
 
