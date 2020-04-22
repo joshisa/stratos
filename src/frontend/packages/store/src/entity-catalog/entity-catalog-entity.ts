@@ -35,42 +35,20 @@ import {
   StratosEndpointExtensionDefinition,
 } from './entity-catalog.types';
 
-
-// interface RActions<Y, V extends OrchestratedActionBuilders> {
-//   entity: {
-
-//   };
-//   entities: {
-//     monitor: {
-//       [P in V]: PaginationMonitor<Y>;
-//     },
-//     observables: {
-//       [P in V]: PaginationObservables<Y>;
-//     }
-//   };
-// }
-
-// type test = <B extends keyof ABC, ABC>(...args: Parameters<ABC[B]>) => void;
-// type Test = <ABC, D, B extends keyof ABC>(...args: Parameters<ABC[B]>) => D;
-// type GenericIdentityFn = <T>(arg: T) => T;
-// type Test2<ABC, B extends keyof ABC> = {
-//   [P in B]: OrchestratedActionBuilders;
-// };
-// interface Test3<ABC extends {}> {
-//   [B in ABC]: OrchestratedActionBuilders;
-// }
-
-export interface GahEntityAccess<Y> {
+// TODO: RC Have this still?
+export interface EntityAccessEntity<Y> {
   entityMonitor: EntityMonitor<Y>;
   entityService: EntityService<Y>;
 }
 
-export interface GahEntitiesAccess<Y> {
+// TODO: RC Have this still?
+export interface EntityAccessPagination<Y> {
   monitor: PaginationMonitor<Y>;
   obs: PaginationObservables<Y>;
 }
 
-export interface GahActionBuilders<Y, ABC extends OrchestratedActionBuilders> {
+// TODO: RC needed now?
+export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (
     helper: EntityCatalogHelper,
     entityId: string,
@@ -98,23 +76,16 @@ export interface GahActionBuilders<Y, ABC extends OrchestratedActionBuilders> {
   // Update, etc?
 }
 
-type GAH<Y, ABC extends OrchestratedActionBuilders, AA extends GahActionBuilders<Y, ABC>> = {
+type EntityAccessProxy<Y, ABC extends OrchestratedActionBuilders, AA extends EntityAccess<Y, ABC>> = {
   [K in keyof AA]: (...args: Parameters<AA[K]>) => ReturnType<AA[K]>;
 };
-
-
-// type GAH<AA extends GahActionBuilders<Y>, Y> = {
-//   [K in keyof AA]: (...args: Parameters<AA[K]>) => any;
-// };
-
-
 
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>, // access builders
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
   > {
   entityBuilder?: IStratosEntityBuilder<T, Y>;
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
@@ -131,7 +102,7 @@ export class StratosBaseCatalogEntity<
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>, // access builders
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
   > {
   // implements ABCD
   constructor(
@@ -153,6 +124,7 @@ export class StratosBaseCatalogEntity<
       this.type,
       (schemaKey: string) => this.getSchema(schemaKey)
     );
+    this.actionBuilders = actionBuilders as ABC;
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher();
     this.entityAccess = {
@@ -162,9 +134,8 @@ export class StratosBaseCatalogEntity<
   }
 
 
-
-  public readonly buildAction: ABC;
-  public readonly entityAccess: GAH<Y, ABC, AA>;
+  public readonly actionBuilders: ABC; // TODO: RC Comments
+  public readonly entityAccess: EntityAccessProxy<Y, ABC, AA>; // TODO: RC Comments
 
   public readonly entityKey: string;
   public readonly type: string;
@@ -174,8 +145,8 @@ export class StratosBaseCatalogEntity<
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
 
-  private createEntityAccess(): GAH<Y, ABC, AA> {
-    const res: GahActionBuilders<Y, ABC> = {
+  private createEntityAccess(): EntityAccessProxy<Y, ABC, AA> {
+    const res: EntityAccess<Y, ABC> = {
       getEntityMonitor: (
         helper: EntityCatalogHelper,
         entityId: string,
@@ -188,7 +159,7 @@ export class StratosBaseCatalogEntity<
       },
       getEntityService: (
         helper: EntityCatalogHelper,
-        ...args: Parameters<ABC['get']> // TODO: RC into interface
+        ...args: Parameters<ABC['get']>
       ): EntityService<Y> => {
         const action = this.actionOrchestrator.getActionBuilder('get')(...args);
         return helper.esf.create<Y>(
@@ -212,7 +183,7 @@ export class StratosBaseCatalogEntity<
         ...args: Parameters<ABC['getMultiple']>
       ): PaginationObservables<Y> => {
         const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
-        return getPaginationObservables<Y>({
+        return helper.getPaginationObservables<Y>({
           store: helper.store,
           action,
           paginationMonitor: helper.pmf.create<Y>(
@@ -223,7 +194,7 @@ export class StratosBaseCatalogEntity<
         }, action.flattenPagination);
       },
     };
-    const res2: GAH<Y, ABC, AA> = res as GAH<Y, ABC, AA>;
+    const res2: EntityAccessProxy<Y, ABC, AA> = res as EntityAccessProxy<Y, ABC, AA>;
     return res2;
   }
 
@@ -365,7 +336,7 @@ export class StratosCatalogEntity<
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends GahActionBuilders<Y, ABC> = GahActionBuilders<Y, ABC>,
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>,
   > extends StratosBaseCatalogEntity<T, Y, AB, ABC, AA> {
   public definition: IStratosEntityDefinition<EntityCatalogSchemas, Y, ABC>;
   constructor(
@@ -420,148 +391,3 @@ export class StratosCatalogEndpointEntity extends StratosBaseCatalogEntity<IEndp
     });
   }
 }
-
-
-// [TYF in ABC] => (type: B) => {}
-  // test2: Test2<ABC, '', ''>;
-  // gah: GAH<ABC>;
-  // abcType = ABC;
-
-    // [R in ABC]: () => null;
-  // [R in keyof ABC]: () => null;
-  // sdfsdf: Record<'sdf', OrchestratedActionBuilders>;
-  // sdfsdf: Record<'sdf', OrchestratedActionBuilders>;
-  // sdfsdf2: <B extends keyof ABC, OrchestratedActionBuilders> = {
-  //   [P in K]: T;
-  // };
-
-  // getProperty<K extends keyof ABC>(key: K): ABC[K] {
-  //   return this.actionBuilders[key];
-  // }
-  // getPropertyOrig<T, K extends keyof T>(obj: T, key: K): T[K] {
-  //   return obj[key];
-  // }
-// const a = {
-//   getEntity: (
-//     helper: EntityCatalogHelper,
-//     ...args: Parameters<ABC['get']>
-//   ): GahEntityAccess<Y> => {
-//     const action = this.actionOrchestrator.getActionBuilder('get')(...args);
-//     return {
-//       // tslint:disable-next-line:max-line-length
-//       entityMonitor: new EntityMonitor<Y>(helper.store, guid, this.entityKey, this.getSchema(schemaKey), startWithNull),
-//       entityService: helper.esf.create<Y>(
-//         action.guid,
-//         action
-//       )
-//     };
-//   },
-//   getEntities: (
-//     helper: EntityCatalogHelper,
-//     ...args: Parameters<ABC['getMultiple']>
-//   ): GahEntitiesAccess<Y> => {
-//     const action = this.actionBuilders.getMultiple(...args);
-//     const mon = helper.pmf.create<Y>(
-//       action.paginationKey,
-//       action,
-//       action.flattenPagination
-//     );
-//     return {
-//       monitor: mon,
-//       obs: getPaginationObservables<Y>({
-//         store: helper.store,
-//         action,
-//         paginationMonitor: mon
-//       }, action.flattenPagination) // TODO: RC This isn't always the case. Can it be ommited?
-//     };
-//   },
-// }
-
-// public getEntityMonitor(
-//   helper: EntityCatalogHelper,
-//   entityId: string,
-//   {
-//     schemaKey = '',
-//     startWithNull = false
-//   } = {}
-// ): EntityMonitor<Y> {
-//   return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
-// }
-
-// public getEntityService<YY = Y>(
-//   helper: EntityCatalogHelper,
-//   ...args: Parameters<ABC['get']> // TODO: RC Confirm this is always the case!
-// ): EntityService<YY> {
-//   const action: EntityRequestAction = this.createAction<'get'>('get', ...args) as EntityRequestAction;
-//   return helper.esf.create<YY>(
-//     action.guid,
-//     action
-//   );
-// }
-
-// public getEntityServiceByAction<YY = Y>(
-//   helper: EntityCatalogHelper,
-//   action: EntityRequestAction
-// ): EntityService<YY> {
-//   return helper.esf.create<YY>(
-//     action.guid,
-//     action
-//   );
-// }
-
-// // this[B] = (args: ABC[B]) =>
-// public getPaginationMonitor<B extends keyof ABC, YY = Y>(
-//   helper: EntityCatalogHelper,
-//   actionType: B, // 'getAll/getAllInSpace' etc
-//   ...args: Parameters<ABC[B]>
-// ): PaginationMonitor<YY> {
-//   const action: PaginatedAction = this.createAction<B>(actionType, ...args) as PaginatedAction;
-//   return helper.pmf.create<YY>(
-//     action.paginationKey,
-//     action,
-//     action.flattenPagination
-//   );
-// }
-
-// public getPaginationMonitorByAction<YY = Y>(
-//   helper: EntityCatalogHelper,
-//   action: PaginatedAction
-// ): PaginationMonitor<YY> {
-//   return helper.pmf.create<YY>(
-//     action.paginationKey,
-//     action,
-//     action.flattenPagination
-//   );
-// }
-
-// public getPaginationObservables<B extends keyof ABC, YY = Y>(
-//   helper: EntityCatalogHelper,
-//   actionType: B, // 'getAll/getAllInSpace' etc
-//   ...args: Parameters<ABC[B]>
-// ): PaginationObservables<YY> {
-//   const action: PaginatedAction = this.createAction<B>(actionType, ...args) as PaginatedAction;
-
-//   return getPaginationObservables<YY>({
-//     store: helper.store,
-//     action,
-//     paginationMonitor: this.getPaginationMonitor(
-//       helper,
-//       actionType,
-//       ...args
-//     )
-//   }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
-// }
-
-// public getPaginationObservablesByAction<YY = Y>(
-//   helper: EntityCatalogHelper,
-//   action: PaginatedAction
-// ): PaginationObservables<YY> {
-//   return getPaginationObservables<YY>({
-//     store: helper.store,
-//     action,
-//     paginationMonitor: this.getPaginationMonitorByAction(
-//       helper,
-//       action
-//     )
-//   }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
-// }

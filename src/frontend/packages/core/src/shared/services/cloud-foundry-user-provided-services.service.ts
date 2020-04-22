@@ -10,7 +10,7 @@ import {
   UpdateUserProvidedServiceInstance,
 } from '../../../../cloud-foundry/src/actions/user-provided-service.actions';
 import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
-import { cfEntityCatalog } from '../../../../cloud-foundry/src/cf-entity-generator';
+import { cfEntityCatalog } from '../../../../cloud-foundry/src/cf-entity-service';
 import {
   organizationEntityType,
   serviceInstancesEntityType,
@@ -47,7 +47,7 @@ export class CloudFoundryUserProvidedServicesService {
     entityType: userProvidedServiceInstanceEntityType
   };
 
-  private userProvidedServiceEntity = cfEntityCatalog.userProvidedServiceEntity;
+  private userProvidedServiceEntity = cfEntityCatalog().userProvidedServiceEntity;
 
   constructor(
     private store: Store<CFAppState>,
@@ -56,60 +56,64 @@ export class CloudFoundryUserProvidedServicesService {
     private ech: EntityCatalogHelper
   ) {
 
+    // TODO: RC Remove all this
+    const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
+    const upsiGuid = 'be04b992-1127-4351-b123-0b09b30228d3';
+    const spaceGuid = '23f8c13e-631c-43d1-b412-349198632960';
+
+    const entMonitor = this.userProvidedServiceEntity.entityAccess.getEntityMonitor(
+      this.ech,
+      upsiGuid
+    ).entity$.subscribe(a => console.log('entMonitor: ', a));
+
+    const entService = this.userProvidedServiceEntity.entityAccess.getEntityService(
+      this.ech,
+      upsiGuid, // Per action builder
+      endpointGuid // Per action builder
+    ).entityObs$.subscribe(a => console.log('entService: ', a));
+
+    const pagMon = this.userProvidedServiceEntity.entityAccess.getPaginationMonitor(
+      this.ech,
+      'paginationKey123456', // Per action builder
+      endpointGuid, // Per action builder
+    ).currentPage$.subscribe(a => console.log('pagMon: ', a));
+
+    const pagObservables = this.userProvidedServiceEntity.entityAccess.getPaginationObservables(
+      this.ech,
+      'paginationKey123456', // Per action builder
+      endpointGuid, // Per action builder
+    ).entities$.subscribe(a => console.log('pagObservables: ', a));
+
+    const allInSpacePagMonitor = this.userProvidedServiceEntity.entityAccess.getAllInSpace(
+      this.ech,
+      endpointGuid, // Per action builder
+      spaceGuid, // Per action builder
+      null, // Per action builder
+      getUserProvidedServiceInstanceRelations, // Per action builder
+      true// Per action builder
+    ).monitor.currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
+
+    const allInSpacePagObservables = this.userProvidedServiceEntity.entityAccess.getAllInSpace(
+      this.ech,
+      endpointGuid, // Per action builder
+      spaceGuid, // Per action builder
+      null, // Per action builder
+      getUserProvidedServiceInstanceRelations, // Per action builder
+      true// Per action builder
+    ).obs.entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
+
+    const updateAction = this.userProvidedServiceEntity.actionBuilders.update(
+      upsiGuid, // Per action builder
+      endpointGuid, // Per action builder
+      {} as Partial<IUserProvidedServiceInstanceData> // Per action builder
+    );
+    // this.store.dispatch(updateAction);
   }
 
   public getUserProvidedServices(cfGuid: string, spaceGuid?: string, relations = getUserProvidedServiceInstanceRelations)
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
 
 
-    const entMonitor = this.userProvidedServiceEntity.entityAccess.getEntityMonitor(
-      this.ech,
-      'entityGuid123456',
-      null
-    );
-
-    const entService = this.userProvidedServiceEntity.entityAccess.getEntityService(
-      this.ech,
-      'entityGuid123456', // Per action builder
-      'endpointGuid123456' // Per action builder
-    );
-
-    const pagMon = this.userProvidedServiceEntity.entityAccess.getPaginationMonitor(
-      this.ech,
-      'paginationKey123456', // Per action builder
-      'endpointGuid123456', // Per action builder
-    );
-
-    const pagObservables = this.userProvidedServiceEntity.entityAccess.getPaginationObservables(
-      this.ech,
-      'paginationKey123456', // Per action builder
-      'endpointGuid123456', // Per action builder
-    );
-
-    const allInSpacePagMonitor = this.userProvidedServiceEntity.entityAccess.getAllInSpace(
-      this.ech,
-      cfGuid, // Per action builder
-      spaceGuid, // Per action builder
-      null, // Per action builder
-      relations, // Per action builder
-      true// Per action builder
-    ).monitor;
-
-    const allInSpacePagObservables = this.userProvidedServiceEntity.entityAccess.getAllInSpace(
-      this.ech,
-      cfGuid, // Per action builder
-      spaceGuid, // Per action builder
-      null, // Per action builder
-      relations, // Per action builder
-      true// Per action builder
-    ).obs;
-
-    const updateAction = this.userProvidedServiceEntity.buildAction.update(
-      'entityGuid123456', // Per action builder
-      'endpointGuid123456', // Per action builder
-      {} as Partial<IUserProvidedServiceInstanceData> // Per action builder
-    );
-    this.store.dispatch(updateAction);
 
 
 
@@ -117,19 +121,19 @@ export class CloudFoundryUserProvidedServicesService {
     // OLD WAYS
     // const entMon = this.userProvidedServiceEntity.getEntityMonitor(
     //   this.ech,
-    //   'entityGuid123456',
+    //   upsiGuid,
     // );
 
     // const entService = this.userProvidedServiceEntity.getEntityService(
     //   this.ech,
-    //   'entityGuid123456', // Per action builder
-    //   'endpointGuid123456' // Per action builder
+    //   upsiGuid, // Per action builder
+    //   endpointGuid // Per action builder
     // );
     // const entServiceByAction = this.userProvidedServiceEntity.getEntityServiceByAction(
     //   this.ech,
     //   this.userProvidedServiceEntity.buildAction.get(
-    //     'entityGuid123456', // Per action builder
-    //     'endpointGuid123456', // Per action builder,
+    //     upsiGuid, // Per action builder
+    //     endpointGuid, // Per action builder,
     //     {
     //       includeRelations: [],
     //       populateMissing: true
@@ -160,8 +164,8 @@ export class CloudFoundryUserProvidedServicesService {
 
     // const updateAction = this.userProvidedServiceEntity.createAction(
     //   'update',
-    //   'entityGuid123456', // Per action builder
-    //   'endpointGuid123456', // Per action builder
+    //   upsiGuid, // Per action builder
+    //   endpointGuid, // Per action builder
     //   {} as Partial<IUserProvidedServiceInstanceData>, // Per action builder
     // );
     // this.store.dispatch(updateAction);

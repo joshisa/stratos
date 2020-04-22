@@ -1,5 +1,5 @@
 import { IUserProvidedServiceInstance } from '../../../core/src/core/cf-api-svc.types';
-import { GahActionBuilders, GahEntitiesAccess } from '../../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityAccess, EntityAccessPagination } from '../../../store/src/entity-catalog/entity-catalog-entity';
 import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
 import { APIResource } from '../../../store/src/types/api.types';
@@ -14,7 +14,7 @@ import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
 
 export interface UserProvidedServiceAccessBuilders
-  extends GahActionBuilders<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
+  extends EntityAccess<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
   getAllInSpace: (
     helper: EntityCatalogHelper,
     endpointGuid: string,
@@ -22,7 +22,7 @@ export interface UserProvidedServiceAccessBuilders
     paginationKey?: string,
     includeRelations?: string[],
     populateMissing?: boolean,
-  ) => GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>>;
+  ) => EntityAccessPagination<APIResource<IUserProvidedServiceInstance>>;
 }
 
 export interface UserProvidedServiceActionBuilder extends CFOrchestratedActionBuilders {

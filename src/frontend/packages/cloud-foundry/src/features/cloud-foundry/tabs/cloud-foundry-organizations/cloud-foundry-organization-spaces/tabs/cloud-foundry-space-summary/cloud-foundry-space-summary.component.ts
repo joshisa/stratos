@@ -5,16 +5,19 @@ import { combineLatest, Observable } from 'rxjs';
 import { filter, first, map, pairwise, startWith, tap } from 'rxjs/operators';
 
 import { CurrentUserPermissions } from '../../../../../../../../../core/src/core/current-user-permissions.config';
-import { entityCatalog } from '../../../../../../../../../store/src/entity-catalog/entity-catalog';
 import { ConfirmationDialogConfig } from '../../../../../../../../../core/src/shared/components/confirmation-dialog.config';
 import {
   ConfirmationDialogService,
 } from '../../../../../../../../../core/src/shared/components/confirmation-dialog.service';
+import {
+  CloudFoundryUserProvidedServicesService,
+} from '../../../../../../../../../core/src/shared/services/cloud-foundry-user-provided-services.service';
 import { RouterNav } from '../../../../../../../../../store/src/actions/router.actions';
 import { AppState } from '../../../../../../../../../store/src/app-state';
+import { entityCatalog } from '../../../../../../../../../store/src/entity-catalog/entity-catalog';
 import { selectDeletionInfo } from '../../../../../../../../../store/src/selectors/api.selectors';
-import { CF_ENDPOINT_TYPE } from '../../../../../../../cf-types';
 import { spaceEntityType } from '../../../../../../../cf-entity-types';
+import { CF_ENDPOINT_TYPE } from '../../../../../../../cf-types';
 import { CloudFoundryEndpointService } from '../../../../../services/cloud-foundry-endpoint.service';
 import { CloudFoundryOrganizationService } from '../../../../../services/cloud-foundry-organization.service';
 import { CloudFoundrySpaceService } from '../../../../../services/cloud-foundry-space.service';
@@ -37,6 +40,7 @@ export class CloudFoundrySpaceSummaryComponent {
     private confirmDialog: ConfirmationDialogService,
     private store: Store<AppState>,
     private snackBar: MatSnackBar,
+    sadasd: CloudFoundryUserProvidedServicesService
   ) {
     this.detailsLoading$ = combineLatest([
       // Wait for the apps to have been fetched, this will determine if multiple small cards are shown or now

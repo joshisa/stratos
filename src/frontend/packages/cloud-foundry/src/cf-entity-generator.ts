@@ -30,9 +30,8 @@ import {
 import { urlValidationExpression } from '../../core/src/core/utils.service';
 import { BaseEndpointAuth } from '../../core/src/features/endpoints/endpoint-auth';
 import { AppState } from '../../store/src/app-state';
-import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
 import {
-  GahEntitiesAccess,
+  EntityAccessPagination,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
@@ -151,34 +150,11 @@ export interface CFBasePipelineRequestActionMeta {
   flatten?: boolean;
 }
 
-export class CfEntityCatalog {
-  public entities: StratosBaseCatalogEntity[];
-
-  public userProvidedServiceEntity: StratosBaseCatalogEntity<
-    IFavoriteMetadata,
-    APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceActionBuilder,
-    UserProvidedServiceActionBuilder,
-    UserProvidedServiceAccessBuilders
-  > = entityCatalog.getEntity<
-    IFavoriteMetadata,
-    APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceActionBuilder,
-    UserProvidedServiceAccessBuilders>(
-      CF_ENDPOINT_TYPE,
-      userProvidedServiceInstanceEntityType
-    );
-
-
-
-}
-
 // export function registerCFEntities() {
 //   generateCFEntities().forEach(entity => entityCatalog.register(entity));
 // }
-export const cfEntityCatalog: CfEntityCatalog = new CfEntityCatalog();
 
-export const generateCFEntities = (): StratosBaseCatalogEntity[] => {
+export function generateCFEntities(): StratosBaseCatalogEntity[] {
   const endpointDefinition: StratosEndpointExtensionDefinition = {
     urlValidationRegexString: urlValidationExpression,
     type: CF_ENDPOINT_TYPE,
@@ -479,7 +455,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
             paginationKey?: string,
             includeRelations?: string[],
             populateMissing?: boolean,
-          ): GahEntitiesAccess<APIResource<IUserProvidedServiceInstance>> => {
+          ): EntityAccessPagination<APIResource<IUserProvidedServiceInstance>> => {
             // tslint:disable-next-line:max-line-length
             const action = userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing);
             const mon = helper.pmf.create<APIResource<IUserProvidedServiceInstance>>(
@@ -776,7 +752,7 @@ function generateGitCommitEntity(endpointDefinition: StratosEndpointExtensionDef
       };
     },
   };
-  return new StratosCatalogEntity<IFavoriteMetadata, GitCommit, GitCommitActionBuilders, GitCommitActionBuildersConfig>(
+  return new StratosCatalogEntity<IFavoriteMetadata, GitCommit, GitCommitActionBuildersConfig, GitCommitActionBuilders>(
     definition,
     {
       dataReducers: [

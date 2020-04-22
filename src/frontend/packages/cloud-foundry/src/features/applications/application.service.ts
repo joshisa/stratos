@@ -214,7 +214,8 @@ export class ApplicationService {
   }
 
   public getApplicationEnvVarsMonitor() {
-    const factory = new EntityMonitorFactory(this.store, this.ech);
+    // TODO: RC search for usages, get from entity
+    const factory = new EntityMonitorFactory(this.store);
     return factory.create<APIResource<IApp>>(
       this.appGuid,
       new CFEntityConfig(appEnvVarsEntityType)

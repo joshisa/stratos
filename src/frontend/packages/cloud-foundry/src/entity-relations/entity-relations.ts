@@ -24,7 +24,6 @@ import {
 } from '../../../store/src/types/request.types';
 import { FetchRelationAction, FetchRelationPaginatedAction, FetchRelationSingleAction } from '../actions/relation.actions';
 import { EntityTreeRelation } from './entity-relation-tree';
-import { createValidationPaginationWatcher } from './entity-relation-tree.helpers';
 import { validationPostProcessor } from './entity-relations-post-processor';
 import { fetchEntityTree } from './entity-relations.tree';
 import {
@@ -141,6 +140,16 @@ function createActionsForExistingEntities(config: HandleRelationsConfig): Action
     'fetch',
     childEntitiesAsArray.length,
     1
+  );
+}
+
+function createValidationPaginationWatcher(store, paramPaginationAction: PaginatedAction):
+  Observable<ValidateResultFetchingState> {
+  return store.select(selectPaginationState(entityCatalog.getEntityKey(paramPaginationAction), paramPaginationAction.paginationKey)).pipe(
+    map((paginationState: PaginationEntityState) => {
+      const pageRequest = paginationState && paginationState.pageRequests && paginationState.pageRequests[paginationState.currentPage];
+      return { fetching: pageRequest ? pageRequest.busy : true };
+    })
   );
 }
 
