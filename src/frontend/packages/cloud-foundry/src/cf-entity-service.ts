@@ -30,9 +30,20 @@ import {
 import { APIResource } from '../../store/src/types/api.types';
 import { IAppFavMetadata, IBasicCFMetaData, IOrgFavMetadata, ISpaceFavMetadata } from './cf-metadata-types';
 import { AppEnvVarActionBuilders, AppEnvVarApiCustom } from './entity-action-builders/application-env-var.action-builders';
+import { AppStatsActionBuilders } from './entity-action-builders/application-stats.action-builders';
+import { AppSummaryActionBuilders } from './entity-action-builders/application-summary.action-builders';
+import { BuildpackActionBuilders } from './entity-action-builders/buildpack.action-builders';
 import { CfInfoDefinitionActionBuilders } from './entity-action-builders/cf-info.action-builders';
 import { GitCommitActionBuilders, GitCommitActionBuildersConfig } from './entity-action-builders/git-action-builder';
 import { QuotaDefinitionActionBuilder } from './entity-action-builders/quota-definition.action-builders';
+import { SecurityGroupBuilders } from './entity-action-builders/security-groups.action-builder';
+import {
+  ServiceBindingActionBuilders,
+  ServiceBindingApiCustom,
+} from './entity-action-builders/service-binding.action-builders';
+import { ServiceBrokerActionBuilders } from './entity-action-builders/service-broker.entity-builders';
+import { ServicePlanVisibilityActionBuilders } from './entity-action-builders/service-plan-visibility.action-builders';
+import { ServiceActionApiCustom, ServiceActionBuilders } from './entity-action-builders/service.entity-builders';
 import { SpaceQuotaDefinitionActionBuilders } from './entity-action-builders/space-quota.action-builders';
 import {
   UserProvidedServiceActionBuilder,
@@ -63,8 +74,8 @@ export class CfEntityCatalog {
 
   public appSummary: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    IAppSummary
-  // appSummaryActionBuilders,
+    IAppSummary,
+    AppSummaryActionBuilders
   >;
 
   public spaceQuota: StratosBaseCatalogEntity<
@@ -76,7 +87,6 @@ export class CfEntityCatalog {
   public privateDomain: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IPrivateDomain>
-  // TODO: RC what if missing???
   >;
 
   public cfInfo: StratosBaseCatalogEntity<
@@ -87,46 +97,48 @@ export class CfEntityCatalog {
 
   public appStats: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    AppStat
-  // appStatsActionBuilders
+    AppStat,
+    AppStatsActionBuilders
   >;
-
 
   public buildPack: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IBuildpack>
-  // buildpackActionBuilders,
+    APIResource<IBuildpack>,
+    BuildpackActionBuilders
   >;
-
 
   public serviceBroker: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IServiceBroker>
-  // serviceBrokerActionBuilders,
+    APIResource<IServiceBroker>,
+    ServiceBrokerActionBuilders
   >;
 
   public servicePlanVisibility: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IServicePlanVisibility>
-  // servicePlanVisibilityActionBuilders,
+    APIResource<IServicePlanVisibility>,
+    ServicePlanVisibilityActionBuilders
   >;
 
   public securityGroup: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<ISecurityGroup>
-  // securityGroupBuilders,
+    APIResource<ISecurityGroup>,
+    SecurityGroupBuilders
   >;
 
   public serviceBinding: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IServiceBinding>
-  // serviceBindingActionBuilders,
+    APIResource<IServiceBinding>,
+    ServiceBindingActionBuilders,
+    ServiceBindingActionBuilders,
+    ServiceBindingApiCustom
   >;
 
   public service: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IService>
-  // serviceActionBuilders,
+    APIResource<IService>,
+    ServiceActionBuilders,
+    ServiceActionBuilders,
+    ServiceActionApiCustom
   >;
 
   public servicePlan: StratosBaseCatalogEntity<

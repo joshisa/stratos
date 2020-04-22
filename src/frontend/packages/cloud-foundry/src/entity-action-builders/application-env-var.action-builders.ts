@@ -31,7 +31,7 @@ export interface AppEnvVarApiCustom extends EntityApiCustom {
 
 export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders {
   get: (appGuid, endpointGuid) => GetAppEnvVarsAction;
-  // TODO: RC not get multiple???
+  // TODO: RC Re-add above
 }
 
 // App variables are a special case where the entities are actually embedded in an application

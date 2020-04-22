@@ -1,9 +1,45 @@
+import { IService } from '../../../core/src/core/cf-api-svc.types';
 import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
+import { EntityAccessPagination, EntityApiCustom } from '../../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
+import { APIResource } from '../../../store/src/types/api.types';
 import { GetAllServices, GetService } from '../actions/service.actions';
 import { GetAllServicesForSpace } from '../actions/space.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
-export const serviceActionBuilders = {
+// TODO: RC autoscaler, other endpoints
+export interface ServiceActionApiCustom extends EntityApiCustom {
+  getAllInSpace: (
+    helper: EntityCatalogHelper,
+    endpointGuid: string,
+    paginationKey: string,
+    spaceGuid: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => EntityAccessPagination<APIResource<IService>>;
+}
+
+export interface ServiceActionBuilders extends OrchestratedActionBuilders {
+  get: (
+    guid,
+    endpointGuid,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => GetService;
+  getMultiple: (
+    endpointGuid,
+    paginationKey,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => GetAllServices;
+  getAllInSpace: (
+    endpointGuid: string,
+    paginationKey: string,
+    spaceGuid: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => GetAllServicesForSpace;
+}
+
+export const serviceActionBuilders: ServiceActionBuilders = {
   get: (
     guid,
     endpointGuid,
@@ -26,4 +62,4 @@ export const serviceActionBuilders = {
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => new GetAllServicesForSpace(paginationKey, endpointGuid, spaceGuid, includeRelations, populateMissing)
-} as OrchestratedActionBuilders;
+};

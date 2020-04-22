@@ -114,27 +114,21 @@ export interface EntityApi<Y, ABC extends OrchestratedActionBuilders, AA extends
 
 // TODO: RC Flip. { ..., core (allows overwrite)}
 
-// interface api<T> {
-//   actions: {
-//     create: {
-//       [key: string]: () => Action
-//     };
-//     dispatch: {
-//       [key: string]: () => void
-//     };
-//   };
-//   store: {
-//     core: {
-//       getEntityMonitor: () => EntityMonitor<T>
-//       getEntityService: () => EntityService<T>
-//       getPaginationMonitor: () => PaginationMonitor<T>
-//       getPaginationService: () => PaginationObservables<T>
-//     },
-//     custom: {
-//       [key: string]: () => any
-//     }
-//   };
-// }
+interface api<T> {
+  createAction: {
+    [key: string]: () => Action
+  };
+  dispatchAction: {
+    [key: string]: () => void
+  };
+  getEntityMonitor: () => EntityMonitor<T>;
+  getEntityService: () => EntityService<T>;
+  getPaginationMonitor: () => PaginationMonitor<T>;
+  getPaginationService: () => PaginationObservables<T>;
+  customCollection: {
+    [key: string]: () => any
+  };
+}
 // cfEntityCatalog.appEnvVar.api.action.dispatch.removeFromApplication
 // cfEntityCatalog.appEnvVar.api.store.custom.getFromMultipleApps
 
@@ -221,7 +215,11 @@ export class StratosBaseCatalogEntity<
         helper: EntityCatalogHelper,
         ...args: Parameters<ABC['get']>
       ): EntityService<Y> => {
-        const action = this.actionOrchestrator.getActionBuilder('get')(...args);
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
+        if (!actionBuilder) {
+          throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
         return helper.esf.create<Y>(
           action.guid,
           action
@@ -231,7 +229,11 @@ export class StratosBaseCatalogEntity<
         helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ): PaginationMonitor<Y> => {
-        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+        if (!actionBuilder) {
+          throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
         return helper.pmf.create<Y>(
           action.paginationKey,
           action,
@@ -242,7 +244,11 @@ export class StratosBaseCatalogEntity<
         helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ): PaginationObservables<Y> => {
-        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+        if (!actionBuilder) {
+          throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
         return helper.getPaginationObservables<Y>({
           store: helper.store,
           action,

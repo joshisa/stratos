@@ -165,6 +165,18 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     private ech: EntityCatalogHelper
   ) {
     this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this, this.ech);
+
+
+    // cfEntityCatalog.appEnvVar.api.getPaginationService(
+    //   this.ech,
+    //   'uEQrNbUurmOUnGqj6cHGyMP60XA',
+    //   null
+    // ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
+    cfEntityCatalog.privateDomain.api.getPaginationService(
+      this.ech,
+      'uEQrNbUurmOUnGqj6cHGyMP60XA',
+      null
+    ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
   }
 
 }
