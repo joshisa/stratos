@@ -60,31 +60,32 @@ export class CloudFoundryUserProvidedServicesService {
     const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
     const upsiGuid = 'be04b992-1127-4351-b123-0b09b30228d3';
     const spaceGuid = '23f8c13e-631c-43d1-b412-349198632960';
+    const pagKey = 'paginationKey123456';
 
-    const entMonitor = this.userProvidedServiceEntity.access.getEntityMonitor(
+    const entMonitor = this.userProvidedServiceEntity.api.getEntityMonitor(
       this.ech,
       upsiGuid,
     ).entity$.subscribe(a => console.log('entMonitor: ', a));
 
-    const entService = this.userProvidedServiceEntity.access.getEntityService(
+    const entService = this.userProvidedServiceEntity.api.getEntityService(
       this.ech,
       upsiGuid, // Per action builder
       endpointGuid // Per action builder,
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
-    const pagMon = this.userProvidedServiceEntity.access.getPaginationMonitor(
+    const pagMon = this.userProvidedServiceEntity.api.getPaginationMonitor(
       this.ech,
-      'paginationKey123456', // Per action builder
+      pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
-    const pagObservables = this.userProvidedServiceEntity.access.getPaginationService(
+    const pagObservables = this.userProvidedServiceEntity.api.getPaginationService(
       this.ech,
-      'paginationKey123456', // Per action builder
+      pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
-    const allInSpacePagMonitor = this.userProvidedServiceEntity.access.getAllInSpace(
+    const allInSpacePagMonitor = this.userProvidedServiceEntity.api.getAllInSpace(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
@@ -93,7 +94,7 @@ export class CloudFoundryUserProvidedServicesService {
       true// Per action builder
     ).monitor.currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
-    const allInSpacePagObservables = this.userProvidedServiceEntity.access.getAllInSpace(
+    const allInSpacePagObservables = this.userProvidedServiceEntity.api.getAllInSpace(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
@@ -112,75 +113,6 @@ export class CloudFoundryUserProvidedServicesService {
 
   public getUserProvidedServices(cfGuid: string, spaceGuid?: string, relations = getUserProvidedServiceInstanceRelations)
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
-
-
-
-
-
-
-    // OLD WAYS
-    // const entMon = this.userProvidedServiceEntity.getEntityMonitor(
-    //   this.ech,
-    //   upsiGuid,
-    // );
-
-    // const entService = this.userProvidedServiceEntity.getEntityService(
-    //   this.ech,
-    //   upsiGuid, // Per action builder
-    //   endpointGuid // Per action builder
-    // );
-    // const entServiceByAction = this.userProvidedServiceEntity.getEntityServiceByAction(
-    //   this.ech,
-    //   this.userProvidedServiceEntity.buildAction.get(
-    //     upsiGuid, // Per action builder
-    //     endpointGuid, // Per action builder,
-    //     {
-    //       includeRelations: [],
-    //       populateMissing: true
-    //     }// Per action builder,
-    //   )
-    // );
-
-    // const pagOns = this.userProvidedServiceEntity.getPaginationObservables(
-    //   this.ech,
-    //   'getAllInSpace',
-    //   cfGuid, // Per action builder
-    //   spaceGuid, // Per action builder
-    //   null, // Per action builder
-    //   relations, // Per action builder
-    //   true// Per action builder
-    // );
-    // const pagOnsByAction = this.userProvidedServiceEntity.getPaginationObservablesByAction(
-    //   this.ech,
-    //   this.userProvidedServiceEntity.buildAction.getAllInSpace(
-    //     cfGuid, // Per action builder
-    //     spaceGuid, // Per action builder
-    //     null, // Per action builder
-    //     relations, // Per action builder
-    //     true // Per action builder
-    //   )
-    // );
-
-
-    // const updateAction = this.userProvidedServiceEntity.createAction(
-    //   'update',
-    //   upsiGuid, // Per action builder
-    //   endpointGuid, // Per action builder
-    //   {} as Partial<IUserProvidedServiceInstanceData>, // Per action builder
-    // );
-    // this.store.dispatch(updateAction);
-
-    // Alt approach?
-    // this.entityCatalogService.getPaginationMonitor(
-    //   this.userProvidedServiceEntity,
-    //   'getAllInSpace',
-    //   cfGuid, // Per action builder
-    //   spaceGuid, // Per action builder
-    //   null, // Per action builder
-    //   relations, // Per action builder
-    //   true // Per action builder
-    // )
-
 
     const actionBuilder = this.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('getAllInSpace');
     const action = actionBuilder(cfGuid, spaceGuid, null, relations, true);
@@ -269,7 +201,7 @@ export class CloudFoundryUserProvidedServicesService {
       data,
       this.userProvidedServiceInstancesEntityConfig
     );
-    return this.userProvidedServiceEntity.access.getEntityMonitor(
+    return this.userProvidedServiceEntity.api.getEntityMonitor(
       this.ech,
       guid
     ).entityRequest$.pipe(
@@ -283,3 +215,49 @@ export class CloudFoundryUserProvidedServicesService {
   }
 
 }
+
+
+// OLD WAYS
+    // const entMon = this.userProvidedServiceEntity.getEntityMonitor(
+    //   this.ech,
+    //   upsiGuid,
+    // );
+
+    // const entService = this.userProvidedServiceEntity.getEntityService(
+    //   this.ech,
+    //   upsiGuid, // Per action builder
+    //   endpointGuid // Per action builder
+    // );
+    // const entServiceByAction = this.userProvidedServiceEntity.getEntityServiceByAction(
+    //   this.ech,
+    //   this.userProvidedServiceEntity.buildAction.get(
+    //     upsiGuid, // Per action builder
+    //     endpointGuid, // Per action builder,
+    //     {
+    //       includeRelations: [],
+    //       populateMissing: true
+    //     }// Per action builder,
+    //   )
+    // );
+
+
+
+
+    // const updateAction = this.userProvidedServiceEntity.createAction(
+    //   'update',
+    //   upsiGuid, // Per action builder
+    //   endpointGuid, // Per action builder
+    //   {} as Partial<IUserProvidedServiceInstanceData>, // Per action builder
+    // );
+    // this.store.dispatch(updateAction);
+
+    // Alt approach?
+    // this.entityCatalogService.getPaginationMonitor(
+    //   this.userProvidedServiceEntity,
+    //   'getAllInSpace',
+    //   cfGuid, // Per action builder
+    //   spaceGuid, // Per action builder
+    //   null, // Per action builder
+    //   relations, // Per action builder
+    //   true // Per action builder
+    // )

@@ -69,7 +69,7 @@ export function createEntityAccessPagination<Y>(
 
 // TODO: RC needed now?
 // TODO: RC Q add remove/update in future? (need to make mandatory for all action builders)
-export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+export interface EntityApi<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (
     helper: EntityCatalogHelper,
     entityId: string,
@@ -96,7 +96,7 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   ) => any; // TODO: RC bad.. catches all...
 }
 
-type EntityAccessProxy<Y, ABC extends OrchestratedActionBuilders, AA extends EntityAccess<Y, ABC>> = {
+type EntityApiProxy<Y, ABC extends OrchestratedActionBuilders, AA extends EntityApi<Y, ABC>> = {
   [K in keyof AA]: (...args: Parameters<AA[K]>) => ReturnType<AA[K]>;
 };
 
@@ -105,7 +105,7 @@ export interface EntityCatalogBuilders<
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
+  AA extends EntityApi<Y, ABC> = EntityApi<Y, ABC>, // access builders
   > {
   entityBuilder?: IStratosEntityBuilder<T, Y>;
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
@@ -122,7 +122,7 @@ export class StratosBaseCatalogEntity<
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
+  AA extends EntityApi<Y, ABC> = EntityApi<Y, ABC>, // access builders
   > {
   // implements ABCD
   constructor(
@@ -147,14 +147,17 @@ export class StratosBaseCatalogEntity<
     this.actionBuilders = actionBuilders as ABC;
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher();
-    this.access = {
+    this.api = {
       ...this.createEntityAccess(),
       ...this.builders.entityAccess
     };
   }
 
   public readonly actionBuilders: ABC; // TODO: RC TIDY Comments
-  public readonly access: EntityAccessProxy<Y, ABC, AA>; // TODO: RC TIDY Comments
+  /**
+   * fsdfdsf
+   */
+  public readonly api: EntityApiProxy<Y, ABC, AA>; // TODO: RC TIDY Comments
 
   public readonly entityKey: string;
   public readonly type: string;
@@ -164,8 +167,8 @@ export class StratosBaseCatalogEntity<
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
 
-  private createEntityAccess(): EntityAccess<Y, ABC> {
-    const res: EntityAccess<Y, ABC> = {
+  private createEntityAccess(): EntityApi<Y, ABC> {
+    const res: EntityApi<Y, ABC> = {
       getEntityMonitor: (
         helper: EntityCatalogHelper,
         entityId: string,
@@ -213,7 +216,6 @@ export class StratosBaseCatalogEntity<
         }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
       },
     };
-    // const res2: EntityAccessProxy<Y, ABC, AA> = res as EntityAccessProxy<Y, ABC, AA>;
     return res;
   }
 
@@ -355,7 +357,7 @@ export class StratosCatalogEntity<
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>,
+  AA extends EntityApi<Y, ABC> = EntityApi<Y, ABC>,
   > extends StratosBaseCatalogEntity<T, Y, AB, ABC, AA> {
   public definition: IStratosEntityDefinition<EntityCatalogSchemas, Y, ABC>;
   constructor(

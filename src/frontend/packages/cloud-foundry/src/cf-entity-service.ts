@@ -17,6 +17,7 @@ export class CfEntityCatalog {
     UserProvidedServiceActionBuilder,
     UserProvidedServiceAccessBuilders
   >;
+  // public userProvidedServiceEntityApi: EntityApiProxy<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder, UserProvidedServiceAccessBuilders>;
 }
 
 // export const cfEntityCatalog = () => new CfEntityCatalog();

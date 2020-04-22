@@ -175,7 +175,7 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
             entityType: routeEntityType,
             endpointType: CF_ENDPOINT_TYPE
           });
-          const entityMonitor = catalogEntity.access.getEntityMonitor(ech, route.metadata.guid);
+          const entityMonitor = catalogEntity.api.getEntityMonitor(ech, route.metadata.guid);
           const request$ = entityMonitor.entityRequest$.pipe(
             tap(request => {
               const unmapping = request.updating.unmapping || { busy: false };
