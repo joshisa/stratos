@@ -3,7 +3,7 @@ import { IRequestEntityTypeState } from '../app-state';
 import { ExtraApiReducers } from '../reducers/api-request-reducers.generator.helpers';
 import { OrchestratedActionBuilders } from './action-orchestrator/action-orchestrator';
 import {
-  EntityApi,
+  EntityApiCustom,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
@@ -108,7 +108,7 @@ class EntityCatalog {
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
     AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApi<Y, AB> = EntityApi<Y, AB>
+    AA extends EntityApiCustom = EntityApiCustom
   >(
     entityConfig: EntityCatalogEntityConfig
   ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
@@ -116,7 +116,7 @@ class EntityCatalog {
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
     AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApi<Y, AB> = EntityApi<Y, AB>
+    AA extends EntityApiCustom = EntityApiCustom
   >(
     endpointType: string,
     entityType: string,
@@ -126,7 +126,7 @@ class EntityCatalog {
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
     AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApi<Y, AB> = EntityApi<Y, AB>
+    AA extends EntityApiCustom = EntityApiCustom
   >(
     endpointTypeOrConfig: string | EntityCatalogEntityConfig,
     entityType?: string,

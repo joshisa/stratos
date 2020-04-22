@@ -85,7 +85,7 @@ export class CloudFoundryUserProvidedServicesService {
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
-    const allInSpacePagMonitor = this.userProvidedServiceEntity.api.getAllInSpace(
+    const allInSpacePagMonitor = this.userProvidedServiceEntity.api.custom.getAllInSpace(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
@@ -94,7 +94,7 @@ export class CloudFoundryUserProvidedServicesService {
       true// Per action builder
     ).monitor.currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
-    const allInSpacePagObservables = this.userProvidedServiceEntity.api.getAllInSpace(
+    const allInSpacePagObservables = this.userProvidedServiceEntity.api.custom.getAllInSpace(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder

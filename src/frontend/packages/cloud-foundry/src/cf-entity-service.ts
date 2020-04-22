@@ -3,8 +3,8 @@ import { StratosBaseCatalogEntity } from '../../store/src/entity-catalog/entity-
 import { APIResource } from '../../store/src/types/api.types';
 import { IFavoriteMetadata } from '../../store/src/types/user-favorites.types';
 import {
-  UserProvidedServiceAccessBuilders,
   UserProvidedServiceActionBuilder,
+  UserProvidedServiceApiCustom,
 } from './entity-action-builders/user-provided-service.action-builders';
 
 export class CfEntityCatalog {
@@ -15,7 +15,7 @@ export class CfEntityCatalog {
     APIResource<IUserProvidedServiceInstance>,
     UserProvidedServiceActionBuilder,
     UserProvidedServiceActionBuilder,
-    UserProvidedServiceAccessBuilders
+    UserProvidedServiceApiCustom
   >;
   // public userProvidedServiceEntityApi: EntityApiProxy<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder, UserProvidedServiceAccessBuilders>;
 }

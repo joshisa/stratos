@@ -164,7 +164,7 @@ export interface OrchestratedActionBuilders {
   update?: KnownEntityActionBuilder;
   create?: CreateActionBuilder;
   getMultiple?: GetMultipleActionBuilder;
-  [actionType: string]: OrchestratedActionBuilder;
+  [actionType: string]: OrchestratedActionBuilder;// TODO: RC this can be removed now with the custom API??
 }
 
 export interface OrchestratedActionBuilderConfig {
@@ -175,7 +175,7 @@ export interface OrchestratedActionBuilderConfig {
   getMultiple?: GetMultipleActionBuilder | PaginationRequestActionConfig<GetMultipleActionBuilder>;
   [actionType: string]: OrchestratedActionBuilder |
   EntityRequestActionConfig<KnownEntityActionBuilder> |
-  PaginationRequestActionConfig<GetMultipleActionBuilder>;
+  PaginationRequestActionConfig<GetMultipleActionBuilder>; // TODO: RC this can be removed now with the custom API??
 }
 
 export class OrchestratedActionBuildersClass implements OrchestratedActionBuilders {

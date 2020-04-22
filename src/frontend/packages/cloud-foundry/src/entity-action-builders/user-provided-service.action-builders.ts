@@ -1,5 +1,5 @@
 import { IUserProvidedServiceInstance } from '../../../core/src/core/cf-api-svc.types';
-import { EntityAccessPagination, EntityApi } from '../../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityAccessPagination, EntityApiCustom } from '../../../store/src/entity-catalog/entity-catalog-entity';
 import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
 import { APIResource } from '../../../store/src/types/api.types';
@@ -13,8 +13,9 @@ import {
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
 
-export interface UserProvidedServiceAccessBuilders
-  extends EntityApi<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
+
+
+export interface UserProvidedServiceApiCustom extends EntityApiCustom {
   getAllInSpace: (
     helper: EntityCatalogHelper,
     endpointGuid: string,

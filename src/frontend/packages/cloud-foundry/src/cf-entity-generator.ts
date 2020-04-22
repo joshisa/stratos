@@ -31,7 +31,7 @@ import { urlValidationExpression } from '../../core/src/core/utils.service';
 import { BaseEndpointAuth } from '../../core/src/features/endpoints/endpoint-auth';
 import { AppState } from '../../store/src/app-state';
 import {
-  createEntityAccessPagination,
+  createEntityApiPagination,
   EntityAccessPagination,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
@@ -127,9 +127,9 @@ import { spaceQuotaDefinitionActionBuilders } from './entity-action-builders/spa
 import { spaceActionBuilders } from './entity-action-builders/space.action-builders';
 import { stackActionBuilders } from './entity-action-builders/stack-action-builders';
 import {
-  UserProvidedServiceAccessBuilders,
   UserProvidedServiceActionBuilder,
   userProvidedServiceActionBuilder,
+  UserProvidedServiceApiCustom,
 } from './entity-action-builders/user-provided-service.action-builders';
 import { userActionBuilders } from './entity-action-builders/user.action-builders';
 import { CfEndpointDetailsComponent } from './shared/components/cf-endpoint-details/cf-endpoint-details.component';
@@ -432,7 +432,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
     APIResource<IUserProvidedServiceInstance>,
     UserProvidedServiceActionBuilder,
     null,
-    UserProvidedServiceAccessBuilders>(
+    UserProvidedServiceApiCustom>(
       definition,
       {
         actionBuilders: userProvidedServiceActionBuilder,
@@ -446,7 +446,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
           }),
           getGuid: metadata => metadata.guid,
         },
-        entityAccess: {
+        entityAPI: {
           getAllInSpace: (
             helper: EntityCatalogHelper,
             endpointGuid: string,
@@ -455,7 +455,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
             includeRelations?: string[],
             populateMissing?: boolean,
           ): EntityAccessPagination<APIResource<IUserProvidedServiceInstance>> => {
-            return createEntityAccessPagination<APIResource<IUserProvidedServiceInstance>>(
+            return createEntityApiPagination<APIResource<IUserProvidedServiceInstance>>(
               helper,
               userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing)
             );
