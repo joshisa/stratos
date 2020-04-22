@@ -1,10 +1,10 @@
 import { HttpHeaders, HttpParams, HttpRequest } from '@angular/common/http';
 import { Action } from '@ngrx/store';
 
+import { Omit } from '../../../../core/src/core/utils.service';
 import { EntitySchema } from '../../helpers/entity-schema';
 import { PaginatedAction } from '../../types/pagination.types';
 import { EntityRequestAction, StartAction } from '../../types/request.types';
-import { Omit } from '../../../../core/src/core/utils.service';
 import { EntityActionDispatcherManager } from '../action-dispatcher/action-dispatcher';
 
 export interface ActionBuilderAction extends EntityRequestAction {
@@ -159,7 +159,7 @@ export class BasePaginationRequestAction extends BasePipelineRequestAction imple
 
 // A list of functions that can be used get interface with the entity
 export interface OrchestratedActionBuilders {
-  get?: KnownEntityActionBuilder;
+  get?: KnownEntityActionBuilder; // TODO: RC Q make mandatory
   remove?: KnownEntityActionBuilder;
   update?: KnownEntityActionBuilder;
   create?: CreateActionBuilder;
@@ -179,6 +179,8 @@ export interface OrchestratedActionBuilderConfig {
 }
 
 export class OrchestratedActionBuildersClass implements OrchestratedActionBuilders {
+  // get: KnownEntityActionBuilder;
+  // getMultiple: GetMultipleActionBuilder;
   [actionType: string]: OrchestratedActionBuilder<any[], EntityRequestAction>;
 }
 export class ActionOrchestrator<T extends OrchestratedActionBuilders = OrchestratedActionBuilders> {

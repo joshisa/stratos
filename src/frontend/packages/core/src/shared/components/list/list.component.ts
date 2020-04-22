@@ -692,7 +692,7 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
         return observableOf(getDefaultRowState());
       }
       const catalogEntity = entityCatalog.getEntity(entityConfig);
-      const entityMonitor = catalogEntity.getEntityMonitor(
+      const entityMonitor = catalogEntity.access.getEntityMonitor(
         this.ech,
         dataSource.getRowUniqueId(row),
         {

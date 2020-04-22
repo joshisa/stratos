@@ -1,8 +1,9 @@
+import { STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { IRequestEntityTypeState } from '../app-state';
 import { ExtraApiReducers } from '../reducers/api-request-reducers.generator.helpers';
-import { STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { OrchestratedActionBuilders } from './action-orchestrator/action-orchestrator';
 import {
+  EntityAccess,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
@@ -103,25 +104,39 @@ class EntityCatalog {
     return this.entities.get(entityKey) || this.endpoints.get(entityKey);
   }
 
-  /* tslint:disable:max-line-length */
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends EntityAccess<Y, AB> = EntityAccess<Y, AB>
+  >(
     entityConfig: EntityCatalogEntityConfig
-  ): StratosBaseCatalogEntity<T, Y, AB>;
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends EntityAccess<Y, AB> = EntityAccess<Y, AB>
+  >(
     endpointType: string,
     entityType: string,
     subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AB>;
-  public getEntity<T extends IEntityMetadata = IEntityMetadata, Y = any, AB extends OrchestratedActionBuilders = OrchestratedActionBuilders>(
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+  public getEntity<
+    T extends IEntityMetadata = IEntityMetadata,
+    Y = any,
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
+    AA extends EntityAccess<Y, AB> = EntityAccess<Y, AB>
+  >(
     endpointTypeOrConfig: string | EntityCatalogEntityConfig,
     entityType?: string,
     subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AB> {
+  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA> {
     /* tslint:enable:max-line-length */
     const config = this.getConfig(endpointTypeOrConfig, entityType, subType);
     const entityOfType = this.getEntityOfType(config.entityType, config.endpointType);
     if (entityOfType && subType) {
-      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AB>;
+      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
     }
     if (!entityOfType) {
       console.warn(
@@ -129,7 +144,7 @@ class EntityCatalog {
         new Error().stack
       );
     }
-    return entityOfType as StratosBaseCatalogEntity<T, Y, AB>;
+    return entityOfType as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
   }
 
   public getEntityKey(endpointType: string, entityType: string): string;
@@ -203,4 +218,4 @@ export class TestEntityCatalog extends EntityCatalog {
 // https://github.com/cloudfoundry-incubator/stratos/issues/3753 - Reverting the entity catalog to an Angular service
 // makes testing much easier and remove the need for this.
 /* tslint:disable-next-line:no-string-literal  */
-export const entityCatalog = !!window['__karma__'] ? new TestEntityCatalog() : new EntityCatalog();
+export const entityCatalog: EntityCatalog = !!window['__karma__'] ? new TestEntityCatalog() : new EntityCatalog();

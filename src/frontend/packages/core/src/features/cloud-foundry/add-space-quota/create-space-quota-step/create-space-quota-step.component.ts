@@ -52,7 +52,7 @@ export class CreateSpaceQuotaStepComponent {
       createQuota: formValues
     });
 
-    return entityConfig.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
+    return entityConfig.access.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
       map(([, newV]) => newV),

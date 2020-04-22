@@ -1,4 +1,8 @@
+import { IUserProvidedServiceInstance } from '../../../core/src/core/cf-api-svc.types';
+import { EntityAccess, EntityAccessPagination } from '../../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
+import { APIResource } from '../../../store/src/types/api.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
   GetAllUserProvidedServices,
@@ -8,6 +12,18 @@ import {
 } from '../actions/user-provided-service.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
+
+export interface UserProvidedServiceAccessBuilders
+  extends EntityAccess<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder> {
+  getAllInSpace: (
+    helper: EntityCatalogHelper,
+    endpointGuid: string,
+    spaceGuid: string,
+    paginationKey?: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => EntityAccessPagination<APIResource<IUserProvidedServiceInstance>>;
+}
 
 export interface UserProvidedServiceActionBuilder extends CFOrchestratedActionBuilders {
   get: (
@@ -67,5 +83,3 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
     populateMissing?: boolean,
   ) => new GetAllUserProvidedServices(paginationKey, endpointGuid, includeRelations, populateMissing, spaceGuid)
 };
-
-

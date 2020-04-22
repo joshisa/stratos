@@ -30,12 +30,14 @@ import {
 import { urlValidationExpression } from '../../core/src/core/utils.service';
 import { BaseEndpointAuth } from '../../core/src/features/endpoints/endpoint-auth';
 import { AppState } from '../../store/src/app-state';
-import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
 import {
+  createEntityAccessPagination,
+  EntityAccessPagination,
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
 } from '../../store/src/entity-catalog/entity-catalog-entity';
+import { EntityCatalogHelper } from '../../store/src/entity-catalog/entity-catalog.service';
 import {
   IStratosEntityDefinition,
   StratosEndpointExtensionDefinition,
@@ -52,6 +54,7 @@ import { PaginatedAction } from '../../store/src/types/pagination.types';
 import { IFavoriteMetadata } from '../../store/src/types/user-favorites.types';
 import { cfEntityFactory } from './cf-entity-factory';
 import { addCfQParams, addCfRelationParams } from './cf-entity-relations.getters';
+import { cfEntityCatalog } from './cf-entity-service';
 import {
   appEnvVarsEntityType,
   applicationEntityType,
@@ -123,7 +126,11 @@ import { serviceActionBuilders } from './entity-action-builders/service.entity-b
 import { spaceQuotaDefinitionActionBuilders } from './entity-action-builders/space-quota.action-builders';
 import { spaceActionBuilders } from './entity-action-builders/space.action-builders';
 import { stackActionBuilders } from './entity-action-builders/stack-action-builders';
-import { userProvidedServiceActionBuilder } from './entity-action-builders/user-provided-service.action-builders';
+import {
+  UserProvidedServiceAccessBuilders,
+  UserProvidedServiceActionBuilder,
+  userProvidedServiceActionBuilder,
+} from './entity-action-builders/user-provided-service.action-builders';
 import { userActionBuilders } from './entity-action-builders/user.action-builders';
 import { CfEndpointDetailsComponent } from './shared/components/cf-endpoint-details/cf-endpoint-details.component';
 import { updateApplicationRoutesReducer } from './store/reducers/application-route.reducer';
@@ -144,9 +151,9 @@ export interface CFBasePipelineRequestActionMeta {
   flatten?: boolean;
 }
 
-export function registerCFEntities() {
-  generateCFEntities().forEach(entity => entityCatalog.register(entity));
-}
+// export function registerCFEntities() {
+//   generateCFEntities().forEach(entity => entityCatalog.register(entity));
+// }
 
 export function generateCFEntities(): StratosBaseCatalogEntity[] {
   const endpointDefinition: StratosEndpointExtensionDefinition = {
@@ -420,22 +427,43 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
     labelPlural: 'User Provided Service Instances',
     endpoint: endpointDefinition,
   };
-  return new StratosCatalogEntity<IFavoriteMetadata, APIResource<IUserProvidedServiceInstance>>(
-    definition,
-    {
-      actionBuilders: userProvidedServiceActionBuilder,
-      dataReducers: [
-        serviceInstanceReducer,
-        endpointDisconnectRemoveEntitiesReducer()
-      ],
-      entityBuilder: {
-        getMetadata: ent => ({
-          name: ent.entity.name
-        }),
-        getGuid: metadata => metadata.guid,
+  cfEntityCatalog.userProvidedServiceEntity = new StratosCatalogEntity<
+    IFavoriteMetadata,
+    APIResource<IUserProvidedServiceInstance>,
+    UserProvidedServiceActionBuilder,
+    null,
+    UserProvidedServiceAccessBuilders>(
+      definition,
+      {
+        actionBuilders: userProvidedServiceActionBuilder,
+        dataReducers: [
+          serviceInstanceReducer,
+          endpointDisconnectRemoveEntitiesReducer()
+        ],
+        entityBuilder: {
+          getMetadata: ent => ({
+            name: ent.entity.name
+          }),
+          getGuid: metadata => metadata.guid,
+        },
+        entityAccess: {
+          getAllInSpace: (
+            helper: EntityCatalogHelper,
+            endpointGuid: string,
+            spaceGuid: string,
+            paginationKey?: string,
+            includeRelations?: string[],
+            populateMissing?: boolean,
+          ): EntityAccessPagination<APIResource<IUserProvidedServiceInstance>> => {
+            return createEntityAccessPagination<APIResource<IUserProvidedServiceInstance>>(
+              helper,
+              userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing)
+            );
+          }
+        }
       }
-    }
-  );
+    );
+  return cfEntityCatalog.userProvidedServiceEntity;
 }
 
 function generateCFAppStatsEntity(endpointDefinition: StratosEndpointExtensionDefinition) {

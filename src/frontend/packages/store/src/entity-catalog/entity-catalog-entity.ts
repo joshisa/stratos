@@ -11,7 +11,7 @@ import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
 import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { getPaginationObservables, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
+import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
 import { EndpointModel } from '../types/endpoint.types';
 import { PaginatedAction } from '../types/pagination.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
@@ -36,15 +36,82 @@ import {
   StratosEndpointExtensionDefinition,
 } from './entity-catalog.types';
 
+// TODO: RC TIDY Have this still?
+export interface EntityAccessEntity<Y> {
+  entityMonitor: EntityMonitor<Y>;
+  entityService: EntityService<Y>;
+}
+
+// TODO: RC TIDY Have this still?
+export interface EntityAccessPagination<Y> {
+  monitor: PaginationMonitor<Y>;
+  obs: PaginationObservables<Y>;
+}
+
+export function createEntityAccessPagination<Y>(
+  helper: EntityCatalogHelper,
+  action: PaginatedAction
+): EntityAccessPagination<Y> {
+  const mon = helper.pmf.create<Y>(
+    action.paginationKey,
+    action,
+    action.flattenPagination
+  );
+  return {
+    monitor: mon,
+    obs: helper.getPaginationObservables<Y>({
+      store: helper.store,
+      action,
+      paginationMonitor: mon
+    }, action.flattenPagination) // TODO: RC REF This isn't always the case.
+  };
+}
+
+// TODO: RC needed now?
+// TODO: RC Q add remove/update in future? (need to make mandatory for all action builders)
+export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+  getEntityMonitor: (
+    helper: EntityCatalogHelper,
+    entityId: string,
+    params?: {
+      schemaKey?: string,
+      startWithNull?: boolean
+    }
+  ) => EntityMonitor<Y>;
+  getEntityService: (
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['get']>
+  ) => EntityService<Y>;
+  getPaginationMonitor: (
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['getMultiple']>
+  ) => PaginationMonitor<Y>;
+  getPaginationService: (
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['getMultiple']>
+  ) => PaginationObservables<Y>;
+  [others: string]: (
+    helper: EntityCatalogHelper,
+    ...args
+  ) => any; // TODO: RC bad.. catches all...
+}
+
+type EntityAccessProxy<Y, ABC extends OrchestratedActionBuilders, AA extends EntityAccess<Y, ABC>> = {
+  [K in keyof AA]: (...args: Parameters<AA[K]>) => ReturnType<AA[K]>;
+};
+
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
-  AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders
+  AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
   > {
   entityBuilder?: IStratosEntityBuilder<T, Y>;
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
   dataReducers?: ActionReducer<IRequestEntityTypeState<Y>>[];
   actionBuilders?: AB;
+  entityAccess?: Partial<AA>;
 }
 type DefinitionTypes = IStratosEntityDefinition<EntityCatalogSchemas> |
   IStratosEndpointDefinition<EntityCatalogSchemas> |
@@ -54,18 +121,13 @@ export class StratosBaseCatalogEntity<
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
-  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>, // access builders
   > {
-  public readonly entityKey: string;
-  public readonly type: string;
-  public readonly definition: DefinitionTypes;
-  public readonly isEndpoint: boolean;
-  public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
-  public readonly actionOrchestrator: ActionOrchestrator<ABC>;
-  public readonly endpointType: string;
+  // implements ABCD
   constructor(
     definition: IStratosEntityDefinition | IStratosEndpointDefinition | IStratosBaseEntityDefinition,
-    public readonly builders: EntityCatalogBuilders<T, Y, AB> = {}
+    public readonly builders: EntityCatalogBuilders<T, Y, AB, ABC, AA> = {}
   ) {
     this.definition = this.populateEntity(definition);
     this.type = this.definition.type || this.definition.schema.default.entityType;
@@ -82,8 +144,77 @@ export class StratosBaseCatalogEntity<
       this.type,
       (schemaKey: string) => this.getSchema(schemaKey)
     );
+    this.actionBuilders = actionBuilders as ABC;
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher();
+    this.access = {
+      ...this.createEntityAccess(),
+      ...this.builders.entityAccess
+    };
+  }
+
+  public readonly actionBuilders: ABC; // TODO: RC TIDY Comments
+  public readonly access: EntityAccessProxy<Y, ABC, AA>; // TODO: RC TIDY Comments
+
+  public readonly entityKey: string;
+  public readonly type: string;
+  public readonly definition: DefinitionTypes;
+  public readonly isEndpoint: boolean;
+  public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
+  public readonly actionOrchestrator: ActionOrchestrator<ABC>;
+  public readonly endpointType: string;
+
+  private createEntityAccess(): EntityAccess<Y, ABC> {
+    const res: EntityAccess<Y, ABC> = {
+      getEntityMonitor: (
+        helper: EntityCatalogHelper,
+        entityId: string,
+        params = {
+          schemaKey: '',
+          startWithNull: false
+        }
+      ): EntityMonitor<Y> => {
+        return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
+      },
+      getEntityService: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['get']>
+      ): EntityService<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('get')(...args);
+        return helper.esf.create<Y>(
+          action.guid,
+          action
+        );
+      },
+      getPaginationMonitor: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ): PaginationMonitor<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        return helper.pmf.create<Y>(
+          action.paginationKey,
+          action,
+          action.flattenPagination
+        );
+      },
+      getPaginationService: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ): PaginationObservables<Y> => {
+        const action = this.actionOrchestrator.getActionBuilder('getMultiple')(...args);
+        return helper.getPaginationObservables<Y>({
+          store: helper.store,
+          action,
+          paginationMonitor: helper.pmf.create<Y>(
+            action.paginationKey,
+            action,
+            action.flattenPagination
+          )
+        }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
+      },
+    };
+    // const res2: EntityAccessProxy<Y, ABC, AA> = res as EntityAccessProxy<Y, ABC, AA>;
+    return res;
   }
 
   private populateEntitySchemaKey(entitySchemas: EntityCatalogSchemas): EntityCatalogSchemas {
@@ -148,97 +279,6 @@ export class StratosBaseCatalogEntity<
 
   public getEndpointGuidFromEntity(entity: Y & EntityPipelineEntity) {
     return entity[stratosEndpointGuidKey];
-  }
-
-  // public getEntityMonitor<Q extends AppState, B = any>(
-  //   store: Store<Q>,
-  //   entityId: string,
-  //   {
-  //     schemaKey = '',
-  //     startWithNull = false
-  //   } = {}
-  // ) {
-  //   return new EntityMonitor<B>(store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
-  // }
-
-  public getEntityMonitor(
-    helper: EntityCatalogHelper,
-    entityId: string,
-    {
-      schemaKey = '',
-      startWithNull = false
-    } = {}
-  ): EntityMonitor<Y> {
-    return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(schemaKey), startWithNull);
-  }
-
-  // public getEntityService<YY = Y>(
-  //   helper: EntityCatalogHelper,
-  //   entityId: string,
-  //   endpointId: string,
-  //   // actionBuilderConfig: ActionBuilderConfig, // TODO: RC TYPing
-  //   {
-  //     schemaKey = ''
-  //   }
-  // ): EntityService<YY> {
-  //   const { type: entityType, subType } = this.getTypeAndSubtype();
-  //   return helper.esf.create<YY>({
-  //     entityType,
-  //     endpointType: this.getEndpointType(this.definition),
-  //     subType,
-  //     schemaKey,
-  //     entityGuid: entityId,
-  //     endpointGuid: endpointId
-  //   });
-  // }
-
-  public getEntityService<YY = Y>(
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC['get']>
-  ): EntityService<YY> {
-    const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
-    const b = actionBuilder(...args);
-    const action: EntityRequestAction = b as EntityRequestAction;
-    return helper.esf.create<YY>(
-      action.guid,
-      action
-    );
-  }
-
-  public getPaginationMonitor<B extends keyof ABC, YY = Y>(
-    helper: EntityCatalogHelper,
-    actionType: B, // 'getAll/getAllInSpace' etc
-    ...args: Parameters<ABC[B]>
-  ): PaginationMonitor<YY> {
-    const actionBuilder = this.actionOrchestrator.getActionBuilder(actionType);
-    const b = actionBuilder(...args);
-    const action: PaginatedAction = b as PaginatedAction;
-
-    return helper.pmf.create<YY>(
-      action.paginationKey,
-      action,
-      action.flattenPagination
-    );
-  }
-
-  public getPaginationObservables<B extends keyof ABC, YY = Y>(
-    helper: EntityCatalogHelper,
-    actionType: B, // 'getAll/getAllInSpace' etc
-    ...args: Parameters<ABC[B]>
-  ): PaginationObservables<YY> {
-    const actionBuilder = this.actionOrchestrator.getActionBuilder(actionType);
-    const b = actionBuilder(...args);
-    const action: PaginatedAction = b as PaginatedAction;
-
-    return getPaginationObservables<YY>({
-      store: helper.store,
-      action,
-      paginationMonitor: this.getPaginationMonitor(
-        helper,
-        actionType,
-        ...args
-      )
-    }, action.flattenPagination); // TODO: RC This isn't always the case. Can it be ommited?
   }
 
   public getTypeAndSubtype() {
@@ -314,12 +354,13 @@ export class StratosCatalogEntity<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
-  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders
-  > extends StratosBaseCatalogEntity<T, Y, AB> {
+  ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
+  AA extends EntityAccess<Y, ABC> = EntityAccess<Y, ABC>,
+  > extends StratosBaseCatalogEntity<T, Y, AB, ABC, AA> {
   public definition: IStratosEntityDefinition<EntityCatalogSchemas, Y, ABC>;
   constructor(
     entity: IStratosEntityDefinition,
-    config?: EntityCatalogBuilders<T, Y, AB>
+    config?: EntityCatalogBuilders<T, Y, AB, ABC, AA>
   ) {
     super(entity, config);
   }
