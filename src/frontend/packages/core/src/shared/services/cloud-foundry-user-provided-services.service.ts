@@ -56,6 +56,13 @@ export class CloudFoundryUserProvidedServicesService {
     private ech: EntityCatalogHelper
   ) {
 
+    // this.userProvidedServiceEntity.api2.createAction.getAllInSpace();
+
+
+    this.userProvidedServiceEntity.actions.getAllInSpace //action
+    this.userProvidedServiceEntity.api3.getAllInSpace(). // execute
+    this.userProvidedServiceEntity.storage.
+
     // // TODO: RC TIDY Remove all this
     // const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
     // const upsiGuid = 'be04b992-1127-4351-b123-0b09b30228d3';
