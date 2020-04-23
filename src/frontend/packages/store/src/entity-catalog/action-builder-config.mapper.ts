@@ -2,9 +2,11 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { EntitySchema } from '../helpers/entity-schema';
+import { PaginationMonitor } from '../monitors/pagination-monitor';
 import { ActionState, RequestInfoState } from '../reducers/api-request-reducer/types';
-import { getCurrentPageRequestInfo } from '../reducers/pagination-reducer/pagination-reducer.helper';
-import { isPaginatedAction } from '../types/pagination.types';
+import { getCurrentPageRequestInfo, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
+import { isPaginatedAction, PaginatedAction } from '../types/pagination.types';
+import { RequestAction } from '../types/request.types';
 import {
   BaseEntityRequestAction,
   BaseEntityRequestConfig,
@@ -17,7 +19,7 @@ import {
   OrchestratedActionBuilders,
   PaginationRequestActionConfig,
 } from './action-orchestrator/action-orchestrator';
-import { EntityAccessEntity, EntityAccessPagination, EntityStorage } from './entity-catalog-entity';
+import { EntityAccess, EntityAccessPagination } from './entity-catalog-entity';
 import { EntityCatalogHelper } from './entity-catalog.service';
 
 // K extends keyof ABC
@@ -29,13 +31,42 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-type ActionStore<K extends keyof ABC, ABC extends OrchestratedActionBuilders, Y = any> = (
-  ech: EntityCatalogHelper,
-  ...args: Parameters<ABC[K]>
-) => EntityAccessPagination<Y> | EntityAccessEntity<Y>;
-export type ActionStores<ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: ActionStore<K, ABC>
+// export interface EntityInstance<Y, ABC extends OrchestratedActionBuilders> {
+//   getEntityMonitor: (
+//     helper: EntityCatalogHelper,
+//     entityId: string,
+//     params?: {
+//       schemaKey?: string,
+//       startWithNull?: boolean
+//     }
+//   ) => EntityMonitor<Y>;
+//   getEntityService: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['get']>
+//   ) => EntityService<Y>;
+// }
+
+
+export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {
+  [K in keyof ABC]: {
+    getPaginationMonitor: (
+      helper: EntityCatalogHelper,
+      ...args: Parameters<ABC[K]>
+    ) => PaginationMonitor<Y>;
+    getPaginationService: (
+      helper: EntityCatalogHelper,
+      ...args: Parameters<ABC[K]>
+    ) => PaginationObservables<Y>;
+  }
 };
+
+// type ActionStore<K extends keyof ABC, ABC extends OrchestratedActionBuilders, Y = any> = (
+//   ech: EntityCatalogHelper,
+//   ...args: Parameters<ABC[K]>
+// ) => EntityAccessPagination<Y> | EntityAccessEntity<Y>;
+// export type ActionStores<ABC extends OrchestratedActionBuilders> = {
+//   [K in keyof ABC]: ActionStore<K, ABC>
+// };
 
 export class ActionBuilderConfigMapper {
 
@@ -47,53 +78,53 @@ export class ActionBuilderConfigMapper {
     update: 'PUT'
   };
 
-  static getActionStores<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
-    helper: EntityCatalogHelper,
+  static getEntityInstances<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
     builders: ABC,
-  ): ActionStores<ABC> {
+  ): EntityInstances<Y, ABC> {
     if (!builders) {
-      return {} as ActionStores<ABC>;
+      return {} as EntityInstances<Y, ABC>;
     }
-    return Object.keys(builders).reduce((actionStorers, key) => {
+    return Object.keys(builders).reduce((entityInstances, key) => {
       return {
-        ...actionStorers,
-        [key]: ActionBuilderConfigMapper.getActionStore(
-          helper,
-          builders[key],
-          key
-        )
-      };
-    }, {} as ActionStores<ABC>);
-  }
-
-  static getActionStore<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
-    helper: EntityCatalogHelper,
-    builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
-    actionKey: string,
-  ): ActionStore<K, ABC> {
-    return (
-      ech: EntityCatalogHelper,
-      ...args: Parameters<ABC[K]>) => {
-      const action = builder(...args);
-      // TODO: RC discard all none-gets
-      if (isPaginatedAction(action)) {
-        const mon = 
+        ...entityInstances,
+        [key]: {
+          getPaginationMonitor: (
+            helper: EntityCatalogHelper,
+            ...args: Parameters<ABC[K]>
+          ) => {
+            const action = builders[key](...args);
+            if (!isPaginatedAction(action)) {
+              throw new Error(`\`${key}\` action is not of type pagination`);
+            }
+            const pAction = action as PaginatedAction;
+            return helper.pmf.create<Y>(pAction.paginationKey, pAction, pAction.flattenPagination);
+          },
+          getPaginationService: (
+            helper: EntityCatalogHelper,
+            ...args: Parameters<ABC[K]>
+          ) => {
+            const action = builders[key](...args);
+            if (!isPaginatedAction(action)) {
+              throw new Error(`\`${key}\` action is not of type pagination`);
+            }
+            const pAction = action as PaginatedAction;
+            return helper.getPaginationObservables<Y>({
+              store: helper.store,
+              action: pAction,
+              paginationMonitor: helper.pmf.create<Y>(
+                pAction.paginationKey,
+                pAction,
+                pAction.flattenPagination
+              )
+            }, pAction.flattenPagination);  // TODO: RC REF This isn't always the case.
+          }
         }
-      return null;
-
-
-      // const action = builder(...args);
-      // if (isPaginatedAction(action)) {
-      //   const pagObs = es[actionKey] as unknown as EntityAccessPagination<Y>;
-      //   // return pagObs.monitor.pagination$.pipe(map(p => getCurrentPageRequestInfo(p)));
-      // }
-      // const entObs = es[actionKey] as unknown as EntityAccessEntity<Y>;
-      // // return entObs.entityMonitor.entityRequest$; // TODO: RC use actionKeyHttpMethodMapper to get type
-    };
+      };
+    }, {} as EntityInstances<Y, ABC>);
   }
 
   static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(
-    es: EntityStorage<Y, ABC>,
+    es: EntityAccess<Y, ABC>,
     builders: ABC,
   ): ActionDispatchers<ABC> {
     if (!builders) {
@@ -112,7 +143,7 @@ export class ActionBuilderConfigMapper {
   }
 
   static getActionDispatcher<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
-    es: EntityStorage<Y, ABC>,
+    es: EntityAccess<Y, ABC>,
     builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
     actionKey: string,
   ): ActionDispatcher<K, ABC> {
@@ -122,11 +153,18 @@ export class ActionBuilderConfigMapper {
       const action = builder(...args);
       ech.store.dispatch(action);
       if (isPaginatedAction(action)) {
-        const pagObs = es[actionKey] as unknown as EntityAccessPagination<Y>;
+        const pagObs = es.instances[actionKey] as unknown as EntityAccessPagination<Y>;
         return pagObs.monitor.pagination$.pipe(map(p => getCurrentPageRequestInfo(p)));
       }
-      const entObs = es[actionKey] as unknown as EntityAccessEntity<Y>;
-      return entObs.entityMonitor.entityRequest$; // TODO: RC use actionKeyHttpMethodMapper to get type
+      const rAction = action as RequestAction;
+      return es.getEntityMonitor(
+        ech,
+        rAction.guid,
+        {
+          schemaKey: rAction.entity[0] || rAction.entity,
+          startWithNull: true
+        }
+      ).entityRequest$;
     };
   }
 

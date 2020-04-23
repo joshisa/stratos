@@ -33,7 +33,6 @@ import { APIResource } from '../../../../store/src/types/api.types';
 import { PaginatedAction } from '../../../../store/src/types/pagination.types';
 import { IUserProvidedServiceInstance } from '../../core/cf-api-svc.types';
 
-
 @Injectable()
 export class CloudFoundryUserProvidedServicesService {
 
@@ -57,11 +56,14 @@ export class CloudFoundryUserProvidedServicesService {
   ) {
 
     // this.userProvidedServiceEntity.api2.createAction.getAllInSpace();
-
-
+    cfEntityCatalog.appEnvVar.actions.addNewToApplication;
+    cfEntityCatalog.appEnvVar.api3.addNewToApplication();
+    cfEntityCatalog.appEnvVar.storage2.getEntityService()
+    cfEntityCatalog.appEnvVar.storage2.instances.addNewToApplication.getPaginationMonitor
     this.userProvidedServiceEntity.actions.getAllInSpace //action
     this.userProvidedServiceEntity.api3.getAllInSpace(). // execute
-    this.userProvidedServiceEntity.storage.
+    this.userProvidedServiceEntity.instance.getEntityMon
+    this.userProvidedServiceEntity.instance.getAllInSpace.getPaginationMonitor
 
     // // TODO: RC TIDY Remove all this
     // const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';

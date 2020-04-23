@@ -1,5 +1,4 @@
 import { Action, ActionReducer } from '@ngrx/store';
-import { Observable } from 'rxjs';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
@@ -12,19 +11,19 @@ import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
 import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { ActionState } from '../reducers/api-request-reducer/types';
 import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
 import { EndpointModel } from '../types/endpoint.types';
 import { PaginatedAction } from '../types/pagination.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
-import { ActionBuilderConfigMapper, ActionDispatchers } from './action-builder-config.mapper';
+import { ActionBuilderConfigMapper, ActionDispatchers, EntityInstances } from './action-builder-config.mapper';
 import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
   ActionOrchestrator,
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
+  OrchestratedActionCoreBuilders,
 } from './action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
 import { EntityCatalogHelper } from './entity-catalog.service';
@@ -114,61 +113,26 @@ export interface EntityApi<Y, ABC extends OrchestratedActionBuilders, AA extends
   custom?: EntityApiProxy<AA>;
 }
 
-type EntityApi3<ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: (
-    ...args: Parameters<ABC[K]>
-  ) => Observable<ActionState>
-};
-
-export type EntityStorage<Y, ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: (
-    ...args: Parameters<ABC[K]>
-  ) => EntityAccessEntity<Y> | EntityAccessPagination<Y>
-};
 
 
-export interface EntityApi2<Y, ABC extends OrchestratedActionBuilders> {
-  actions: {
-    [K in keyof ABC]: (
-      ...args: Parameters<ABC[K]>
-    ) => Action
-  };
-  api: {
-    [K in keyof ABC]: (
-      ...args: Parameters<ABC[K]>
-    ) => Observable<ActionState>
-  };
-  fetchTBD: {
-    [K in keyof ABC]: (
-      ...args: Parameters<ABC[K]>
-    ) => EntityAccessEntity<Y> | EntityAccessPagination<Y>
-  };
+export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+  // instance: EntityInstance<Y, Pick<ABC, 'get'>>;
+  getEntityMonitor: (
+    helper: EntityCatalogHelper,
+    entityId: string,
+    params?: {
+      schemaKey?: string,
+      startWithNull?: boolean
+    }
+  ) => EntityMonitor<Y>;
+  getEntityService: (
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['get']>
+  ) => EntityService<Y>;
+  instances: EntityInstances<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
 }
-// cfEntityCatalog.appEnvVar.api.action.dispatch.removeFromApplication
-// cfEntityCatalog.appEnvVar.api.store.custom.getFromMultipleApps
 
-// getEntityMonitor: (
-//   helper: EntityCatalogHelper,
-//   entityId: string,
-//   params?: {
-//     schemaKey?: string,
-//     startWithNull?: boolean
-//   }
-// ) => EntityMonitor<Y>;
-// getEntityService: (
-//   helper: EntityCatalogHelper,
-//   ...args: Parameters<ABC['get']>
-// ) => EntityService<Y>;
-// getPaginationMonitor: (
-//   helper: EntityCatalogHelper,
-//   ...args: Parameters<ABC['getMultiple']>
-// ) => PaginationMonitor<Y>;
-// getPaginationService: (
-//   helper: EntityCatalogHelper,
-//   ...args: Parameters<ABC['getMultiple']>
-// ) => PaginationObservables<Y>;
 
-// ------------ end 1
 
 
 export interface EntityCatalogBuilders<
@@ -192,7 +156,7 @@ export class StratosBaseCatalogEntity<
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityApiCustom = EntityApiCustom, // TODO: RC Comment
+  AA extends EntityApiCustom = EntityApiCustom, // TODO: RC Comment.. out
   > {
 
   constructor(
@@ -230,7 +194,34 @@ export class StratosBaseCatalogEntity<
     // };
 
     this.actions = actionBuilders as ABC;
-    this.storage = ActionBuilderConfigMapper.getActionStorage(this.actions);
+    // this.storage = ActionBuilderConfigMapper.getActionStorage(this.actions);
+    this.storage2 = {
+      getEntityMonitor: (
+        helper: EntityCatalogHelper,
+        entityId: string,
+        params = {
+          schemaKey: '',
+          startWithNull: false
+        }
+      ): EntityMonitor<Y> => {
+        return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
+      },
+      getEntityService: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['get']>
+      ): EntityService<Y> => {
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
+        if (!actionBuilder) {
+          throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
+        return helper.esf.create<Y>(
+          action.guid,
+          action
+        );
+      },
+      instances: ActionBuilderConfigMapper.getEntityInstances(this.actions)
+    };
     this.api3 = ActionBuilderConfigMapper.getActionDispatchers(
       this.storage,
       this.actions
@@ -244,8 +235,10 @@ export class StratosBaseCatalogEntity<
   // v3
   public readonly actions: ABC;
   public readonly api3: ActionDispatchers<ABC>; // EntityApi3<ABC>;
-  public readonly storage: EntityStorage<Y, ABC>;
-
+  // public readonly storage: EntityStorage<Y, ABC>;
+  public readonly storage2: EntityAccess<Y, ABC>;
+  // public readonly storage2: EntityAccess<Y, Exclude<OrchestratedActionBuilders, ABC>>;
+  // public readonly storage3: EntityAccess<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
 
   public readonly entityKey: string;
   public readonly type: string;
@@ -578,3 +571,81 @@ export class StratosCatalogEndpointEntity extends StratosBaseCatalogEntity<IEndp
     });
   }
 }
+
+
+// type EntityApi3<Y, ABC extends OrchestratedActionBuilders> = {
+//   getEntityMonitor: (
+//     helper: EntityCatalogHelper,
+//     entityId: string,
+//     params?: {
+//       schemaKey?: string,
+//       startWithNull?: boolean
+//     }
+//   ) => EntityMonitor<Y>;
+//   getEntityService: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['get']>
+//   ) => EntityService<Y>;
+
+//   getPaginationMonitor: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['getMultiple']>
+//   ) => PaginationMonitor<Y>;
+//   getPaginationService: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['getMultiple']>
+//   ) => PaginationObservables<Y>;
+//   [K in keyof ABC]: (
+//     ...args: Parameters<ABC[K]>
+//   ) => Observable<ActionState>
+// };
+
+// export type EntityStorage<Y, ABC extends OrchestratedActionBuilders> = {
+//   [K in keyof ABC]: (
+//     ...args: Parameters<ABC[K]>
+//   ) => EntityAccessEntity<Y> | EntityAccessPagination<Y>
+// };
+
+
+// export interface EntityApi2<Y, ABC extends OrchestratedActionBuilders> {
+//   actions: {
+//     [K in keyof ABC]: (
+//       ...args: Parameters<ABC[K]>
+//     ) => Action
+//   };
+//   api: {
+//     [K in keyof ABC]: (
+//       ...args: Parameters<ABC[K]>
+//     ) => Observable<ActionState>
+//   };
+//   fetchTBD: {
+//     [K in keyof ABC]: (
+//       ...args: Parameters<ABC[K]>
+//     ) => EntityAccessEntity<Y> | EntityAccessPagination<Y>
+//   };
+// }
+// cfEntityCatalog.appEnvVar.api.action.dispatch.removeFromApplication
+// cfEntityCatalog.appEnvVar.api.store.custom.getFromMultipleApps
+
+// getEntityMonitor: (
+//   helper: EntityCatalogHelper,
+//   entityId: string,
+//   params?: {
+//     schemaKey?: string,
+//     startWithNull?: boolean
+//   }
+// ) => EntityMonitor<Y>;
+// getEntityService: (
+//   helper: EntityCatalogHelper,
+//   ...args: Parameters<ABC['get']>
+// ) => EntityService<Y>;
+// getPaginationMonitor: (
+//   helper: EntityCatalogHelper,
+//   ...args: Parameters<ABC['getMultiple']>
+// ) => PaginationMonitor<Y>;
+// getPaginationService: (
+//   helper: EntityCatalogHelper,
+//   ...args: Parameters<ABC['getMultiple']>
+// ) => PaginationObservables<Y>;
+
+// ------------ end 1
