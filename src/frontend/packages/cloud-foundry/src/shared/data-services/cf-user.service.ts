@@ -27,11 +27,11 @@ import { PaginationMonitorFactory } from '../../../../store/src/monitors/paginat
 import {
   getDefaultPaginationEntityState,
 } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer-reset-pagination';
+import { getPaginationObservables } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import {
   getCurrentPageRequestInfo,
-  getPaginationObservables,
   PaginationObservables,
-} from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+} from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.types';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { PaginatedAction } from '../../../../store/src/types/pagination.types';
 import { cfEntityFactory } from '../../cf-entity-factory';

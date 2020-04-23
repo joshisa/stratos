@@ -38,11 +38,11 @@ import { EntityMonitorFactory } from '../../../../store/src/monitors/entity-moni
 import { PaginationMonitor } from '../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { ActionState, rootUpdatingKey } from '../../../../store/src/reducers/api-request-reducer/types';
+import { getPaginationObservables } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import {
   getCurrentPageRequestInfo,
-  getPaginationObservables,
   PaginationObservables,
-} from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+} from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.types';
 import { selectUpdateInfo } from '../../../../store/src/selectors/api.selectors';
 import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoint.selectors';
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';

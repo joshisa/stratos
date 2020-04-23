@@ -29,7 +29,7 @@ import {
 } from '../../store/src/entity-catalog/entity-catalog-entity';
 import { APIResource } from '../../store/src/types/api.types';
 import { IAppFavMetadata, IBasicCFMetaData, IOrgFavMetadata, ISpaceFavMetadata } from './cf-metadata-types';
-import { AppEnvVarActionBuilders, AppEnvVarApiCustom } from './entity-action-builders/application-env-var.action-builders';
+import { AppEnvVarActionBuilders } from './entity-action-builders/application-env-var.action-builders';
 import { AppStatsActionBuilders } from './entity-action-builders/application-stats.action-builders';
 import { AppSummaryActionBuilders } from './entity-action-builders/application-summary.action-builders';
 import { BuildpackActionBuilders } from './entity-action-builders/buildpack.action-builders';
@@ -37,18 +37,12 @@ import { CfInfoDefinitionActionBuilders } from './entity-action-builders/cf-info
 import { GitCommitActionBuilders, GitCommitActionBuildersConfig } from './entity-action-builders/git-action-builder';
 import { QuotaDefinitionActionBuilder } from './entity-action-builders/quota-definition.action-builders';
 import { SecurityGroupBuilders } from './entity-action-builders/security-groups.action-builder';
-import {
-  ServiceBindingActionBuilders,
-  ServiceBindingApiCustom,
-} from './entity-action-builders/service-binding.action-builders';
+import { ServiceBindingActionBuilders } from './entity-action-builders/service-binding.action-builders';
 import { ServiceBrokerActionBuilders } from './entity-action-builders/service-broker.entity-builders';
 import { ServicePlanVisibilityActionBuilders } from './entity-action-builders/service-plan-visibility.action-builders';
-import { ServiceActionApiCustom, ServiceActionBuilders } from './entity-action-builders/service.entity-builders';
+import { ServiceActionBuilders } from './entity-action-builders/service.entity-builders';
 import { SpaceQuotaDefinitionActionBuilders } from './entity-action-builders/space-quota.action-builders';
-import {
-  UserProvidedServiceActionBuilder,
-  UserProvidedServiceApiCustom,
-} from './entity-action-builders/user-provided-service.action-builders';
+import { UserProvidedServiceActionBuilder } from './entity-action-builders/user-provided-service.action-builders';
 import { AppStat } from './store/types/app-metadata.types';
 import { GitBranch, GitCommit, GitRepo } from './store/types/git.types';
 import { CfUser } from './store/types/user.types';
@@ -67,9 +61,7 @@ export class CfEntityCatalog {
   public appEnvVar: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource,
-    AppEnvVarActionBuilders,
-    AppEnvVarActionBuilders,
-    AppEnvVarApiCustom
+    AppEnvVarActionBuilders
   >;
 
   public appSummary: StratosBaseCatalogEntity<
@@ -129,16 +121,13 @@ export class CfEntityCatalog {
     IBasicCFMetaData,
     APIResource<IServiceBinding>,
     ServiceBindingActionBuilders,
-    ServiceBindingActionBuilders,
-    ServiceBindingApiCustom
+    ServiceBindingActionBuilders
   >;
 
   public service: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IService>,
-    ServiceActionBuilders,
-    ServiceActionBuilders,
-    ServiceActionApiCustom
+    ServiceActionBuilders
   >;
 
   public servicePlan: StratosBaseCatalogEntity<
@@ -235,9 +224,7 @@ export class CfEntityCatalog {
   public userProvidedServiceEntity: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IUserProvidedServiceInstance>,
-    UserProvidedServiceActionBuilder,
-    UserProvidedServiceActionBuilder,
-    UserProvidedServiceApiCustom
+    UserProvidedServiceActionBuilder
   >;
   // public userProvidedServiceEntityApi: EntityApiProxy<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder, UserProvidedServiceAccessBuilders>;
 }

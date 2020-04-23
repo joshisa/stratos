@@ -165,7 +165,7 @@ export interface OrchestratedActionCoreBuilders {
 }
 
 // A list of functions that can be used get interface with the entity
-export interface OrchestratedActionBuilders extends OrchestratedActionCoreBuilders {
+export interface OrchestratedActionBuilders {
   [actionType: string]: OrchestratedActionBuilder; // TODO: RC this can be removed now with the custom API??
 }
 

@@ -1,4 +1,4 @@
-import { Action, ActionReducer } from '@ngrx/store';
+import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
@@ -10,20 +10,16 @@ import { EntityPipelineEntity, stratosEndpointGuidKey } from '../entity-request-
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
-import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
 import { EndpointModel } from '../types/endpoint.types';
-import { PaginatedAction } from '../types/pagination.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
-import { ActionBuilderConfigMapper, ActionDispatchers, EntityInstances } from './action-builder-config.mapper';
+import { ActionBuilderConfigMapper, ActionDispatchers, EntityAccess } from './action-builder-config.mapper';
 import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
   ActionOrchestrator,
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
-  OrchestratedActionCoreBuilders,
 } from './action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
 import { EntityCatalogHelper } from './entity-catalog.service';
@@ -39,113 +35,24 @@ import {
 
 // ------------ 1
 
-export function apiCustomDispatch(
-  helper: EntityCatalogHelper,
-  action: Action
-) {
-  helper.store.dispatch(action);
-}
-
-
-// TODO: RC TIDY Have this still?
-export interface EntityAccessEntity<Y> {
-  entityMonitor: EntityMonitor<Y>;
-  entityService: EntityService<Y>;
-}
-
-// TODO: RC TIDY Have this still?
-export interface EntityAccessPagination<Y> {
-  monitor: PaginationMonitor<Y>;
-  obs: PaginationObservables<Y>;
-}
-
-export function createEntityApiPagination<Y>(
-  helper: EntityCatalogHelper,
-  action: PaginatedAction
-): EntityAccessPagination<Y> {
-  const mon = helper.pmf.create<Y>(
-    action.paginationKey,
-    action,
-    action.flattenPagination
-  );
-  return {
-    monitor: mon,
-    obs: helper.getPaginationObservables<Y>({
-      store: helper.store,
-      action,
-      paginationMonitor: mon
-    }, action.flattenPagination) // TODO: RC REF This isn't always the case.
-  };
-}
-export interface EntityApiCustom {
-  [others: string]: (
-    ...args
-  ) => any;
-}
-
-type EntityApiProxy<AA extends EntityApiCustom> = {
-  [K in keyof AA]: (
-    ...args: Parameters<AA[K]>
-  ) => ReturnType<AA[K]>
-};
-
-export interface EntityApi<Y, ABC extends OrchestratedActionBuilders, AA extends EntityApiCustom> {
-  getEntityMonitor: (
-    helper: EntityCatalogHelper,
-    entityId: string,
-    params?: {
-      schemaKey?: string,
-      startWithNull?: boolean
-    }
-  ) => EntityMonitor<Y>;
-  getEntityService: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC['get']>
-  ) => EntityService<Y>;
-  getPaginationMonitor: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC['getMultiple']>
-  ) => PaginationMonitor<Y>;
-  getPaginationService: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC['getMultiple']>
-  ) => PaginationObservables<Y>;
-  custom?: EntityApiProxy<AA>;
-}
-
-
-
-export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
-  // instance: EntityInstance<Y, Pick<ABC, 'get'>>;
-  getEntityMonitor: (
-    helper: EntityCatalogHelper,
-    entityId: string,
-    params?: {
-      schemaKey?: string,
-      startWithNull?: boolean
-    }
-  ) => EntityMonitor<Y>;
-  getEntityService: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC['get']>
-  ) => EntityService<Y>;
-  instances: EntityInstances<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
-}
-
-
-
+// export function apiCustomDispatch(
+//   helper: EntityCatalogHelper,
+//   action: Action
+// ) {
+//   helper.store.dispatch(action);
+// }
 
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
-  AA extends EntityApiCustom = EntityApiCustom, // access builders
+  // AA extends EntityApiCustom = EntityApiCustom, // access builders
   > {
   entityBuilder?: IStratosEntityBuilder<T, Y>;
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
   dataReducers?: ActionReducer<IRequestEntityTypeState<Y>>[];
   actionBuilders?: AB;
-  entityAPI?: AA;
+  // entityAPI?: AA;
 }
 type DefinitionTypes = IStratosEntityDefinition<EntityCatalogSchemas> |
   IStratosEndpointDefinition<EntityCatalogSchemas> |
@@ -156,12 +63,12 @@ export class StratosBaseCatalogEntity<
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilderConfig,
   // This typing may cause an issue down the line.
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityApiCustom = EntityApiCustom, // TODO: RC Comment.. out
+  // AA extends EntityApiCustom = EntityApiCustom, // TODO: RC Comment.. out
   > {
 
   constructor(
     definition: IStratosEntityDefinition | IStratosEndpointDefinition | IStratosBaseEntityDefinition,
-    public readonly builders: EntityCatalogBuilders<T, Y, AB, AA> = {}
+    public readonly builders: EntityCatalogBuilders<T, Y, AB> = {}
   ) {
     this.definition = this.populateEntity(definition);
     this.type = this.definition.type || this.definition.schema.default.entityType;
@@ -178,24 +85,9 @@ export class StratosBaseCatalogEntity<
       this.type,
       (schemaKey: string) => this.getSchema(schemaKey)
     );
-    const actionDispatchers =
-      // this.actionBuilders = actionBuilders as ABC;
-      this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
-    this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
-    this.api = {
-      ...this.createEntityAccess(),
-      custom: {
-        ...this.builders.entityAPI
-      }
-    };
-    // this.api2 = {
-    //   ...this.createEntityAccess2(),
-    //   ...this.builders.entityAPI
-    // };
 
     this.actions = actionBuilders as ABC;
-    // this.storage = ActionBuilderConfigMapper.getActionStorage(this.actions);
-    this.storage2 = {
+    this.storage = {
       getEntityMonitor: (
         helper: EntityCatalogHelper,
         entityId: string,
@@ -222,23 +114,30 @@ export class StratosBaseCatalogEntity<
       },
       instances: ActionBuilderConfigMapper.getEntityInstances(this.actions)
     };
-    this.api3 = ActionBuilderConfigMapper.getActionDispatchers(
+    this.api = ActionBuilderConfigMapper.getActionDispatchers(
       this.storage,
       this.actions
     );
+
+    // TODO: RC why is the all so convoluted????
+    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, this.actions); // TODO: RC not public?
+    this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
   }
 
-  // public readonly actionBuilders: ABC; // TODO: RC TIDY Comments
-  public readonly api: EntityApi<Y, ABC, AA>; // TODO: RC TIDY Comments
-  // public readonly api2: EntityApi2<Y, ABC>; // & AA
 
-  // v3
+  /**
+   * Create action // TODO: RC comment
+   */
   public readonly actions: ABC;
-  public readonly api3: ActionDispatchers<ABC>; // EntityApi3<ABC>;
-  // public readonly storage: EntityStorage<Y, ABC>;
-  public readonly storage2: EntityAccess<Y, ABC>;
-  // public readonly storage2: EntityAccess<Y, Exclude<OrchestratedActionBuilders, ABC>>;
-  // public readonly storage3: EntityAccess<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
+  /**
+   * Dispatch action // TODO: RC comment
+   *
+   */
+  public readonly api: ActionDispatchers<ABC>;
+  /**
+   * Monitor an entity or collection of entities. If entity/entities not found they will be fetched
+   */
+  public readonly storage: EntityAccess<Y, ABC>;
 
   public readonly entityKey: string;
   public readonly type: string;
@@ -247,136 +146,6 @@ export class StratosBaseCatalogEntity<
   public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
-
-  private createEntityAccess(): EntityApi<Y, ABC, AA> {
-    const res: EntityApi<Y, ABC, AA> = {
-      getEntityMonitor: (
-        helper: EntityCatalogHelper,
-        entityId: string,
-        params = {
-          schemaKey: '',
-          startWithNull: false
-        }
-      ): EntityMonitor<Y> => {
-        return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
-      },
-      getEntityService: (
-        helper: EntityCatalogHelper,
-        ...args: Parameters<ABC['get']>
-      ): EntityService<Y> => {
-        const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
-        if (!actionBuilder) {
-          throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
-        }
-        const action = actionBuilder(...args);
-        return helper.esf.create<Y>(
-          action.guid,
-          action
-        );
-      },
-      getPaginationMonitor: (
-        helper: EntityCatalogHelper,
-        ...args: Parameters<ABC['getMultiple']>
-      ): PaginationMonitor<Y> => {
-        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
-        if (!actionBuilder) {
-          throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
-        }
-        const action = actionBuilder(...args);
-        return helper.pmf.create<Y>(
-          action.paginationKey,
-          action,
-          action.flattenPagination
-        );
-      },
-      getPaginationService: (
-        helper: EntityCatalogHelper,
-        ...args: Parameters<ABC['getMultiple']>
-      ): PaginationObservables<Y> => {
-        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
-        if (!actionBuilder) {
-          throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
-        }
-        const action = actionBuilder(...args);
-        return helper.getPaginationObservables<Y>({
-          store: helper.store,
-          action,
-          paginationMonitor: helper.pmf.create<Y>(
-            action.paginationKey,
-            action,
-            action.flattenPagination
-          )
-        }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
-      },
-    };
-    return res;
-  }
-
-  // private createEntityAccess2(): EntityApi2<Y, ABC> {
-  //   const res: EntityApi2<Y, ABC> = {
-  //     createAction: this.actionBuilders,
-  //     execute: {},
-  //     getEntityMonitor: (
-  //       helper: EntityCatalogHelper,
-  //       entityId: string,
-  //       params = {
-  //         schemaKey: '',
-  //         startWithNull: false
-  //       }
-  //     ): EntityMonitor<Y> => {
-  //       return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
-  //     },
-  //     getEntityService: (
-  //       helper: EntityCatalogHelper,
-  //       ...args: Parameters<ABC['get']>
-  //     ): EntityService<Y> => {
-  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
-  //       if (!actionBuilder) {
-  //         throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
-  //       }
-  //       const action = actionBuilder(...args);
-  //       return helper.esf.create<Y>(
-  //         action.guid,
-  //         action
-  //       );
-  //     },
-  //     getPaginationMonitor: (
-  //       helper: EntityCatalogHelper,
-  //       ...args: Parameters<ABC['getMultiple']>
-  //     ): PaginationMonitor<Y> => {
-  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
-  //       if (!actionBuilder) {
-  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
-  //       }
-  //       const action = actionBuilder(...args);
-  //       return helper.pmf.create<Y>(
-  //         action.paginationKey,
-  //         action,
-  //         action.flattenPagination
-  //       );
-  //     },
-  //     getPaginationService: (
-  //       helper: EntityCatalogHelper,
-  //       ...args: Parameters<ABC['getMultiple']>
-  //     ): PaginationObservables<Y> => {
-  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
-  //       if (!actionBuilder) {
-  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
-  //       }
-  //       const action = actionBuilder(...args);
-  //       return helper.getPaginationObservables<Y>({
-  //         store: helper.store,
-  //         action,
-  //         paginationMonitor: helper.pmf.create<Y>(
-  //           action.paginationKey,
-  //           action,
-  //           action.flattenPagination
-  //         )
-  //       }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
-  //     },
-  //   };
-  //   return res;
-  // }
 
   private populateEntitySchemaKey(entitySchemas: EntityCatalogSchemas): EntityCatalogSchemas {
     return Object.keys(entitySchemas).reduce((newSchema, schemaKey) => {
@@ -516,12 +285,12 @@ export class StratosCatalogEntity<
   Y = any,
   AB extends OrchestratedActionBuilderConfig = OrchestratedActionBuilders,
   ABC extends OrchestratedActionBuilders = AB extends OrchestratedActionBuilders ? AB : OrchestratedActionBuilders,
-  AA extends EntityApiCustom = EntityApiCustom,
-  > extends StratosBaseCatalogEntity<T, Y, AB, ABC, AA> {
+  // AA extends EntityApiCustom = EntityApiCustom,
+  > extends StratosBaseCatalogEntity<T, Y, AB, ABC> {
   public definition: IStratosEntityDefinition<EntityCatalogSchemas, Y, ABC>;
   constructor(
     entity: IStratosEntityDefinition,
-    config?: EntityCatalogBuilders<T, Y, AB, AA>
+    config?: EntityCatalogBuilders<T, Y, AB>
   ) {
     super(entity, config);
   }
@@ -571,6 +340,11 @@ export class StratosCatalogEndpointEntity extends StratosBaseCatalogEntity<IEndp
     });
   }
 }
+
+
+  // public readonly storage: EntityStorage<Y, ABC>;
+  // public readonly storage2: EntityAccess<Y, Exclude<OrchestratedActionBuilders, ABC>>;
+  // public readonly storage3: EntityAccess<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
 
 
 // type EntityApi3<Y, ABC extends OrchestratedActionBuilders> = {
@@ -649,3 +423,158 @@ export class StratosCatalogEndpointEntity extends StratosBaseCatalogEntity<IEndp
 // ) => PaginationObservables<Y>;
 
 // ------------ end 1
+
+
+// export interface EntityApi<Y, ABC extends OrchestratedActionBuilders, AA extends EntityApiCustom> {
+//   getEntityMonitor: (
+//     helper: EntityCatalogHelper,
+//     entityId: string,
+//     params?: {
+//       schemaKey?: string,
+//       startWithNull?: boolean
+//     }
+//   ) => EntityMonitor<Y>;
+//   getEntityService: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['get']>
+//   ) => EntityService<Y>;
+//   getPaginationMonitor: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['getMultiple']>
+//   ) => PaginationMonitor<Y>;
+//   getPaginationService: (
+//     helper: EntityCatalogHelper,
+//     ...args: Parameters<ABC['getMultiple']>
+//   ) => PaginationObservables<Y>;
+//   custom?: EntityApiProxy<AA>;
+// }
+
+// private createEntityAccess2(): EntityApi2<Y, ABC> {
+  //   const res: EntityApi2<Y, ABC> = {
+  //     createAction: this.actionBuilders,
+  //     execute: {},
+  //     getEntityMonitor: (
+  //       helper: EntityCatalogHelper,
+  //       entityId: string,
+  //       params = {
+  //         schemaKey: '',
+  //         startWithNull: false
+  //       }
+  //     ): EntityMonitor<Y> => {
+  //       return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
+  //     },
+  //     getEntityService: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['get']>
+  //     ): EntityService<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.esf.create<Y>(
+  //         action.guid,
+  //         action
+  //       );
+  //     },
+  //     getPaginationMonitor: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['getMultiple']>
+  //     ): PaginationMonitor<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.pmf.create<Y>(
+  //         action.paginationKey,
+  //         action,
+  //         action.flattenPagination
+  //       );
+  //     },
+  //     getPaginationService: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['getMultiple']>
+  //     ): PaginationObservables<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.getPaginationObservables<Y>({
+  //         store: helper.store,
+  //         action,
+  //         paginationMonitor: helper.pmf.create<Y>(
+  //           action.paginationKey,
+  //           action,
+  //           action.flattenPagination
+  //         )
+  //       }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
+  //     },
+  //   };
+  //   return res;
+  // }
+
+  // private createEntityAccess(): EntityApi<Y, ABC, AA> {
+  //   const res: EntityApi<Y, ABC, AA> = {
+  //     getEntityMonitor: (
+  //       helper: EntityCatalogHelper,
+  //       entityId: string,
+  //       params = {
+  //         schemaKey: '',
+  //         startWithNull: false
+  //       }
+  //     ): EntityMonitor<Y> => {
+  //       return new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull);
+  //     },
+  //     getEntityService: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['get']>
+  //     ): EntityService<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.esf.create<Y>(
+  //         action.guid,
+  //         action
+  //       );
+  //     },
+  //     getPaginationMonitor: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['getMultiple']>
+  //     ): PaginationMonitor<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.pmf.create<Y>(
+  //         action.paginationKey,
+  //         action,
+  //         action.flattenPagination
+  //       );
+  //     },
+  //     getPaginationService: (
+  //       helper: EntityCatalogHelper,
+  //       ...args: Parameters<ABC['getMultiple']>
+  //     ): PaginationObservables<Y> => {
+  //       const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+  //       if (!actionBuilder) {
+  //         throw new Error(`\`getMultiple\` action builder not implemented for ${this.entityKey}`);
+  //       }
+  //       const action = actionBuilder(...args);
+  //       return helper.getPaginationObservables<Y>({
+  //         store: helper.store,
+  //         action,
+  //         paginationMonitor: helper.pmf.create<Y>(
+  //           action.paginationKey,
+  //           action,
+  //           action.flattenPagination
+  //         )
+  //       }, action.flattenPagination);  // TODO: RC REF This isn't always the case.
+  //     },
+  //   };
+  //   return res;
+  // }

@@ -77,7 +77,7 @@ export class EditSpaceQuotaStepComponent implements OnDestroy {
       entityCatalog.getEntity<IEntityMetadata, any, SpaceQuotaDefinitionActionBuilders>(CF_ENDPOINT_TYPE, spaceQuotaEntityType);
     entityConfig.actionDispatchManager.dispatchUpdate(this.spaceQuotaGuid, this.cfGuid, formValues);
 
-    return entityConfig.api.getEntityMonitor(this.ech, this.spaceQuotaGuid)
+    return entityConfig.storage.getEntityMonitor(this.ech, this.spaceQuotaGuid)
       .getUpdatingSection(UpdateSpaceQuotaDefinition.UpdateExistingSpaceQuota)
       .pipe(
         pairwise(),

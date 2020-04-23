@@ -23,6 +23,7 @@ import { StratosBaseCatalogEntity } from '../entity-catalog/entity-catalog-entit
 import { EntityCatalogEntityConfig } from '../entity-catalog/entity-catalog.types';
 import { EntitySchema } from '../helpers/entity-schema';
 import { ActionState, ListActionState } from '../reducers/api-request-reducer/types';
+import { getCurrentPageRequestInfo } from '../reducers/pagination-reducer/pagination-reducer.types';
 import { getAPIRequestDataState, selectEntities } from '../selectors/api.selectors';
 import { selectPaginationState } from '../selectors/pagination.selectors';
 import { PaginationEntityState } from '../types/pagination.types';
@@ -121,19 +122,14 @@ export class PaginationMonitor<T = any, Y extends AppState = GeneralEntityAppSta
   private getCurrentPageRequestInfo(
     pagination: PaginationEntityState,
   ): ActionState {
-    if (
-      !pagination ||
-      !pagination.pageRequests ||
-      !pagination.pageRequests[pagination.currentPage]
-    ) {
-      return {
+    return getCurrentPageRequestInfo(
+      pagination,
+      {
         busy: true,
         error: false,
         message: '',
-      };
-    } else {
-      return pagination.pageRequests[pagination.currentPage];
-    }
+      }
+    );
   }
 
   // ### Initialization methods.

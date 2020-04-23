@@ -1,41 +1,52 @@
-import { OrchestratedActionCoreBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
-import { EntityApiCustom } from '../../../store/src/entity-catalog/entity-catalog-entity';
-import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
+import {
+  OrchestratedActionBuilders,
+  OrchestratedActionCoreBuilders,
+} from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { GetAppEnvVarsAction } from '../actions/app-metadata.actions';
-import { AppVariablesAdd } from '../actions/app-variables.actions';
+import { AppVariablesAdd, AppVariablesDelete, AppVariablesEdit } from '../actions/app-variables.actions';
 import { ListAppEnvVar } from '../shared/components/list/list-types/app-variables/cf-app-variables-data-source';
 
 
-export interface AppEnvVarApiCustom extends EntityApiCustom {
+// export interface AppEnvVarApiCustom extends EntityApiCustom {
+//   removeFromApplication: (
+//     helper: EntityCatalogHelper,
+//     appGuid,
+//     endpointGuid,
+//     allEnvVars: ListAppEnvVar[],
+//     selectedItems: ListAppEnvVar[]
+//   ) => void;
+//   editInApplication: (
+//     helper: EntityCatalogHelper,
+//     appGuid,
+//     endpointGuid,
+//     allEnvVars: ListAppEnvVar[],
+//     editedEnvVar: ListAppEnvVar
+//   ) => void;
+//   addNewToApplication: (
+//     helper: EntityCatalogHelper,
+//     appGuid,
+//     endpointGuid,
+//     allEnvVars: ListAppEnvVar[],
+//     newEnvVar: ListAppEnvVar
+//   ) => void;
+// }
+
+
+export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders, OrchestratedActionCoreBuilders {
+  get: (appGuid, endpointGuid) => GetAppEnvVarsAction;
   removeFromApplication: (
-    helper: EntityCatalogHelper,
     appGuid,
     endpointGuid,
     allEnvVars: ListAppEnvVar[],
     selectedItems: ListAppEnvVar[]
-  ) => void;
+  ) => AppVariablesDelete;
   editInApplication: (
-    helper: EntityCatalogHelper,
     appGuid,
     endpointGuid,
     allEnvVars: ListAppEnvVar[],
     editedEnvVar: ListAppEnvVar
-  ) => void;
+  ) => AppVariablesEdit;
   addNewToApplication: (
-    helper: EntityCatalogHelper,
-    appGuid,
-    endpointGuid,
-    allEnvVars: ListAppEnvVar[],
-    newEnvVar: ListAppEnvVar
-  ) => void;
-}
-
-
-export interface AppEnvVarActionBuilders extends OrchestratedActionCoreBuilders {
-  get: (appGuid, endpointGuid) => GetAppEnvVarsAction;
-  // TODO: RC Re-add above
-  addNewToApplication: (
-    helper: EntityCatalogHelper,
     appGuid,
     endpointGuid,
     allEnvVars: ListAppEnvVar[],
@@ -43,6 +54,29 @@ export interface AppEnvVarActionBuilders extends OrchestratedActionCoreBuilders 
   ) => AppVariablesAdd;
 }
 
+// App variables are a special case where the entities are actually embedded in an application
+// This means that most actions are not standard api actions.
+export const appEnvVarActionBuilders: AppEnvVarActionBuilders = {
+  get: (appGuid, endpointGuid) => new GetAppEnvVarsAction(appGuid, endpointGuid),
+  removeFromApplication: (
+    appGuid,
+    endpointGuid,
+    allEnvVars: ListAppEnvVar[],
+    selectedItems: ListAppEnvVar[]
+  ) => new AppVariablesDelete(endpointGuid, appGuid, allEnvVars, selectedItems),
+  editInApplication: (
+    appGuid,
+    endpointGuid,
+    allEnvVars: ListAppEnvVar[],
+    editedEnvVar: ListAppEnvVar
+  ) => new AppVariablesEdit(endpointGuid, appGuid, allEnvVars, editedEnvVar),
+  addNewToApplication: (
+    appGuid,
+    endpointGuid,
+    allEnvVars: ListAppEnvVar[],
+    newEnvVar: ListAppEnvVar
+  ) => new AppVariablesAdd(endpointGuid, appGuid, allEnvVars, newEnvVar)
+};
 
 // // const a: Omit<AppEnvVarActionBuilders, 'get'>;
 // type wnkbg = Omit<{
@@ -68,9 +102,3 @@ export interface AppEnvVarActionBuilders extends OrchestratedActionCoreBuilders 
 //   Omit<OrchestratedActionBuilders, keyof OrchestratedActionCoreBuilders>>;
 // const todo3: TodoPreview2;
 // todo3.;
-
-// App variables are a special case where the entities are actually embedded in an application
-// This means that most actions are not standard api actions.
-export const appEnvVarActionBuilders: AppEnvVarActionBuilders = {
-  get: (appGuid, endpointGuid) => new GetAppEnvVarsAction(appGuid, endpointGuid),
-};

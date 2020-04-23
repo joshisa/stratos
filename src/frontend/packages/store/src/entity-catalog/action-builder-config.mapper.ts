@@ -1,10 +1,12 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
+import { EntityMonitor } from '../monitors/entity-monitor';
 import { PaginationMonitor } from '../monitors/pagination-monitor';
 import { ActionState, RequestInfoState } from '../reducers/api-request-reducer/types';
-import { getCurrentPageRequestInfo, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.helper';
+import { getCurrentPageRequestInfo, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.types';
 import { isPaginatedAction, PaginatedAction } from '../types/pagination.types';
 import { RequestAction } from '../types/request.types';
 import {
@@ -19,9 +21,62 @@ import {
   OrchestratedActionBuilders,
   PaginationRequestActionConfig,
 } from './action-orchestrator/action-orchestrator';
-import { EntityAccess, EntityAccessPagination } from './entity-catalog-entity';
 import { EntityCatalogHelper } from './entity-catalog.service';
 
+// TODO: RC TIDY Have this still?
+export interface EntityAccessEntity<Y> {
+  entityMonitor: EntityMonitor<Y>;
+  entityService: EntityService<Y>;
+}
+// TODO: RC TIDY Have this still?
+export interface EntityAccessPagination<Y> {
+  monitor: PaginationMonitor<Y>;
+  obs: PaginationObservables<Y>;
+}
+export function createEntityApiPagination<Y>(
+  helper: EntityCatalogHelper,
+  action: PaginatedAction
+): EntityAccessPagination<Y> {
+  const mon = helper.pmf.create<Y>(
+    action.paginationKey,
+    action,
+    action.flattenPagination
+  );
+  return {
+    monitor: mon,
+    obs: helper.getPaginationObservables<Y>({
+      store: helper.store,
+      action,
+      paginationMonitor: mon
+    }, action.flattenPagination) // TODO: RC REF This isn't always the case.
+  };
+}
+// export interface EntityApiCustom {
+//   [others: string]: (
+//     ...args
+//   ) => any;
+// }
+
+export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+  // instance: EntityInstance<Y, Pick<ABC, 'get'>>;
+  getEntityMonitor: (
+    helper: EntityCatalogHelper,
+    entityId: string,
+    params?: {
+      schemaKey?: string,
+      startWithNull?: boolean
+    }
+  ) => EntityMonitor<Y>;
+  getEntityService: (
+    helper: EntityCatalogHelper,
+    ...args: Parameters<ABC['get']>
+  ) => EntityService<Y>;
+  instances: EntityInstances<Y, ABC>;
+  // instances: EntityInstances<Y, Omit<ABC, 'getMultiple'>>;
+  // instances: EntityInstances<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
+}
+
+// TODO: RC TIDY THIS WHOLE MESS
 // K extends keyof ABC
 type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = (
   ech: EntityCatalogHelper,
@@ -30,21 +85,6 @@ type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilder
 export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
-
-// export interface EntityInstance<Y, ABC extends OrchestratedActionBuilders> {
-//   getEntityMonitor: (
-//     helper: EntityCatalogHelper,
-//     entityId: string,
-//     params?: {
-//       schemaKey?: string,
-//       startWithNull?: boolean
-//     }
-//   ) => EntityMonitor<Y>;
-//   getEntityService: (
-//     helper: EntityCatalogHelper,
-//     ...args: Parameters<ABC['get']>
-//   ) => EntityService<Y>;
-// }
 
 
 export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {

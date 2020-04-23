@@ -8,8 +8,10 @@ import { entityCatalog } from '../../../../../../../../store/src/entity-catalog/
 import { PaginationMonitorFactory } from '../../../../../../../../store/src/monitors/pagination-monitor.factory';
 import {
   getPaginationObservables,
-  PaginationObservables,
 } from '../../../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+import {
+  PaginationObservables,
+} from '../../../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.types';
 import { APIResource } from '../../../../../../../../store/src/types/api.types';
 import { PaginatedAction } from '../../../../../../../../store/src/types/pagination.types';
 import { CF_ENDPOINT_TYPE } from '../../../../../../cf-types';

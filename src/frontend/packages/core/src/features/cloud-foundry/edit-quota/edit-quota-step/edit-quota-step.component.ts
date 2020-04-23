@@ -76,7 +76,7 @@ export class EditQuotaStepComponent implements OnDestroy {
     const entityConfig =
       entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
     entityConfig.actionDispatchManager.dispatchUpdate(this.quotaGuid, this.cfGuid, formValues);
-    return entityConfig.api.getEntityMonitor(this.ech, this.quotaGuid)
+    return entityConfig.storage.getEntityMonitor(this.ech, this.quotaGuid)
       .getUpdatingSection(UpdateQuotaDefinition.UpdateExistingQuota).pipe(
         pairwise(),
         filter(([oldV, newV]) => oldV.busy && !newV.busy),

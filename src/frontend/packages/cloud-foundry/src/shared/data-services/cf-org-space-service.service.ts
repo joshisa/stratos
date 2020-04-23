@@ -28,10 +28,8 @@ import {
 import { ResetPagination, SetParams } from '../../../../store/src/actions/pagination.actions';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
-import {
-  getCurrentPageRequestInfo,
-  getPaginationObservables,
-} from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+import { getPaginationObservables } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+import { getCurrentPageRequestInfo } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.types';
 import { selectPaginationState } from '../../../../store/src/selectors/pagination.selectors';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { EndpointModel } from '../../../../store/src/types/endpoint.types';

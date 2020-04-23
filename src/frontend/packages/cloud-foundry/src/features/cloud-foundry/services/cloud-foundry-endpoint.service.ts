@@ -28,10 +28,8 @@ import { EntityService } from '../../../../../store/src/entity-service';
 import { EntityServiceFactory } from '../../../../../store/src/entity-service-factory.service';
 import { endpointSchemaKey } from '../../../../../store/src/helpers/entity-factory';
 import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
-import {
-  getPaginationObservables,
-  PaginationObservables,
-} from '../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+import { getPaginationObservables } from '../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
+import { PaginationObservables } from '../../../../../store/src/reducers/pagination-reducer/pagination-reducer.types';
 import { APIResource, EntityInfo } from '../../../../../store/src/types/api.types';
 import { EndpointModel, EndpointUser } from '../../../../../store/src/types/endpoint.types';
 import { PaginatedAction } from '../../../../../store/src/types/pagination.types';

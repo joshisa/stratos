@@ -2,12 +2,7 @@ import { STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { IRequestEntityTypeState } from '../app-state';
 import { ExtraApiReducers } from '../reducers/api-request-reducers.generator.helpers';
 import { OrchestratedActionBuilders } from './action-orchestrator/action-orchestrator';
-import {
-  EntityApiCustom,
-  StratosBaseCatalogEntity,
-  StratosCatalogEndpointEntity,
-  StratosCatalogEntity,
-} from './entity-catalog-entity';
+import { StratosBaseCatalogEntity, StratosCatalogEndpointEntity, StratosCatalogEntity } from './entity-catalog-entity';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
 import { EntityCatalogEntityConfig, IEntityMetadata, IStratosBaseEntityDefinition } from './entity-catalog.types';
 
@@ -107,36 +102,33 @@ class EntityCatalog {
   public getEntity<
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
-    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApiCustom = EntityApiCustom
+    AB extends OrchestratedActionBuilders = OrchestratedActionBuilders
   >(
     entityConfig: EntityCatalogEntityConfig
-  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+  ): StratosBaseCatalogEntity<T, Y, AB, AB>;
   public getEntity<
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
     AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApiCustom = EntityApiCustom
-  >(
-    endpointType: string,
-    entityType: string,
-    subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+    >(
+      endpointType: string,
+      entityType: string,
+      subType?: string
+    ): StratosBaseCatalogEntity<T, Y, AB, AB>;
   public getEntity<
     T extends IEntityMetadata = IEntityMetadata,
     Y = any,
     AB extends OrchestratedActionBuilders = OrchestratedActionBuilders,
-    AA extends EntityApiCustom = EntityApiCustom
-  >(
-    endpointTypeOrConfig: string | EntityCatalogEntityConfig,
-    entityType?: string,
-    subType?: string
-  ): StratosBaseCatalogEntity<T, Y, AB, AB, AA> {
+    >(
+      endpointTypeOrConfig: string | EntityCatalogEntityConfig,
+      entityType?: string,
+      subType?: string
+    ): StratosBaseCatalogEntity<T, Y, AB, AB> {
     /* tslint:enable:max-line-length */
     const config = this.getConfig(endpointTypeOrConfig, entityType, subType);
     const entityOfType = this.getEntityOfType(config.entityType, config.endpointType);
     if (entityOfType && subType) {
-      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+      return this.getEntitySubType(entityOfType, subType) as StratosBaseCatalogEntity<T, Y, AB, AB>;
     }
     if (!entityOfType) {
       console.warn(
@@ -144,7 +136,7 @@ class EntityCatalog {
         new Error().stack
       );
     }
-    return entityOfType as StratosBaseCatalogEntity<T, Y, AB, AB, AA>;
+    return entityOfType as StratosBaseCatalogEntity<T, Y, AB, AB>;
   }
 
   public getEntityKey(endpointType: string, entityType: string): string;

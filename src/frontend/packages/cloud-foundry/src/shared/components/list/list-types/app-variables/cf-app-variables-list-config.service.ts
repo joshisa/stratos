@@ -105,7 +105,7 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     this.confirmDialog.open(
       confirmation,
       () => {
-        cfEntityCatalog.appEnvVar.api.custom.removeFromApplication(
+        cfEntityCatalog.appEnvVar.api.removeFromApplication(
           this.ech,
           this.envVarsDataSource.appGuid,
           this.envVarsDataSource.cfGuid,
@@ -128,7 +128,7 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
       endpointType: CF_ENDPOINT_TYPE
     });
     return catalogEntity
-      .api
+      .storage
       .getEntityMonitor(
         this.ech,
         this.envVarsDataSource.appGuid
@@ -167,16 +167,17 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this, this.ech);
 
 
-    // cfEntityCatalog.appEnvVar.api.getPaginationService(
+    // cfEntityCatalog.appEnvVar.storage.instances..getPaginationService(
     //   this.ech,
     //   'uEQrNbUurmOUnGqj6cHGyMP60XA',
     //   null
     // ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
-    cfEntityCatalog.privateDomain.api.getPaginationService(
-      this.ech,
-      'uEQrNbUurmOUnGqj6cHGyMP60XA',
-      null
-    ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
+    // TODO: RC -----
+    // cfEntityCatalog.privateDomain.storage.instances..getPaginationService(
+    //   this.ech,
+    //   'uEQrNbUurmOUnGqj6cHGyMP60XA',
+    //   null
+    // ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
   }
 
 }
