@@ -96,7 +96,7 @@ export class CloudFoundryUserProvidedServicesService {
       endpointGuid, // Per action builder,
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
-    const pagMon = this.userProvidedServiceEntity.storage.instances.getMultiple.getPaginationMonitor(
+    const pagMon = this.userProvidedServiceEntity.storage.instances. .getMultiple.getPaginationMonitor(
       this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder

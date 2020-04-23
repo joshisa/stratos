@@ -1,4 +1,7 @@
-import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
+import {
+  OrchestratedActionBuilders,
+  OrchestratedActionCoreBuilders,
+} from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
@@ -38,10 +41,37 @@ import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 //   description: string;
 //   completed: boolean;
 // }
+// type KnownKeys<T> = {
+//   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? U : never;
 
-// type TodoPreview = Omit<OrchestratedActionCoreBuilders, keyof UserProvidedServiceCollections>;
-// const todo: TodoPreview;
-// todo.;
+type KnownKeys<T> = {
+  [K in keyof T]: string extends K ? never : number extends K ? never : K
+} extends { [_ in keyof T]: infer U } ? U : never;
+
+// type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<OrchestratedActionBuilders>>; intercept
+type b = KnownKeys<UserProvidedServiceActionBuilder>;
+type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>;
+const todo: TodoPreview;
+todo
+type TodoPreview2 = Omit<TodoPreview, KnownKeys<OrchestratedActionCoreBuilders>>;
+const todo22: TodoPreview2;
+todo22.
+type TodoPreview3 = Omit<Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+
+
+interface Foo {
+  [key: string]: any;
+  bar(): void;
+}
+// type KnownKeys<T> = {
+//   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? U : never;
+type FooWithOnlyBar = Pick<Foo, KnownKeys<Foo>>;
+type a = KnownKeys<Foo>;
+const todo35: FooWithOnlyBar;
+todo35.
+
 
 // type TodoPreview2 = Extract<AppEnvVarActionBuilders,
 //   Omit<OrchestratedActionBuilders, keyof OrchestratedActionCoreBuilders>>;
@@ -78,31 +108,31 @@ export interface UserProvidedServiceActions {
 
 // export type UserProvidedServiceActionBuilder = UserProvidedServiceActions & CFOrchestratedActionBuilders;
 
-export interface UserProvidedServiceActionBuilder extends UserProvidedServiceActions, OrchestratedActionBuilders {
-  // get: (
-  //   guid: string,
-  //   endpointGuid: string,
-  //   { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-  // ) => GetUserProvidedService;
-  // remove: (guid: string, endpointGuid: string) => DeleteApplication;
-  // update: (
-  //   guid: string,
-  //   endpointGuid: string,
-  //   existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
-  //   proxyPaginationEntityConfig?: EntityCatalogEntityConfig
-  // ) => UpdateUserProvidedServiceInstance;
-  // getMultiple: (
-  //   paginationKey?: string,
-  //   endpointGuid?: string,
-  //   { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-  // ) => GetAllUserProvidedServices;
-  // getAllInSpace: (
-  //   endpointGuid: string,
-  //   spaceGuid: string,
-  //   paginationKey?: string,
-  //   includeRelations?: string[],
-  //   populateMissing?: boolean,
-  // ) => GetAllUserProvidedServices;
+export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuilders {
+  get: (
+    guid: string,
+    endpointGuid: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => GetUserProvidedService;
+  remove: (guid: string, endpointGuid: string) => DeleteApplication;
+  update: (
+    guid: string,
+    endpointGuid: string,
+    existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+  ) => UpdateUserProvidedServiceInstance;
+  getMultiple: (
+    paginationKey?: string,
+    endpointGuid?: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+  ) => GetAllUserProvidedServices;
+  getAllInSpace: (
+    endpointGuid: string,
+    spaceGuid: string,
+    paginationKey?: string,
+    includeRelations?: string[],
+    populateMissing?: boolean,
+  ) => GetAllUserProvidedServices;
 }
 
 export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder = {

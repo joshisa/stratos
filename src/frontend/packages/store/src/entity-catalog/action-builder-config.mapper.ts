@@ -19,6 +19,7 @@ import {
   OrchestratedActionBuilder,
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
+  OrchestratedActionCoreBuilders,
   PaginationRequestActionConfig,
 } from './action-orchestrator/action-orchestrator';
 import { EntityCatalogHelper } from './entity-catalog.service';
@@ -57,6 +58,11 @@ export function createEntityApiPagination<Y>(
 //   ) => any;
 // }
 
+type KnownKeys<T> = {
+  [K in keyof T]: string extends K ? never : number extends K ? never : K
+} extends { [_ in keyof T]: infer U } ? U : never;
+
+
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   // instance: EntityInstance<Y, Pick<ABC, 'get'>>;
   getEntityMonitor: (
@@ -71,7 +77,8 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
     helper: EntityCatalogHelper,
     ...args: Parameters<ABC['get']>
   ) => EntityService<Y>;
-  instances: EntityInstances<Y, ABC>;
+  instances: EntityInstances<Y, Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>>;
+  // instances: EntityInstances<Y, ABC>;
   // instances: EntityInstances<Y, Omit<ABC, 'getMultiple'>>;
   // instances: EntityInstances<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
 }
