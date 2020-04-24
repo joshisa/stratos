@@ -56,16 +56,59 @@ export function createEntityApiPagination<Y>(
   };
 }
 
-type KnownKeys<ABC>;
+// export type KnownKeys2<T> = {
+//   [K in keyof T]: string extends K ? never : K
+//   // [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? U : never;
+// extends { [_ in keyof T]: infer U } ? U : never
+// export type KnownKeys2<T extends OrchestratedActionCoreBuilders> = {
+//   [K in keyof Exclude<T, OrchestratedActionCoreBuilders>]: T[K]
+// }
+// type Without<T, K> = Pick<T, Exclude<keyof T, K>>;
+
+// type PrimitiveKeys<T> = {
+//   [P in keyof T]: Exclude<T[P], undefined> extends object ? never : P
+// }[keyof T];
+// type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
+
+// type aa<ABC> = KnownKeys2<ABC>;
+// const iaa: aa<UserProvidedServiceActionBuilder>;
+
+// type ab<ABC> = Pick<ABC, aa<ABC>>; //
+// type ba = KnownKeys2<OrchestratedActionCoreBuilders>;
+// type c<ABC> = Omit<ab<ABC>, ba>;
+
 
 /**
  * Filter out all the common builders from OrchestratedActionCoreBuilders
  */
-type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+// type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+// type CustomBuilders<ABC extends OrchestratedActionBuilders> =
+//   Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionBuilders>>;
+// type CustomBuilders<ABC extends OrchestratedActionCoreBuilders> = Omit<ABC, keyof OrchestratedActionCoreBuilders>;
+
+type KnownKeys2<T> = {
+  [K in keyof T]: string extends K ? never : number extends K ? never : K
+} extends { [_ in keyof T]: infer U } ? ({} extends U ? never : U) : never;
+type aa<ABC> = KnownKeys2<ABC>;
+type ab<ABC> = Pick<ABC, aa<ABC>>;
+
+type ba = keyof OrchestratedActionCoreBuilders;
+
+// type c = Omit<ab<UserProvidedServiceActionBuilder>, ba>;
+type CustomBuilders<ABC> = Omit<ab<ABC>, ba>;
+
 /**
  * Filter out builders that don't return pagination actions
  */
-type PaginationBuilders<ABC> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
+type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
+
+// const a: CustomBuilders<UserProvidedServiceActions>;
+
+// const b: PaginationBuilders<UserProvidedServiceActions>;
+
+
+
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (

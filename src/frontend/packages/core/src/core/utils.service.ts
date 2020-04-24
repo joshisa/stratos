@@ -21,7 +21,7 @@ export type KnownKeys<T> = {
 /**
  * Pick all properties who's function has the specified return type U
  */
-export type FilteredByReturnType<T extends { [key: string]: () => any }, U> = {
+export type FilteredByReturnType<T extends { [key: string]: (...args: any[]) => any }, U> = {
   [P in keyof T]: ReturnType<T[P]> extends U ? T[P] : never
 };
 

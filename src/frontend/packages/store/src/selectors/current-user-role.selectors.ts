@@ -6,7 +6,7 @@ import { CurrentUserRolesAppState } from '../app-state';
 import { ICurrentUserRolesState, IStratosRolesState } from '../types/current-user-roles.types';
 
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export const selectCurrentUserRolesState = (state: CurrentUserRolesAppState) => state.currentUserRoles;
 

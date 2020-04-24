@@ -22,7 +22,7 @@ export type KnownEntityActionBuilder<
   > = (guid: string, endpointGuid: string, extraArgs?: T) => EntityRequestAction;
 // createTrackingId should be unique to the thing that's being created.
 // It is used to track the status of the entity creation.
-type CreateActionBuilder<
+export type CreateActionBuilder<
   T extends Record<any, any> = Record<any, any>
   > = (createTrackingId: string, endpointGuid: string, extraArgs?: T) => EntityRequestAction;
 // paginationKey could be optional, we could give it a default value.
