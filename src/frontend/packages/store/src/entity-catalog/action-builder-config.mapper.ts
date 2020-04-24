@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { FilteredByReturnType } from '../../../core/src/core/utils.service';
+import { FilteredByReturnType, KnownKeys } from '../../../core/src/core/utils.service';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
@@ -56,59 +56,16 @@ export function createEntityApiPagination<Y>(
   };
 }
 
-// export type KnownKeys2<T> = {
-//   [K in keyof T]: string extends K ? never : K
-//   // [K in keyof T]: string extends K ? never : number extends K ? never : K
-// } extends { [_ in keyof T]: infer U } ? U : never;
-// extends { [_ in keyof T]: infer U } ? U : never
-// export type KnownKeys2<T extends OrchestratedActionCoreBuilders> = {
-//   [K in keyof Exclude<T, OrchestratedActionCoreBuilders>]: T[K]
-// }
-// type Without<T, K> = Pick<T, Exclude<keyof T, K>>;
-
-// type PrimitiveKeys<T> = {
-//   [P in keyof T]: Exclude<T[P], undefined> extends object ? never : P
-// }[keyof T];
-// type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
-
-// type aa<ABC> = KnownKeys2<ABC>;
-// const iaa: aa<UserProvidedServiceActionBuilder>;
-
-// type ab<ABC> = Pick<ABC, aa<ABC>>; //
-// type ba = KnownKeys2<OrchestratedActionCoreBuilders>;
-// type c<ABC> = Omit<ab<ABC>, ba>;
-
 
 /**
- * Filter out all the common builders from OrchestratedActionCoreBuilders
+ * Filter out all common builders in OrchestratedActionCoreBuilders from ABC
  */
-// type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>;
-// type CustomBuilders<ABC extends OrchestratedActionBuilders> =
-//   Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionBuilders>>;
-// type CustomBuilders<ABC extends OrchestratedActionCoreBuilders> = Omit<ABC, keyof OrchestratedActionCoreBuilders>;
-
-type KnownKeys2<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? ({} extends U ? never : U) : never;
-type aa<ABC> = KnownKeys2<ABC>;
-type ab<ABC> = Pick<ABC, aa<ABC>>;
-
-type ba = keyof OrchestratedActionCoreBuilders;
-
-// type c = Omit<ab<UserProvidedServiceActionBuilder>, ba>;
-type CustomBuilders<ABC> = Omit<ab<ABC>, ba>;
+type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
 
 /**
- * Filter out builders that don't return pagination actions
+ * Filter out builders that don't return pagination actions from ABC
  */
 type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
-
-// const a: CustomBuilders<UserProvidedServiceActions>;
-
-// const b: PaginationBuilders<UserProvidedServiceActions>;
-
-
-
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (
@@ -159,8 +116,6 @@ export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {
   }
 };
 
-
-
 export class ActionBuilderConfigMapper {
 
   static actionKeyHttpMethodMapper = {
@@ -178,42 +133,66 @@ export class ActionBuilderConfigMapper {
       return {} as EntityInstances<Y, ABC>;
     }
     return Object.keys(builders).reduce((entityInstances, key) => {
+      // This isn't smart like the PaginationBuilders type. Here key will be all properties from an action builder (get, getMultiple, etc)
+      // which will be available from the dev console. Attempting to use in code pre-transpile will result in error
       return {
         ...entityInstances,
         [key]: {
           getPaginationMonitor: (
             helper: EntityCatalogHelper,
             ...args: Parameters<ABC[K]>
-          ) => {
-            const action = builders[key](...args);
-            if (!isPaginatedAction(action)) {
-              throw new Error(`\`${key}\` action is not of type pagination`);
-            }
-            const pAction = action as PaginatedAction;
-            return helper.pmf.create<Y>(pAction.paginationKey, pAction, pAction.flattenPagination);
+          ): PaginationMonitor<Y> => {
+            return ActionBuilderConfigMapper.createPaginationMonitor(
+              helper,
+              key,
+              builders[key](...args)
+            );
           },
           getPaginationService: (
             helper: EntityCatalogHelper,
             ...args: Parameters<ABC[K]>
-          ) => {
-            const action = builders[key](...args);
-            if (!isPaginatedAction(action)) {
-              throw new Error(`\`${key}\` action is not of type pagination`);
-            }
-            const pAction = action as PaginatedAction;
-            return helper.getPaginationObservables<Y>({
-              store: helper.store,
-              action: pAction,
-              paginationMonitor: helper.pmf.create<Y>(
-                pAction.paginationKey,
-                pAction,
-                pAction.flattenPagination
-              )
-            }, pAction.flattenPagination);  // TODO: RC REF This isn't always the case.
+          ): PaginationObservables<Y> => {
+            return ActionBuilderConfigMapper.createPaginationService(
+              helper,
+              key,
+              builders[key](...args)
+            );
           }
         }
       };
     }, {} as EntityInstances<Y, PaginationBuilders<ABC>>);
+  }
+
+  static createPaginationMonitor<Y>(
+    helper: EntityCatalogHelper,
+    actionBuilderKey: string,
+    action: any,
+  ): PaginationMonitor<Y> {
+    if (!isPaginatedAction(action)) {
+      throw new Error(`\`${actionBuilderKey}\` action is not of type pagination`);
+    }
+    const pAction = action as PaginatedAction;
+    return helper.pmf.create<Y>(pAction.paginationKey, pAction, pAction.flattenPagination);
+  }
+
+  static createPaginationService<Y>(
+    helper: EntityCatalogHelper,
+    actionBuilderKey: string,
+    action: any,
+  ): PaginationObservables<Y> {
+    if (!isPaginatedAction(action)) {
+      throw new Error(`\`${actionBuilderKey}\` action is not of type pagination`);
+    }
+    const pAction = action as PaginatedAction;
+    return helper.getPaginationObservables<Y>({
+      store: helper.store,
+      action: pAction,
+      paginationMonitor: helper.pmf.create<Y>(
+        pAction.paginationKey,
+        pAction,
+        pAction.flattenPagination
+      )
+    }, pAction.flattenPagination);  // TODO: RC REF This isn't always the case.
   }
 
   static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(
@@ -250,11 +229,13 @@ export class ActionBuilderConfigMapper {
         return pagObs.monitor.pagination$.pipe(map(p => getCurrentPageRequestInfo(p)));
       }
       const rAction = action as RequestAction;
+      const schema = rAction.entity ? rAction.entity[0] || rAction.entity : null;
+      const schemaKey = schema ? schema.schemaKey : null;
       return es.getEntityMonitor(
         ech,
         rAction.guid,
         {
-          schemaKey: rAction.entity[0] || rAction.entity,
+          schemaKey,
           startWithNull: true
         }
       ).entityRequest$;
@@ -332,6 +313,30 @@ export class ActionBuilderConfigMapper {
     };
   }
 }
+
+
+// TODO: RC REMOVE
+// export type KnownKeys2<T> = {
+//   [K in keyof T]: string extends K ? never : K
+//   // [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? U : never;
+// extends { [_ in keyof T]: infer U } ? U : never
+// export type KnownKeys2<T extends OrchestratedActionCoreBuilders> = {
+//   [K in keyof Exclude<T, OrchestratedActionCoreBuilders>]: T[K]
+// }
+// type Without<T, K> = Pick<T, Exclude<keyof T, K>>;
+
+// type PrimitiveKeys<T> = {
+//   [P in keyof T]: Exclude<T[P], undefined> extends object ? never : P
+// }[keyof T];
+// type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
+
+// type aa<ABC> = KnownKeys2<ABC>;
+// const iaa: aa<UserProvidedServiceActionBuilder>;
+
+// type ab<ABC> = Pick<ABC, aa<ABC>>; //
+// type ba = KnownKeys2<OrchestratedActionCoreBuilders>;
+// type c<ABC> = Omit<ab<ABC>, ba>;
 
 // type hmm<R extends PaginatedAction> = (any) => R;
 // type Phase2<ABC> = FilterFlags<Phase1<ABC>>;

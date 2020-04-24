@@ -1,7 +1,5 @@
-import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
-
 // TODO: RC DELETE ME
-export interface CFOrchestratedActionBuilders extends OrchestratedActionBuilders {
+// export interface CFOrchestratedActionBuilders extends OrchestratedActionBuilders {
   // get?(
   //   guid: string,
   //   endpointGuid: string,
@@ -12,4 +10,4 @@ export interface CFOrchestratedActionBuilders extends OrchestratedActionBuilders
   //   endpointGuid: string,
   //   meta?: CFBasePipelineRequestActionMeta
   // ): PaginatedAction;
-}
+// }

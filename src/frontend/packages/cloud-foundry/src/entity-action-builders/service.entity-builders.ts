@@ -4,16 +4,6 @@ import { GetAllServicesForSpace } from '../actions/space.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
 // TODO: RC autoscaler, other endpoints
-// export interface ServiceActionApiCustom extends EntityApiCustom {
-//   getAllInSpace: (
-//     helper: EntityCatalogHelper,
-//     endpointGuid: string,
-//     paginationKey: string,
-//     spaceGuid: string,
-//     includeRelations?: string[],
-//     populateMissing?: boolean,
-//   ) => EntityAccessPagination<APIResource<IService>>;
-// }
 
 export interface ServiceActionBuilders extends OrchestratedActionBuilders {
   get: (

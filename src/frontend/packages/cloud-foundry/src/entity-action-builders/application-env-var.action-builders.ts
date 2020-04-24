@@ -6,32 +6,6 @@ import { GetAppEnvVarsAction } from '../actions/app-metadata.actions';
 import { AppVariablesAdd, AppVariablesDelete, AppVariablesEdit } from '../actions/app-variables.actions';
 import { ListAppEnvVar } from '../shared/components/list/list-types/app-variables/cf-app-variables-data-source';
 
-
-// export interface AppEnvVarApiCustom extends EntityApiCustom {
-//   removeFromApplication: (
-//     helper: EntityCatalogHelper,
-//     appGuid,
-//     endpointGuid,
-//     allEnvVars: ListAppEnvVar[],
-//     selectedItems: ListAppEnvVar[]
-//   ) => void;
-//   editInApplication: (
-//     helper: EntityCatalogHelper,
-//     appGuid,
-//     endpointGuid,
-//     allEnvVars: ListAppEnvVar[],
-//     editedEnvVar: ListAppEnvVar
-//   ) => void;
-//   addNewToApplication: (
-//     helper: EntityCatalogHelper,
-//     appGuid,
-//     endpointGuid,
-//     allEnvVars: ListAppEnvVar[],
-//     newEnvVar: ListAppEnvVar
-//   ) => void;
-// }
-
-
 export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders, OrchestratedActionCoreBuilders {
   get: (appGuid, endpointGuid) => GetAppEnvVarsAction;
   removeFromApplication: (
@@ -80,10 +54,10 @@ export const appEnvVarActionBuilders: AppEnvVarActionBuilders = {
 
 // // const a: Omit<AppEnvVarActionBuilders, 'get'>;
 // type wnkbg = Omit<{
-//   get: string; // TODO: RC Q make mandatory
+//   get: string;
 //   remove: string;
 // }, keyof {
-//   get: boolean; // TODO: RC Q make mandatory
+//   get: boolean;
 // }>;
 // const todo2: wnkbg;
 // todo2.;

@@ -12,11 +12,14 @@ export function getIdFromRoute(activatedRoute: ActivatedRoute, id: string) {
 }
 
 /**
- * Remove keys such as optional OR index typed (i.e. [key: string])
+ * Remove keys such as optional and index typed (i.e. [key: string])
+ * For magic see
+ *  - https://github.com/Microsoft/TypeScript/issues/25987#issuecomment-441224690
+ *  - https://github.com/Microsoft/TypeScript/issues/12215#issuecomment-414808995
  */
 export type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? U : never;
+} extends { [_ in keyof T]: infer U } ? ({} extends U ? never : U) : never;
 
 /**
  * Pick all properties who's function has the specified return type U

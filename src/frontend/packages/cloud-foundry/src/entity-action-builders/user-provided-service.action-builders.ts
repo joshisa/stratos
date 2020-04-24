@@ -1,7 +1,4 @@
-import {
-  OrchestratedActionBuilders,
-  OrchestratedActionCoreBuilders,
-} from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
+import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
@@ -13,78 +10,6 @@ import {
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
 
-
-// export interface UserProvidedServiceApiCustom extends EntityApiCustom {
-//   getAllInSpace: (
-//     helper: EntityCatalogHelper,
-//     endpointGuid: string,
-//     spaceGuid: string,
-//     paginationKey?: string,
-//     includeRelations?: string[],
-//     populateMissing?: boolean,
-//   ) => EntityAccessPagination<APIResource<IUserProvidedServiceInstance>>;
-// }
-
-type KnownKeys2<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? ({} extends U ? never : U) : never;
-
-type aa2 = KnownKeys2<UserProvidedServiceActionBuilder>;
-type ab2 = Pick<UserProvidedServiceActionBuilder, aa2>;
-
-type ba2 = keyof OrchestratedActionCoreBuilders;
-
-type c2 = Omit<ab2, ba2>;
-
-
-type aa<ABC> = keyof ABC;
-type ab<ABC> = Pick<ABC, aa<ABC>>;
-
-type ba = keyof OrchestratedActionCoreBuilders;
-
-type c = Omit<ab<UserProvidedServiceActionBuilder>, ba>;
-
-
-// type sdfdsf = keyof OrchestratedActionCoreBuilders;
-// type wankbag = Omit<UserProvidedServiceActionBuilder, keyof OrchestratedActionCoreBuilders>;
-// type wankbag2<ABC extends OrchestratedActionCoreBuilders> = Omit<ABC, keyof OrchestratedActionCoreBuilders>;
-// const c: wankbag2<UserProvidedServiceActionBuilder>;
-// c
-
-
-
-
-// export interface UserProvidedServiceActions {
-//   get?: (
-//     guid: string,
-//     endpointGuid: string,
-//     meta?: CFBasePipelineRequestActionMeta
-//   ) => GetUserProvidedService;
-//   remove: (guid: string, endpointGuid: string) => DeleteApplication;
-//   update: (
-//     guid: string,
-//     endpointGuid: string,
-//     existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
-//     proxyPaginationEntityConfig?: EntityCatalogEntityConfig
-//   ) => UpdateUserProvidedServiceInstance;
-//   getMultiple: (
-//     paginationKey?: string,
-//     endpointGuid?: string,
-//     { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-//   ) => GetAllUserProvidedServices;
-//   getAllInSpace: (
-//     endpointGuid: string,
-//     spaceGuid: string,
-//     paginationKey?: string,
-//     includeRelations?: string[],
-//     populateMissing?: boolean,
-//   ) => GetAllUserProvidedServices;
-//   junk: (
-
-//   ) => Action;
-// }
-
-// export type UserProvidedServiceActionBuilder = UserProvidedServiceActions & CFOrchestratedActionBuilders;
 
 export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuilders {
   get: (
@@ -205,3 +130,63 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
 // type a = KnownKeys<Foo>;
 // const todo35: FooWithOnlyBar;
 // todo35.;
+// type KnownKeys2<T> = {
+//   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? ({} extends U ? never : U) : never;
+
+// type aa2 = KnownKeys2<UserProvidedServiceActionBuilder>;
+// type ab2 = Pick<UserProvidedServiceActionBuilder, aa2>;
+
+// type ba2 = keyof OrchestratedActionCoreBuilders;
+
+// type c2 = Omit<ab2, ba2>;
+
+
+// type aa<ABC> = keyof ABC;
+// type ab<ABC> = Pick<ABC, aa<ABC>>;
+
+// type ba = keyof OrchestratedActionCoreBuilders;
+
+// type c = Omit<ab<UserProvidedServiceActionBuilder>, ba>;
+
+
+// type sdfdsf = keyof OrchestratedActionCoreBuilders;
+// type wankbag = Omit<UserProvidedServiceActionBuilder, keyof OrchestratedActionCoreBuilders>;
+// type wankbag2<ABC extends OrchestratedActionCoreBuilders> = Omit<ABC, keyof OrchestratedActionCoreBuilders>;
+// const c: wankbag2<UserProvidedServiceActionBuilder>;
+// c
+
+
+
+
+// export interface UserProvidedServiceActions {
+//   get?: (
+//     guid: string,
+//     endpointGuid: string,
+//     meta?: CFBasePipelineRequestActionMeta
+//   ) => GetUserProvidedService;
+//   remove: (guid: string, endpointGuid: string) => DeleteApplication;
+//   update: (
+//     guid: string,
+//     endpointGuid: string,
+//     existingUserProvidedServiceInstance?: Partial<IUserProvidedServiceInstanceData>,
+//     proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+//   ) => UpdateUserProvidedServiceInstance;
+//   getMultiple: (
+//     paginationKey?: string,
+//     endpointGuid?: string,
+//     { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
+//   ) => GetAllUserProvidedServices;
+//   getAllInSpace: (
+//     endpointGuid: string,
+//     spaceGuid: string,
+//     paginationKey?: string,
+//     includeRelations?: string[],
+//     populateMissing?: boolean,
+//   ) => GetAllUserProvidedServices;
+//   junk: (
+
+//   ) => Action;
+// }
+
+// export type UserProvidedServiceActionBuilder = UserProvidedServiceActions & CFOrchestratedActionBuilders;

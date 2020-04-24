@@ -1,27 +1,10 @@
+import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { GetAppServiceBindings } from '../actions/application-service-routes.actions';
 import { CreateServiceBinding, DeleteServiceBinding, FetchAllServiceBindings } from '../actions/service-bindings.actions';
 import { ListServiceBindingsForInstance } from '../actions/service-instances.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
-import { CFOrchestratedActionBuilders } from './cf.action-builder.types';
 
-// export interface ServiceBindingApiCustom extends EntityApiCustom {
-//   getAllForApplication: (
-//     ech: EntityCatalogHelper,
-//     applicationGuid: string,
-//     endpointGuid: string,
-//     paginationKey: string,
-//     { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
-//   ) => EntityAccessPagination<APIResource<IServiceBinding>>;
-//   getAllForServiceInstance: (
-//     ech: EntityCatalogHelper,
-//     serviceInstanceGuid: string,
-//     endpointGuid: string,
-//     paginationKey: string,
-//     { includeRelations }: CFBasePipelineRequestActionMeta
-//   ) => EntityAccessPagination<APIResource<IServiceBinding>>;
-// }
-
-export interface ServiceBindingActionBuilders extends CFOrchestratedActionBuilders {
+export interface ServiceBindingActionBuilders extends OrchestratedActionBuilders {
   create: (
     id: string,
     endpointGuid: string,
