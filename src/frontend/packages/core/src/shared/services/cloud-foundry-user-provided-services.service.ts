@@ -96,18 +96,19 @@ export class CloudFoundryUserProvidedServicesService {
       endpointGuid, // Per action builder,
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
-    const pagMon = this.userProvidedServiceEntity.storage.instances. .getMultiple.getPaginationMonitor(
+    const pagMon = this.userProvidedServiceEntity.storage.getPaginationMonitor(
       this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
-    const pagObservables = this.userProvidedServiceEntity.storage.instances.getMultiple.getPaginationService(
+    const pagObservables = this.userProvidedServiceEntity.storage.getPaginationService(
       this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
+    // this.userProvidedServiceEntity.storage.instances.
     const allInSpacePagMonitor = this.userProvidedServiceEntity.storage.instances.getAllInSpace.getPaginationMonitor(
       this.ech,
       endpointGuid, // Per action builder
@@ -125,6 +126,8 @@ export class CloudFoundryUserProvidedServicesService {
       getUserProvidedServiceInstanceRelations, // Per action builder
       true// Per action builder
     ).entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
+
+    this.userProvidedServiceEntity.storage.instances.
 
     const updateAction = this.userProvidedServiceEntity.actions.update(
       upsiGuid, // Per action builder

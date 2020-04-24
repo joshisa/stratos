@@ -1,8 +1,11 @@
+import { Action } from '@ngrx/store';
+
 import {
   OrchestratedActionBuilders,
   OrchestratedActionCoreBuilders,
 } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
+import { PaginatedAction } from '../../../store/src/types/pagination.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
   GetAllUserProvidedServices,
@@ -26,24 +29,9 @@ import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 // }
 
 
-// const a: Omit<AppEnvVarActionBuilders, 'get'>;
-// type wnkbg = Omit<{
-//   get: string; // TODO: RC Q make mandatory
-//   remove: string;
-// }, keyof {
-//   get: boolean; // TODO: RC Q make mandatory
-// }>;
-// const todo2: wnkbg;
-// todo2.;
 
-// interface Todo {
-//   title: string;
-//   description: string;
-//   completed: boolean;
-// }
-// type KnownKeys<T> = {
-//   [K in keyof T]: string extends K ? never : number extends K ? never : K
-// } extends { [_ in keyof T]: infer U } ? U : never;
+
+
 
 type KnownKeys<T> = {
   [K in keyof T]: string extends K ? never : number extends K ? never : K
@@ -53,30 +41,56 @@ type KnownKeys<T> = {
 type b = KnownKeys<UserProvidedServiceActionBuilder>;
 type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>;
 const todo: TodoPreview;
-todo
+todo;
 type TodoPreview2 = Omit<TodoPreview, KnownKeys<OrchestratedActionCoreBuilders>>;
 const todo22: TodoPreview2;
-todo22.
+todo22.;
 type TodoPreview3 = Omit<Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+// type hmm<R = any> = (...any: any[]) => R extends PaginatedAction ? R : never;
+type hmm<R extends PaginatedAction> = (...any: any[]) => R;
+
+type FilterFlags<Base extends { [key: string]: any }> = {
+  [Key in keyof Base]: ReturnType<Base[Key]> extends PaginatedAction ? Base[Key] : undefined
+};
+
+type TodoPreview4 = FilterFlags<TodoPreview3>;
+const aaa: TodoPreview4;
+aaa.getAllInSpace();
+aaa.junk;
 
 
-interface Foo {
-  [key: string]: any;
-  bar(): void;
-}
-// type KnownKeys<T> = {
-//   [K in keyof T]: string extends K ? never : number extends K ? never : K
-// } extends { [_ in keyof T]: infer U } ? U : never;
-type FooWithOnlyBar = Pick<Foo, KnownKeys<Foo>>;
-type a = KnownKeys<Foo>;
-const todo35: FooWithOnlyBar;
-todo35.
+type RemoveUndefinable<Type> = {
+  [Key in keyof Type]: undefined extends Type[Key] ? never : Key
+}[keyof Type];
+type RemoveNullableProperties<Type> = {
+  [Key in RemoveUndefinable<Type>]: Type[Key]
+};
+
+type TodoPreview5 = RemoveUndefinable<TodoPreview4>;
+const aaa5: TodoPreview5;
 
 
-// type TodoPreview2 = Extract<AppEnvVarActionBuilders,
-//   Omit<OrchestratedActionBuilders, keyof OrchestratedActionCoreBuilders>>;
-// const todo3: TodoPreview2;
-// todo3.;
+type PrimitiveKeys<T> = {
+  [P in keyof T]: Exclude<T[P], never> extends object ? never : P
+}[keyof T];
+type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
+type Phase31 = PrimitiveKeys<TodoPreview4>;
+type Phase32 = OnlyPrimitives<TodoPreview4>;
+
+type Test1 = NonNullable<TodoPreview4>;
+
+
+// interface Foo {
+//   [key: string]: any;
+//   bar(): void;
+// }
+// // type KnownKeys<T> = {
+// //   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// // } extends { [_ in keyof T]: infer U } ? U : never;
+// type FooWithOnlyBar = Pick<Foo, KnownKeys<Foo>>;
+// type a = KnownKeys<Foo>;
+// const todo35: FooWithOnlyBar;
+// todo35.;
 
 
 export interface UserProvidedServiceActions {
@@ -104,6 +118,9 @@ export interface UserProvidedServiceActions {
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GetAllUserProvidedServices;
+  junk: (
+
+  ) => Action;
 }
 
 // export type UserProvidedServiceActionBuilder = UserProvidedServiceActions & CFOrchestratedActionBuilders;
@@ -133,6 +150,9 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GetAllUserProvidedServices;
+  junk: (
+
+  ) => Action;
 }
 
 export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder = {
