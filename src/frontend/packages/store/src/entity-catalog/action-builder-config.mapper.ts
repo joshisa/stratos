@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { FilteredByReturnType, KnownKeys } from '../../../core/src/core/utils.service';
+import { FilteredByReturnType } from '../../../core/src/core/utils.service';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
@@ -35,6 +35,8 @@ export interface EntityAccessPagination<Y> {
   monitor: PaginationMonitor<Y>;
   obs: PaginationObservables<Y>;
 }
+
+
 export function createEntityApiPagination<Y>(
   helper: EntityCatalogHelper,
   action: PaginatedAction
@@ -53,6 +55,8 @@ export function createEntityApiPagination<Y>(
     }, action.flattenPagination) // TODO: RC REF This isn't always the case.
   };
 }
+
+type KnownKeys<ABC>;
 
 /**
  * Filter out all the common builders from OrchestratedActionCoreBuilders
@@ -126,7 +130,7 @@ export class ActionBuilderConfigMapper {
 
   static getEntityInstances<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
     builders: ABC,
-  ): EntityInstances<Y, ABC> {
+  ): EntityInstances<Y, PaginationBuilders<ABC>> {
     if (!builders) {
       return {} as EntityInstances<Y, ABC>;
     }
@@ -166,7 +170,7 @@ export class ActionBuilderConfigMapper {
           }
         }
       };
-    }, {} as EntityInstances<Y, ABC>);
+    }, {} as EntityInstances<Y, PaginationBuilders<ABC>>);
   }
 
   static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(

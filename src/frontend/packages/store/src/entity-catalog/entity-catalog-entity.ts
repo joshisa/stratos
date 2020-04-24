@@ -11,6 +11,7 @@ import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
 import { EndpointModel } from '../types/endpoint.types';
+import { isPaginatedAction, PaginatedAction } from '../types/pagination.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
 import { ActionBuilderConfigMapper, ActionDispatchers, EntityAccess } from './action-builder-config.mapper';
@@ -111,6 +112,45 @@ export class StratosBaseCatalogEntity<
           action.guid,
           action
         );
+      },
+      getPaginationMonitor: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ) => {
+        // TODO: RC make common
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+        if (!actionBuilder) {
+          throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
+        if (!isPaginatedAction(action)) {
+          throw new Error(`getMultiple action is not of type pagination`);
+        }
+        const pAction = action as PaginatedAction;
+        return helper.pmf.create<Y>(pAction.paginationKey, pAction, pAction.flattenPagination);
+      },
+      getPaginationService: (
+        helper: EntityCatalogHelper,
+        ...args: Parameters<ABC['getMultiple']>
+      ) => {
+        const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
+        if (!actionBuilder) {
+          throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
+        }
+        const action = actionBuilder(...args);
+        if (!isPaginatedAction(action)) {
+          throw new Error(`getMultiple action is not of type pagination`);
+        }
+        const pAction = action as PaginatedAction;
+        return helper.getPaginationObservables<Y>({
+          store: helper.store,
+          action: pAction,
+          paginationMonitor: helper.pmf.create<Y>(
+            pAction.paginationKey,
+            pAction,
+            pAction.flattenPagination
+          )
+        }, pAction.flattenPagination);  // TODO: RC REF This isn't always the case.
       },
       instances: ActionBuilderConfigMapper.getEntityInstances(this.actions)
     };

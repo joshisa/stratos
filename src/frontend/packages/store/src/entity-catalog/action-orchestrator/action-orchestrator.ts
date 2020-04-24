@@ -1,7 +1,6 @@
 import { HttpHeaders, HttpParams, HttpRequest } from '@angular/common/http';
 import { Action } from '@ngrx/store';
 
-import { Omit } from '../../../../core/src/core/utils.service';
 import { EntitySchema } from '../../helpers/entity-schema';
 import { PaginatedAction } from '../../types/pagination.types';
 import { EntityRequestAction, StartAction } from '../../types/request.types';

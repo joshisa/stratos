@@ -89,9 +89,6 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GetAllUserProvidedServices;
-  junk: (
-
-  ) => Action;
 }
 
 export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder = {
