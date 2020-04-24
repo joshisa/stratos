@@ -49,9 +49,9 @@ import { selectSessionData } from '../../store/src/reducers/auth.reducer';
 import { endpointDisconnectRemoveEntitiesReducer } from '../../store/src/reducers/endpoint-disconnect-application.reducer';
 import { APIResource } from '../../store/src/types/api.types';
 import { PaginatedAction } from '../../store/src/types/pagination.types';
+import { cfEntityCatalog } from './cf-entity-catalog';
 import { cfEntityFactory } from './cf-entity-factory';
 import { addCfQParams, addCfRelationParams } from './cf-entity-relations.getters';
-import { cfEntityCatalog } from './cf-entity-service';
 import {
   appEnvVarsEntityType,
   applicationEntityType,
@@ -142,13 +142,13 @@ import {
   SpaceQuotaDefinitionActionBuilders,
   spaceQuotaDefinitionActionBuilders,
 } from './entity-action-builders/space-quota.action-builders';
-import { spaceActionBuilders } from './entity-action-builders/space.action-builders';
+import { SpaceActionBuilders, spaceActionBuilders } from './entity-action-builders/space.action-builders';
 import { stackActionBuilders } from './entity-action-builders/stack-action-builders';
 import {
   UserProvidedServiceActionBuilder,
   userProvidedServiceActionBuilder,
 } from './entity-action-builders/user-provided-service.action-builders';
-import { userActionBuilders } from './entity-action-builders/user.action-builders';
+import { UserActionBuilders, userActionBuilders } from './entity-action-builders/user.action-builders';
 import { CfEndpointDetailsComponent } from './shared/components/cf-endpoint-details/cf-endpoint-details.component';
 import { updateApplicationRoutesReducer } from './store/reducers/application-route.reducer';
 import { updateOrganizationQuotaReducer } from './store/reducers/organization-quota.reducer';
@@ -174,7 +174,7 @@ import { CfUser } from './store/types/user.types';
 export interface CFBasePipelineRequestActionMeta {
   includeRelations?: string[];
   populateMissing?: boolean;
-  flatten?: boolean;
+  flatten?: boolean; // TODO: RC only applicable to lists
 }
 
 // export function registerCFEntities() {
@@ -802,7 +802,7 @@ function generateCFUserEntity(endpointDefinition: StratosEndpointExtensionDefini
     labelPlural: 'Users',
     endpoint: endpointDefinition,
   };
-  cfEntityCatalog.user = new StratosCatalogEntity<IBasicCFMetaData, APIResource<CfUser>>(
+  cfEntityCatalog.user = new StratosCatalogEntity<IBasicCFMetaData, APIResource<CfUser>, UserActionBuilders>(
     definition,
     {
       actionBuilders: userActionBuilders,
@@ -1124,7 +1124,7 @@ function generateCfSpaceEntity(endpointDefinition: StratosEndpointExtensionDefin
     labelPlural: 'Spaces',
     endpoint: endpointDefinition,
   };
-  cfEntityCatalog.space = new StratosCatalogEntity<ISpaceFavMetadata, APIResource<ISpace>>(
+  cfEntityCatalog.space = new StratosCatalogEntity<ISpaceFavMetadata, APIResource<ISpace>, SpaceActionBuilders>(
     spaceDefinition,
     {
       actionBuilders: spaceActionBuilders,

@@ -5,7 +5,6 @@ import { Store } from '@ngrx/store';
 import { Observable, of, Subscription } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 
-import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
 import {
   AssociateSpaceQuota,
   DisassociateSpaceQuota,
@@ -13,11 +12,13 @@ import {
 import { UpdateSpace } from '../../../../../../cloud-foundry/src/actions/space.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
 import { spaceEntityType, spaceQuotaEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
+import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../../../../../store/src/entity-catalog/entity-catalog.service';
+import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
 import { selectRequestInfo } from '../../../../../../store/src/selectors/api.selectors';
+import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
 import { SpaceQuotaDefinitionActionBuilders } from '../../../../entity-action-builders/space-quota.action-builders';
 import { AddEditSpaceStepBase } from '../../add-edit-space-step-base';
 import { ActiveRouteCfOrgSpace } from '../../cf-page.types';
@@ -45,9 +46,10 @@ export class EditSpaceStepComponent extends AddEditSpaceStepBase implements OnDe
     activatedRoute: ActivatedRoute,
     paginationMonitorFactory: PaginationMonitorFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
-    private cfSpaceService: CloudFoundrySpaceService
+    private cfSpaceService: CloudFoundrySpaceService,
+    ech: EntityCatalogHelper
   ) {
-    super(store, activatedRoute, paginationMonitorFactory, activeRouteCfOrgSpace);
+    super(store, activatedRoute, paginationMonitorFactory, activeRouteCfOrgSpace, ech);
     this.spaceGuid = activatedRoute.snapshot.params.spaceId;
     this.editSpaceForm = new FormGroup({
       spaceName: new FormControl('', this.spaceNameTakenValidator()),

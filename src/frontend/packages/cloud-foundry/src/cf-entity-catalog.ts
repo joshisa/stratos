@@ -42,7 +42,9 @@ import { ServiceBrokerActionBuilders } from './entity-action-builders/service-br
 import { ServicePlanVisibilityActionBuilders } from './entity-action-builders/service-plan-visibility.action-builders';
 import { ServiceActionBuilders } from './entity-action-builders/service.entity-builders';
 import { SpaceQuotaDefinitionActionBuilders } from './entity-action-builders/space-quota.action-builders';
+import { SpaceActionBuilders } from './entity-action-builders/space.action-builders';
 import { UserProvidedServiceActionBuilder } from './entity-action-builders/user-provided-service.action-builders';
+import { UserActionBuilders } from './entity-action-builders/user.action-builders';
 import { AppStat } from './store/types/app-metadata.types';
 import { GitBranch, GitCommit, GitRepo } from './store/types/git.types';
 import { CfUser } from './store/types/user.types';
@@ -144,8 +146,8 @@ export class CfEntityCatalog {
 
   public user: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<CfUser>
-  //    userActionBuilders,
+    APIResource<CfUser>,
+    UserActionBuilders
   >;
 
   public domain: StratosBaseCatalogEntity<
@@ -206,8 +208,8 @@ export class CfEntityCatalog {
 
   public space: StratosBaseCatalogEntity<
     ISpaceFavMetadata,
-    APIResource<ISpace>
-  //    spaceActionBuilders
+    APIResource<ISpace>,
+    SpaceActionBuilders
   >;
 
   public org: StratosBaseCatalogEntity<

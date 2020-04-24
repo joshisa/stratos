@@ -19,7 +19,7 @@ import { entityCatalog } from '../../../../../../../store/src/entity-catalog/ent
 import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { UpdateExistingApplication } from '../../../../../actions/application.actions';
 import { CFAppState } from '../../../../../cf-app-state';
-import { cfEntityCatalog } from '../../../../../cf-entity-service';
+import { cfEntityCatalog } from '../../../../../cf-entity-catalog';
 import { applicationEntityType } from '../../../../../cf-entity-types';
 import { CF_ENDPOINT_TYPE } from '../../../../../cf-types';
 import { ApplicationService } from '../../../../../features/applications/application.service';

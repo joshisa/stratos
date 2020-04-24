@@ -11,8 +11,8 @@ import { IListConfig } from '../../../../../../../core/src/shared/components/lis
 import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { CFAppState } from '../../../../../cf-app-state';
+import { cfEntityCatalog } from '../../../../../cf-entity-catalog';
 import { cfEntityFactory } from '../../../../../cf-entity-factory';
-import { cfEntityCatalog } from '../../../../../cf-entity-service';
 import { appEnvVarsEntityType, applicationEntityType } from '../../../../../cf-entity-types';
 import { ApplicationService } from '../../../../../features/applications/application.service';
 import { AppEnvVarsState } from '../../../../../store/types/app-metadata.types';

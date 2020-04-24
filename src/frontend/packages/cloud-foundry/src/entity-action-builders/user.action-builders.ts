@@ -56,5 +56,4 @@ export const userActionBuilders: UserActionBuilders = {
     isAdmin: boolean,
     includeRelations?: string[]
   ) => new GetAllSpaceUsers(guid, paginationKey, endpointGuid, isAdmin, includeRelations),
-
 };

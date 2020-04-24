@@ -49,6 +49,7 @@ export class PaginationMonitor<T = any, Y extends AppState = GeneralEntityAppSta
    * Emits the current page of entities.
    */
   public currentPage$: Observable<T[]>;
+  public currentPageState$: Observable<ListActionState>;
   /**
    * Emits a boolean stating if the current page is fetching or not.
    */
@@ -154,6 +155,9 @@ export class PaginationMonitor<T = any, Y extends AppState = GeneralEntityAppSta
       this.currentPage$ = this.createPageObservable(this.pagination$, schema);
     }
     this.currentPageError$ = this.createErrorObservable(this.pagination$);
+    this.currentPageState$ = this.pagination$.pipe(
+      map(pagination => this.getCurrentPageRequestInfo(pagination))
+    );
   }
 
   private createPaginationObservable(

@@ -2,6 +2,7 @@ import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/ac
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
+  CreateUserProvidedServiceInstance,
   GetAllUserProvidedServices,
   GetUserProvidedService,
   IUserProvidedServiceInstanceData,
@@ -17,6 +18,11 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     endpointGuid: string,
     { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
   ) => GetUserProvidedService;
+  create: (
+    endpointGuid: string,
+    guid: string,
+    data: IUserProvidedServiceInstanceData,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig) => CreateUserProvidedServiceInstance,
   remove: (guid: string, endpointGuid: string) => DeleteApplication;
   update: (
     guid: string,
@@ -45,6 +51,12 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
     { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta = {}
   ) => new GetUserProvidedService(guid, endpointGuid, includeRelations, populateMissing),
   remove: (guid: string, endpointGuid: string) => new DeleteApplication(guid, endpointGuid),
+  create: (
+    endpointGuid: string,
+    guid: string,
+    data: IUserProvidedServiceInstanceData,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig) =>
+    new CreateUserProvidedServiceInstance(endpointGuid, guid, data, proxyPaginationEntityConfig),
   update: (
     guid: string,
     endpointGuid: string,

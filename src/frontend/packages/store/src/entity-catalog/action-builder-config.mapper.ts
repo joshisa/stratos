@@ -1,13 +1,12 @@
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { FilteredByReturnType, KnownKeys } from '../../../core/src/core/utils.service';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
 import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { ActionState, RequestInfoState } from '../reducers/api-request-reducer/types';
-import { getCurrentPageRequestInfo, PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.types';
+import { ListActionState, RequestInfoState } from '../reducers/api-request-reducer/types';
+import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.types';
 import { isPaginatedAction, PaginatedAction } from '../types/pagination.types';
 import { RequestAction } from '../types/request.types';
 import {
@@ -37,24 +36,24 @@ export interface EntityAccessPagination<Y> {
 }
 
 
-export function createEntityApiPagination<Y>(
-  helper: EntityCatalogHelper,
-  action: PaginatedAction
-): EntityAccessPagination<Y> {
-  const mon = helper.pmf.create<Y>(
-    action.paginationKey,
-    action,
-    action.flattenPagination
-  );
-  return {
-    monitor: mon,
-    obs: helper.getPaginationObservables<Y>({
-      store: helper.store,
-      action,
-      paginationMonitor: mon
-    }, action.flattenPagination) // TODO: RC REF This isn't always the case.
-  };
-}
+// export function createEntityApiPagination<Y>(
+//   helper: EntityCatalogHelper,
+//   action: PaginatedAction
+// ): EntityAccessPagination<Y> {
+//   const mon = helper.pmf.create<Y>(
+//     action.paginationKey,
+//     action,
+//     action.flattenPagination
+//   );
+//   return {
+//     monitor: mon,
+//     obs: helper.getPaginationObservables<Y>({
+//       store: helper.store,
+//       action,
+//       paginationMonitor: mon
+//     }, action.flattenPagination)
+//   };
+// }
 
 
 /**
@@ -91,18 +90,17 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
-// TODO: RC TIDY THIS WHOLE MESS
-// K extends keyof ABC
-type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = (
+// TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
+type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = <T extends RequestInfoState | ListActionState>(
   ech: EntityCatalogHelper,
   ...args: Parameters<ABC[K]>
-) => Observable<RequestInfoState | ActionState>;
+) => Observable<T>;
 export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-
 export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {
+  // Remove any entry that equals 'never'
   [K in keyof ABC]: ABC[K] extends never ?
   never : {
     getPaginationMonitor: (
@@ -219,14 +217,18 @@ export class ActionBuilderConfigMapper {
     builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
     actionKey: string,
   ): ActionDispatcher<K, ABC> {
-    return (
+    return <T extends RequestInfoState | ListActionState>(
       ech: EntityCatalogHelper,
-      ...args: Parameters<ABC[K]>) => {
+      ...args: Parameters<ABC[K]>): Observable<T> => {
       const action = builder(...args);
       ech.store.dispatch(action);
       if (isPaginatedAction(action)) {
-        const pagObs = es.instances[actionKey] as unknown as EntityAccessPagination<Y>;
-        return pagObs.monitor.pagination$.pipe(map(p => getCurrentPageRequestInfo(p)));
+        // TODO: RC cf Routes page
+        // TODO: RC TEST??
+        return es.instances[actionKey].getPaginationMonitor(
+          ech,
+          ...args
+        ).currentPageState$;
       }
       const rAction = action as RequestAction;
       const schema = rAction.entity ? rAction.entity[0] || rAction.entity : null;
@@ -238,7 +240,7 @@ export class ActionBuilderConfigMapper {
           schemaKey,
           startWithNull: true
         }
-      ).entityRequest$;
+      ).entityRequest$ as unknown as Observable<T>;
     };
   }
 
