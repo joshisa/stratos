@@ -127,8 +127,6 @@ export class CloudFoundryUserProvidedServicesService {
       true// Per action builder
     ).entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
 
-    this.userProvidedServiceEntity.storage.instances.
-
     const updateAction = this.userProvidedServiceEntity.actions.update(
       upsiGuid, // Per action builder
       endpointGuid, // Per action builder

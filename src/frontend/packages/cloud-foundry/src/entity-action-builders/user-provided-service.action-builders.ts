@@ -1,11 +1,7 @@
 import { Action } from '@ngrx/store';
 
-import {
-  OrchestratedActionBuilders,
-  OrchestratedActionCoreBuilders,
-} from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
+import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
-import { PaginatedAction } from '../../../store/src/types/pagination.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
   GetAllUserProvidedServices,
@@ -33,64 +29,7 @@ import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
 
 
-type KnownKeys<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? U : never;
 
-// type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<OrchestratedActionBuilders>>; intercept
-type b = KnownKeys<UserProvidedServiceActionBuilder>;
-type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>;
-const todo: TodoPreview;
-todo;
-type TodoPreview2 = Omit<TodoPreview, KnownKeys<OrchestratedActionCoreBuilders>>;
-const todo22: TodoPreview2;
-todo22.;
-type TodoPreview3 = Omit<Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>, KnownKeys<OrchestratedActionCoreBuilders>>;
-// type hmm<R = any> = (...any: any[]) => R extends PaginatedAction ? R : never;
-type hmm<R extends PaginatedAction> = (...any: any[]) => R;
-
-type FilterFlags<Base extends { [key: string]: any }> = {
-  [Key in keyof Base]: ReturnType<Base[Key]> extends PaginatedAction ? Base[Key] : undefined
-};
-
-type TodoPreview4 = FilterFlags<TodoPreview3>;
-const aaa: TodoPreview4;
-aaa.getAllInSpace();
-aaa.junk;
-
-
-type RemoveUndefinable<Type> = {
-  [Key in keyof Type]: undefined extends Type[Key] ? never : Key
-}[keyof Type];
-type RemoveNullableProperties<Type> = {
-  [Key in RemoveUndefinable<Type>]: Type[Key]
-};
-
-type TodoPreview5 = RemoveUndefinable<TodoPreview4>;
-const aaa5: TodoPreview5;
-
-
-type PrimitiveKeys<T> = {
-  [P in keyof T]: Exclude<T[P], never> extends object ? never : P
-}[keyof T];
-type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
-type Phase31 = PrimitiveKeys<TodoPreview4>;
-type Phase32 = OnlyPrimitives<TodoPreview4>;
-
-type Test1 = NonNullable<TodoPreview4>;
-
-
-// interface Foo {
-//   [key: string]: any;
-//   bar(): void;
-// }
-// // type KnownKeys<T> = {
-// //   [K in keyof T]: string extends K ? never : number extends K ? never : K
-// // } extends { [_ in keyof T]: infer U } ? U : never;
-// type FooWithOnlyBar = Pick<Foo, KnownKeys<Foo>>;
-// type a = KnownKeys<Foo>;
-// const todo35: FooWithOnlyBar;
-// todo35.;
 
 
 export interface UserProvidedServiceActions {
@@ -186,3 +125,64 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
     populateMissing?: boolean,
   ) => new GetAllUserProvidedServices(paginationKey, endpointGuid, includeRelations, populateMissing, spaceGuid)
 };
+
+
+// TODO: RC Nuke
+// type KnownKeys<T> = {
+//   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// } extends { [_ in keyof T]: infer U } ? U : never;
+
+// // type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<OrchestratedActionBuilders>>; intercept
+// type b = KnownKeys<UserProvidedServiceActionBuilder>;
+// type TodoPreview = Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>;
+// const todo: TodoPreview;
+// todo;
+// type TodoPreview2 = Omit<TodoPreview, KnownKeys<OrchestratedActionCoreBuilders>>;
+// const todo22: TodoPreview2;
+// todo22.;
+// type TodoPreview3 = Omit<Pick<UserProvidedServiceActionBuilder, KnownKeys<UserProvidedServiceActionBuilder>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+// // type hmm<R = any> = (...any: any[]) => R extends PaginatedAction ? R : never;
+// type hmm<R extends PaginatedAction> = (...any: any[]) => R;
+
+// type FilterFlags<Base extends { [key: string]: any }> = {
+//   [Key in keyof Base]: ReturnType<Base[Key]> extends PaginatedAction ? Base[Key] : undefined
+// };
+
+// type TodoPreview4 = FilterFlags<TodoPreview3>;
+// const aaa: TodoPreview4;
+// aaa.getAllInSpace();
+// aaa.junk;
+
+
+// type RemoveUndefinable<Type> = {
+//   [Key in keyof Type]: undefined extends Type[Key] ? never : Key
+// }[keyof Type];
+// type RemoveNullableProperties<Type> = {
+//   [Key in RemoveUndefinable<Type>]: Type[Key]
+// };
+
+// type TodoPreview5 = RemoveUndefinable<TodoPreview4>;
+// const aaa5: TodoPreview5;
+
+
+// type PrimitiveKeys<T> = {
+//   [P in keyof T]: Exclude<T[P], never> extends object ? never : P
+// }[keyof T];
+// type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
+// type Phase31 = PrimitiveKeys<TodoPreview4>;
+// type Phase32 = OnlyPrimitives<TodoPreview4>;
+
+// type Test1 = NonNullable<TodoPreview4>;
+
+
+// interface Foo {
+//   [key: string]: any;
+//   bar(): void;
+// }
+// // type KnownKeys<T> = {
+// //   [K in keyof T]: string extends K ? never : number extends K ? never : K
+// // } extends { [_ in keyof T]: infer U } ? U : never;
+// type FooWithOnlyBar = Pick<Foo, KnownKeys<Foo>>;
+// type a = KnownKeys<Foo>;
+// const todo35: FooWithOnlyBar;
+// todo35.;

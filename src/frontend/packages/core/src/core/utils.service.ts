@@ -11,7 +11,19 @@ export function getIdFromRoute(activatedRoute: ActivatedRoute, id: string) {
   return null;
 }
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+/**
+ * Remove keys such as optional OR index typed (i.e. [key: string])
+ */
+export type KnownKeys<T> = {
+  [K in keyof T]: string extends K ? never : number extends K ? never : K
+} extends { [_ in keyof T]: infer U } ? U : never;
+
+/**
+ * Pick all properties who's function has the specified return type U
+ */
+export type FilteredByReturnType<T extends { [key: string]: () => any }, U> = {
+  [P in keyof T]: ReturnType<T[P]> extends U ? T[P] : never
+};
 
 export const urlValidationExpression =
   '^' +

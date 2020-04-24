@@ -1,9 +1,7 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import {
-  UserProvidedServiceActionBuilder,
-} from '../../../cloud-foundry/src/entity-action-builders/user-provided-service.action-builders';
+import { FilteredByReturnType, KnownKeys } from '../../../core/src/core/utils.service';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
@@ -55,42 +53,17 @@ export function createEntityApiPagination<Y>(
     }, action.flattenPagination) // TODO: RC REF This isn't always the case.
   };
 }
-// export interface EntityApiCustom {
-//   [others: string]: (
-//     ...args
-//   ) => any;
-// }
 
-type KnownKeys<T> = {
-  [K in keyof T]: string extends K ? never : number extends K ? never : K
-} extends { [_ in keyof T]: infer U } ? U : never;
-
-type Phase1<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>;
-
-type FilterFlags<Base extends { [key: string]: () => any }> = {
-  [Key in keyof Base]: ReturnType<Base[Key]> extends PaginatedAction ? Base[Key] : never
-};
-type FilteredKeys<T extends { [key: string]: () => any }, U> = {
-  [P in keyof T]: ReturnType<T[P]> extends U ? P : never
-};
-
-type hmm<R extends PaginatedAction> = (any) => R;
-type Phase2<ABC> = FilterFlags<Phase1<ABC>>;
-
-
-type PrimitiveKeys<T> = {
-  [P in keyof T]: Exclude<T[P], never> extends object ? never : P
-}[keyof T];
-type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
-
-type Phase31 = PrimitiveKeys<Phase2<UserProvidedServiceActionBuilder>>;
-type Phase32 = OnlyPrimitives<Phase2<UserProvidedServiceActionBuilder>>;
-
-type Test1 = NonNullable<Phase2<UserProvidedServiceActionBuilder>>;
-
+/**
+ * Filter out all the common builders from OrchestratedActionCoreBuilders
+ */
+type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, KnownKeys<OrchestratedActionCoreBuilders>>;
+/**
+ * Filter out builders that don't return pagination actions
+ */
+type PaginationBuilders<ABC> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
-  // instance: EntityInstance<Y, Pick<ABC, 'get'>>;
   getEntityMonitor: (
     helper: EntityCatalogHelper,
     entityId: string,
@@ -111,11 +84,7 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
     helper: EntityCatalogHelper,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
-  // instances: EntityInstances<Y, Phase2<UserProvidedServiceActionBuilder>>;
-  instances: EntityInstances<Y, Phase2<ABC>>;
-  // instances: EntityInstances<Y, ABC>;
-  // instances: EntityInstances<Y, Omit<ABC, 'getMultiple'>>;
-  // instances: EntityInstances<Y, Omit<ABC, keyof OrchestratedActionCoreBuilders>>;
+  instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
 // TODO: RC TIDY THIS WHOLE MESS
@@ -128,31 +97,22 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-type EntityInstances2<T extends { [key: string]: () => any }, U> = {
-  [P in keyof T]: ReturnType<T[P]> extends U ? P : never
-};
 
-interface EntityInstancesContent<Y, K extends keyof ABC, ABC extends OrchestratedActionBuilders> {
-  getPaginationMonitor: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC[K]>
-  ) => PaginationMonitor<Y>;
-  getPaginationService: (
-    helper: EntityCatalogHelper,
-    ...args: Parameters<ABC[K]>
-  ) => PaginationObservables<Y>;
-}
 export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: ABC[K] extends never ? never : EntityInstancesContent<Y, K, ABC>
+  [K in keyof ABC]: ABC[K] extends never ?
+  never : {
+    getPaginationMonitor: (
+      helper: EntityCatalogHelper,
+      ...args: Parameters<ABC[K]>
+    ) => PaginationMonitor<Y>;
+    getPaginationService: (
+      helper: EntityCatalogHelper,
+      ...args: Parameters<ABC[K]>
+    ) => PaginationObservables<Y>;
+  }
 };
 
-// type ActionStore<K extends keyof ABC, ABC extends OrchestratedActionBuilders, Y = any> = (
-//   ech: EntityCatalogHelper,
-//   ...args: Parameters<ABC[K]>
-// ) => EntityAccessPagination<Y> | EntityAccessEntity<Y>;
-// export type ActionStores<ABC extends OrchestratedActionBuilders> = {
-//   [K in keyof ABC]: ActionStore<K, ABC>
-// };
+
 
 export class ActionBuilderConfigMapper {
 
@@ -325,3 +285,34 @@ export class ActionBuilderConfigMapper {
     };
   }
 }
+
+// type hmm<R extends PaginatedAction> = (any) => R;
+// type Phase2<ABC> = FilterFlags<Phase1<ABC>>;
+
+// type FilterFlags<Base extends { [key: string]: () => any }> = {
+//   [Key in keyof Base]: ReturnType<Base[Key]> extends PaginatedAction ? Base[Key] : never
+// };
+// type PrimitiveKeys<T> = {
+//   [P in keyof T]: Exclude<T[P], never> extends object ? never : P
+// }[keyof T];
+// type OnlyPrimitives<T> = Pick<T, PrimitiveKeys<T>>;
+
+// type Phase31 = PrimitiveKeys<Phase2<UserProvidedServiceActionBuilder>>;
+// type Phase32 = OnlyPrimitives<Phase2<UserProvidedServiceActionBuilder>>;
+
+// type Test1 = NonNullable<Phase2<UserProvidedServiceActionBuilder>>;
+
+// type EntityInstances2<T extends { [key: string]: () => any }, U> = {
+//   [P in keyof T]: ReturnType<T[P]> extends U ? P : never
+// };
+
+// interface EntityInstancesContent<Y, K extends keyof ABC, ABC extends OrchestratedActionBuilders> {
+
+// }
+// type ActionStore<K extends keyof ABC, ABC extends OrchestratedActionBuilders, Y = any> = (
+//   ech: EntityCatalogHelper,
+//   ...args: Parameters<ABC[K]>
+// ) => EntityAccessPagination<Y> | EntityAccessEntity<Y>;
+// export type ActionStores<ABC extends OrchestratedActionBuilders> = {
+//   [K in keyof ABC]: ActionStore<K, ABC>
+// };

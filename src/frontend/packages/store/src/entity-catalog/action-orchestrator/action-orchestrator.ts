@@ -164,18 +164,14 @@ export interface OrchestratedActionCoreBuilders {
   getMultiple?: GetMultipleActionBuilder;
 }
 
-// export type OrchestratedActionBuilders<A extends { [actionKey: string]: any } = {}> = {
-//   [K in keyof A]: OrchestratedActionBuilder<Parameters<A[K]>, ReturnType<A[K]>>; // TODO: RC this can be removed now with the custom API??
-// };
-
 // A list of functions that can be used get interface with the entity
-export interface OrchestratedActionBuilders {
+export interface OrchestratedActionBuilders extends OrchestratedActionCoreBuilders {
   [actionType: string]: OrchestratedActionBuilder; // TODO: RC this can be removed now with the custom API??
-  get?: KnownEntityActionBuilder; // TODO: RC Q make mandatory
-  remove?: KnownEntityActionBuilder;
-  update?: KnownEntityActionBuilder;
-  create?: CreateActionBuilder;
-  getMultiple?: GetMultipleActionBuilder;
+  // get?: KnownEntityActionBuilder; // TODO: RC Q make mandatory
+  // remove?: KnownEntityActionBuilder;
+  // update?: KnownEntityActionBuilder;
+  // create?: CreateActionBuilder;
+  // getMultiple?: GetMultipleActionBuilder;
 }
 
 export interface OrchestratedActionBuilderConfig {
