@@ -24,7 +24,7 @@ import { ClearPaginationOfType } from '../../../../store/src/actions/pagination.
 import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
-import { ListActionState, RequestInfoState } from '../../../../store/src/reducers/api-request-reducer/types';
+import { RequestInfoState } from '../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { IUserProvidedServiceInstance } from '../../core/cf-api-svc.types';
 
@@ -76,11 +76,11 @@ export class CloudFoundryUserProvidedServicesService {
 
 
 
-    cfEntityCatalog.userProvidedService.actions.get(...);
-    cfEntityCatalog.userProvidedService.actions.getAllInSpace(...);
+    // cfEntityCatalog.userProvidedService.actions.get(...);
+    // cfEntityCatalog.userProvidedService.actions.getAllInSpace(...);
 
-    cfEntityCatalog.userProvidedService.api.get<ActionState>().pipe(tap(a => console.log('Kind of State: ', a)));
-    cfEntityCatalog.userProvidedService.api.getAllInSpace<ListActionState>();
+    // cfEntityCatalog.userProvidedService.api.get<ActionState>().pipe(tap(a => console.log('Kind of State: ', a)));
+    // cfEntityCatalog.userProvidedService.api.getAllInSpace<ListActionState>();
 
 
     const entMonitor = cfEntityCatalog.userProvidedService.store.getEntityMonitor(
@@ -112,26 +112,18 @@ export class CloudFoundryUserProvidedServicesService {
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
 
-    // Pick<ABC, KnownKeys<ABC>>
-    // TODO: RC Fix (optional)
-    cfEntityCatalog.appEnvVar.api.get
+    // cfEntityCatalog.appEnvVar.actions.;
 
-    cfEntityCatalog.userProvidedService.store.;
-    cfEntityCatalog.userProvidedService.ggggg.;
+    // cfEntityCatalog.userProvidedService.store.;
 
-    cfEntityCatalog.appEnvVar.store.
-      cfEntityCatalog.appEnvVar.eeeee.;
+    // cfEntityCatalog.appEnvVar.store.
 
-    cfEntityCatalog.userProvidedService.aaaaa.getEntityMonitor;
-    cfEntityCatalog.userProvidedService.store.;
-    cfEntityCatalog.userProvidedService.ccccc.junk;
-    cfEntityCatalog.userProvidedService.eeeee.;
 
 
 
 
     // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
-    const allInSpacePagMonitor = cfEntityCatalog.userProvidedService.store.instance.getAllInSpace.getPaginationMonitor(
+    const allInSpacePagMonitor = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationMonitor(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder

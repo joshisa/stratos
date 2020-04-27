@@ -1,7 +1,7 @@
 import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
-import { JustMethods, KnownKeys, NeverKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
+import { KnownKeys, NeverKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
 import { IRequestEntityTypeState } from '../app-state';
 import {
@@ -99,7 +99,7 @@ export class StratosBaseCatalogEntity<
     this.store = {
       ...this.createStorage(),
       ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
-    } as EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
+    } as EntityAccess<Y, ABC> & EntityInstances<Y, Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>>;
     this.api = ActionBuilderConfigMapper.getActionDispatchers(
       this.storage1,
       actionBuilders as ABC
@@ -128,15 +128,14 @@ export class StratosBaseCatalogEntity<
   /**
    * Monitor an entity or collection of entities.
    */
-  // public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, ABC>;
   public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>>;
-  public readonly aaaaa: EntityAccess<Y, ABC>;
-  public readonly bbbbb: EntityInstances<Y, PaginationBuilders<ABC>>;
-  public readonly ccccc: PaginationBuilders<ABC>;
-  public readonly ddddd: Exclude<PaginationBuilders<ABC>, never>;
-  public readonly eeeee: EntityInstances<Y, PaginationBuilders<JustMethods<ABC>>>;
-  public readonly fffff: JustMethods<ABC>;
-  public readonly ggggg: ABC;
+  // public readonly aaaaa: EntityAccess<Y, ABC>;
+  // public readonly bbbbb: EntityInstances<Y, PaginationBuilders<ABC>>;
+  // public readonly ccccc: PaginationBuilders<ABC>;
+  // public readonly ddddd: Exclude<PaginationBuilders<ABC>, never>;
+  // public readonly eeeee: EntityInstances<Y, PaginationBuilders<JustMethods<ABC>>>;
+  // public readonly fffff: JustMethods<ABC>;
+  // public readonly ggggg: ABC;
 
 
 
