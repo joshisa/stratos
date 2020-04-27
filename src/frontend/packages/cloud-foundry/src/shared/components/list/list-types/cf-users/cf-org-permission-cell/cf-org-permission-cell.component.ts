@@ -76,7 +76,7 @@ export class CfOrgPermissionCellComponent extends CfPermissionCell<OrgUserRoleNa
         guid: orgPerms.orgGuid,
         username: row.entity.username,
         userGuid: row.metadata.guid,
-        busy: catalogEntity.storage1.getEntityMonitor(
+        busy: catalogEntity.store.getEntityMonitor(
           this.ech,
           orgPerms.orgGuid
         )

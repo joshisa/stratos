@@ -232,7 +232,7 @@ export class UsersRolesEffects {
 
   private createActionObs(action: ChangeUserRole): Observable<any> {
     return entityCatalog.getEntity(action)
-      .storage1
+      .store
       .getEntityMonitor(
         this.ech,
         action.guid

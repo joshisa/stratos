@@ -116,7 +116,7 @@ export class CloudFoundryUserProvidedServicesService {
 
     // cfEntityCatalog.userProvidedService.store.;
 
-    // cfEntityCatalog.appEnvVar.store.
+    // cfEntityCatalog.appEnvVar.store.;
 
 
 

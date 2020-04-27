@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { FilteredByReturnType, KnownKeys } from '../../../core/src/core/utils.service';
+import { FilteredByReturnType, KnownKeys, NeverKeys } from '../../../core/src/core/utils.service';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
@@ -67,7 +67,6 @@ export type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof Orchestr
 export type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
-
   /**
    * // TODO: RC Add Comments to all of these
    */
@@ -94,6 +93,10 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   // instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
+type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>
+export type EntityCatalogStore<Y, ABC extends OrchestratedActionBuilders> = EntityAccess<Y, ABC> & EntityCustomAccess<Y, PaginatedActionBuilders<ABC>>
+
+
 // TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
 type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = <T extends RequestInfoState | ListActionState>(
   ech: EntityCatalogHelper,
@@ -103,11 +106,8 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-// TODO: RC rename
-export type EntityInstances<Y, ABC extends { [key: string]: any }> = {
-  // Remove any entry that equals 'never'
-  [K in keyof ABC]: ABC[K] extends never ?
-  never : {
+export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
+  [K in keyof ABC]: {
     getPaginationMonitor: (
       helper: EntityCatalogHelper,
       ...args: Parameters<ABC[K]>
@@ -131,9 +131,9 @@ export class ActionBuilderConfigMapper {
 
   static getEntityInstances<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
     builders: ABC,
-  ): EntityInstances<Y, PaginationBuilders<ABC>> {
+  ): EntityCustomAccess<Y, PaginationBuilders<ABC>> {
     if (!builders) {
-      return {} as EntityInstances<Y, ABC>;
+      return {} as EntityCustomAccess<Y, ABC>;
     }
     return Object.keys(builders).reduce((entityInstances, key) => {
       // This isn't smart like the PaginationBuilders type. Here key will be all properties from an action builder (get, getMultiple, etc)
@@ -163,7 +163,7 @@ export class ActionBuilderConfigMapper {
           }
         }
       };
-    }, {} as EntityInstances<Y, PaginationBuilders<ABC>>);
+    }, {} as EntityCustomAccess<Y, PaginationBuilders<ABC>>);
   }
 
   static createPaginationMonitor<Y>(
@@ -199,7 +199,7 @@ export class ActionBuilderConfigMapper {
   }
 
   static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(
-    es: EntityAccess<Y, ABC>,
+    es: EntityCatalogStore<Y, ABC>,
     builders: ABC,
   ): ActionDispatchers<ABC> {
     if (!builders) {

@@ -1,7 +1,7 @@
 import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
-import { KnownKeys, NeverKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
+import { KnownKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
 import { IRequestEntityTypeState } from '../app-state';
 import {
@@ -18,8 +18,7 @@ import {
   ActionBuilderConfigMapper,
   ActionDispatchers,
   EntityAccess,
-  EntityInstances,
-  PaginationBuilders,
+  EntityCatalogStore,
 } from './action-builder-config.mapper';
 import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
 import {
@@ -50,6 +49,9 @@ import {
 // }
 
 type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
+
+
+
 
 
 export interface EntityCatalogBuilders<
@@ -95,13 +97,12 @@ export class StratosBaseCatalogEntity<
     );
 
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
-    this.storage1 = this.createStorage();
     this.store = {
       ...this.createStorage(),
       ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
-    } as EntityAccess<Y, ABC> & EntityInstances<Y, Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>>;
+    } as EntityCatalogStore<Y, ABC>;
     this.api = ActionBuilderConfigMapper.getActionDispatchers(
-      this.storage1,
+      this.store,
       actionBuilders as ABC
     );
 
@@ -122,20 +123,9 @@ export class StratosBaseCatalogEntity<
    */
   public readonly api: ActionDispatchers<KnownActionBuilders<ABC>>;
   /**
-   * Monitor an entity or collection of entities. If entity/entities not found they will be fetched
-   */
-  public readonly storage1: EntityAccess<Y, ABC>;
-  /**
    * Monitor an entity or collection of entities.
    */
-  public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>>;
-  // public readonly aaaaa: EntityAccess<Y, ABC>;
-  // public readonly bbbbb: EntityInstances<Y, PaginationBuilders<ABC>>;
-  // public readonly ccccc: PaginationBuilders<ABC>;
-  // public readonly ddddd: Exclude<PaginationBuilders<ABC>, never>;
-  // public readonly eeeee: EntityInstances<Y, PaginationBuilders<JustMethods<ABC>>>;
-  // public readonly fffff: JustMethods<ABC>;
-  // public readonly ggggg: ABC;
+  public readonly store: EntityCatalogStore<Y, ABC>;
 
 
 
