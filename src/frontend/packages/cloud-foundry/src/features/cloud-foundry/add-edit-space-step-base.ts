@@ -35,7 +35,7 @@ export class AddEditSpaceStepBase {
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
     this.orgGuid = activeRouteCfOrgSpace.orgGuid;
-    this.allSpacesInOrg$ = cfEntityCatalog.space.storage.instances.getAllInOrganization.getPaginationService(
+    this.allSpacesInOrg$ = cfEntityCatalog.space.store.getAllInOrganization.getPaginationService(
       ech,
       this.orgGuid,
       this.cfGuid,
@@ -72,9 +72,7 @@ export class AddEditSpaceStepBase {
     this.fetchSpacesSubscription = this.allSpacesInOrg$.subscribe();
 
 
-    // TODO: RC this doesn't fail
-    // const getAllInOrganization = cfEntityCatalog.quotaDefinition.actions.sdfdsf(this.orgGuid, this.cfGuid, quotaPaginationKey)
-    this.quotaDefinitions$ = cfEntityCatalog.spaceQuota.storage.instances.getAllInOrganization.getPaginationService(
+    this.quotaDefinitions$ = cfEntityCatalog.spaceQuota.store.getAllInOrganization.getPaginationService(
       ech,
       this.orgGuid,
       this.cfGuid,

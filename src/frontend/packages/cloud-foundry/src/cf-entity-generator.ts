@@ -471,7 +471,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
     labelPlural: 'User Provided Service Instances',
     endpoint: endpointDefinition,
   };
-  cfEntityCatalog.userProvidedServiceEntity = new StratosCatalogEntity<
+  cfEntityCatalog.userProvidedService = new StratosCatalogEntity<
     IBasicCFMetaData,
     APIResource<IUserProvidedServiceInstance>,
     UserProvidedServiceActionBuilder
@@ -507,7 +507,7 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
       // }
     }
   );
-  return cfEntityCatalog.userProvidedServiceEntity;
+  return cfEntityCatalog.userProvidedService;
 }
 
 function generateCFAppStatsEntity(endpointDefinition: StratosEndpointExtensionDefinition) {

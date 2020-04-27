@@ -223,7 +223,7 @@ export class CfEntityCatalog {
   >;
 
 
-  public userProvidedServiceEntity: StratosBaseCatalogEntity<
+  public userProvidedService: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IUserProvidedServiceInstance>,
     UserProvidedServiceActionBuilder

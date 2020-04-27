@@ -1,7 +1,7 @@
 import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
-import { KnownKeys } from '../../../core/src/core/utils.service';
+import { KnownKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
 import { IRequestEntityTypeState } from '../app-state';
 import {
@@ -49,6 +49,9 @@ import {
 //   helper.store.dispatch(action);
 // }
 
+type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
+
+
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
   Y = any,
@@ -91,14 +94,14 @@ export class StratosBaseCatalogEntity<
       (schemaKey: string) => this.getSchema(schemaKey)
     );
 
-    this.actions = actionBuilders as Pick<ABC, KnownKeys<ABC>>;
-    this.storage = this.createStorage();
-    this.storage2 = {
+    this.actions = actionBuilders as KnownActionBuilders<ABC>;
+    this.storage1 = this.createStorage();
+    this.store = {
       ...this.createStorage(),
       ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
     } as EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
     this.api = ActionBuilderConfigMapper.getActionDispatchers(
-      this.storage,
+      this.storage1,
       actionBuilders as ABC
     );
 
@@ -112,17 +115,20 @@ export class StratosBaseCatalogEntity<
   /**
    * Create action // TODO: RC comment
    */
-  public readonly actions: Pick<ABC, KnownKeys<ABC>>;
+  public readonly actions: KnownActionBuilders<ABC>;
   /**
    * Dispatch action // TODO: RC comment
    *
    */
-  public readonly api: ActionDispatchers<ABC>;
+  public readonly api: ActionDispatchers<KnownActionBuilders<ABC>>;
   /**
    * Monitor an entity or collection of entities. If entity/entities not found they will be fetched
    */
-  public readonly storage: EntityAccess<Y, ABC>;
-  public readonly storage2: EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
+  public readonly storage1: EntityAccess<Y, ABC>;
+  /**
+   * Monitor an entity or collection of entities.
+   */
+  public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
 
 
 

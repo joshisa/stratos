@@ -132,7 +132,7 @@ export class CfSpacePermissionCellComponent extends CfPermissionCell<SpaceUserRo
         guid: spacePerms.spaceGuid,
         username: row.entity.username,
         userGuid: row.metadata.guid,
-        busy: catalogEntity.storage.getEntityMonitor(
+        busy: catalogEntity.storage1.getEntityMonitor(
           this.ech,
           spacePerms.spaceGuid
         )

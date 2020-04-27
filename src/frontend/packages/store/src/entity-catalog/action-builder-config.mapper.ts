@@ -67,6 +67,10 @@ export type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof Orchestr
 export type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+
+  /**
+   * // TODO: RC Add Comments to all of these
+   */
   getEntityMonitor: (
     helper: EntityCatalogHelper,
     entityId: string,
