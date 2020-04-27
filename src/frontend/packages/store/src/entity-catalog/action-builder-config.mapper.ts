@@ -59,12 +59,12 @@ export interface EntityAccessPagination<Y> {
 /**
  * Filter out all common builders in OrchestratedActionCoreBuilders from ABC
  */
-type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
+export type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
 
 /**
  * Filter out builders that don't return pagination actions from ABC
  */
-type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
+export type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
 
 export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   getEntityMonitor: (
@@ -87,7 +87,7 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
     helper: EntityCatalogHelper,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
-  instances: EntityInstances<Y, PaginationBuilders<ABC>>;
+  // instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
 // TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
@@ -225,7 +225,7 @@ export class ActionBuilderConfigMapper {
       if (isPaginatedAction(action)) {
         // TODO: RC cf Routes page
         // TODO: RC TEST??
-        return es.instances[actionKey].getPaginationMonitor(
+        return es[actionKey].getPaginationMonitor(
           ech,
           ...args
         ).currentPageState$;

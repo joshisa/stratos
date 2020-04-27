@@ -1,6 +1,7 @@
 import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
+import { KnownKeys } from '../../../core/src/core/utils.service';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
 import { IRequestEntityTypeState } from '../app-state';
 import {
@@ -13,7 +14,13 @@ import { EntityMonitor } from '../monitors/entity-monitor';
 import { EndpointModel } from '../types/endpoint.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
-import { ActionBuilderConfigMapper, ActionDispatchers, EntityAccess } from './action-builder-config.mapper';
+import {
+  ActionBuilderConfigMapper,
+  ActionDispatchers,
+  EntityAccess,
+  EntityInstances,
+  PaginationBuilders,
+} from './action-builder-config.mapper';
 import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
@@ -84,15 +91,20 @@ export class StratosBaseCatalogEntity<
       (schemaKey: string) => this.getSchema(schemaKey)
     );
 
-    this.actions = actionBuilders as ABC;
+    this.actions = actionBuilders as Pick<ABC, KnownKeys<ABC>>;
     this.storage = this.createStorage();
+    this.storage2 = {
+      ...this.createStorage(),
+      ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
+    } as EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
     this.api = ActionBuilderConfigMapper.getActionDispatchers(
       this.storage,
-      this.actions
+      actionBuilders as ABC
     );
 
     // TODO: RC why is the all so convoluted????
-    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, this.actions); // TODO: RC not public?
+    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
+    // TODO: Remove, have api now
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
   }
 
@@ -100,7 +112,7 @@ export class StratosBaseCatalogEntity<
   /**
    * Create action // TODO: RC comment
    */
-  public readonly actions: ABC;
+  public readonly actions: Pick<ABC, KnownKeys<ABC>>;
   /**
    * Dispatch action // TODO: RC comment
    *
@@ -110,6 +122,9 @@ export class StratosBaseCatalogEntity<
    * Monitor an entity or collection of entities. If entity/entities not found they will be fetched
    */
   public readonly storage: EntityAccess<Y, ABC>;
+  public readonly storage2: EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
+
+
 
   public readonly entityKey: string;
   public readonly type: string;
@@ -305,7 +320,7 @@ export class StratosBaseCatalogEntity<
           actionBuilder(...args),
         );
       },
-      instances: ActionBuilderConfigMapper.getEntityInstances(this.actions)
+      // instances: ActionBuilderConfigMapper.getEntityInstances(this.actions)
     };
   }
 }

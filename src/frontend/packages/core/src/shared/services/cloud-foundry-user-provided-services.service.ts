@@ -58,10 +58,10 @@ export class CloudFoundryUserProvidedServicesService {
     // cfEntityCatalog.userProvidedServiceEntity.api2.createAction.getAllInSpace();
     // cfEntityCatalog.appEnvVar.actions.addNewToApplication();
     // cfEntityCatalog.appEnvVar.api.addNewToApplication()
-    // cfEntityCatalog.appEnvVar.storage.getEntityService()
-    // cfEntityCatalog.appEnvVar.storage.instances.addNewToApplication.getPaginationMonitor()
-    // cfEntityCatalog.appEnvVar.storage.instances.addNewToApplication.getPaginationService()
-    // cfEntityCatalog.appEnvVar.storage.instances.
+    // cfEntityCatalog.appEnvVar.storage2.getEntityService()
+    // cfEntityCatalog.appEnvVar.storage2.instances.addNewToApplication.getPaginationMonitor()
+    // cfEntityCatalog.appEnvVar.storage2.instances.addNewToApplication.getPaginationService()
+    // cfEntityCatalog.appEnvVar.storage2.instances.
 
 
 
@@ -71,40 +71,41 @@ export class CloudFoundryUserProvidedServicesService {
     // cfEntityCatalog.userProvidedServiceEntity.instance.getAllInSpace.getPaginationMonitor
 
     // // TODO: RC TIDY Remove all this
-    // cfEntityCatalog.userProvidedServiceEntity.storage.instances.
+    // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
 
-    // cfEntityCatalog.userProvidedServiceEntity.actions.get();
-    // cfEntityCatalog.userProvidedServiceEntity.actions.getAllInSpace();
+    // cfEntityCatalog.userProvidedServiceEntity.actions.get(...);
+    // cfEntityCatalog.userProvidedServiceEntity.actions.getAllInSpace(...);
     // cfEntityCatalog.userProvidedServiceEntity.api.get().pipe(tap(a => console.log('Kind of State: ', a)));
     // cfEntityCatalog.userProvidedServiceEntity.api.getAllInSpace();
 
 
-    const entMonitor = cfEntityCatalog.userProvidedServiceEntity.storage.getEntityMonitor(
+
+    const entMonitor = cfEntityCatalog.userProvidedServiceEntity.storage2.getEntityMonitor(
       this.ech,
       upsiGuid,
     ).entity$.subscribe(a => console.log('entMonitor: ', a));
 
-    const entService = cfEntityCatalog.userProvidedServiceEntity.storage.getEntityService(
+    const entService = cfEntityCatalog.userProvidedServiceEntity.storage2.getEntityService(
       this.ech,
       upsiGuid, // Per action builder
       endpointGuid, // Per action builder,
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
-    const pagMon = cfEntityCatalog.userProvidedServiceEntity.storage.getPaginationMonitor(
+    const pagMon = cfEntityCatalog.userProvidedServiceEntity.storage2.getPaginationMonitor(
       this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
-    const pagObservables = cfEntityCatalog.userProvidedServiceEntity.storage.getPaginationService(
+    const pagObservables = cfEntityCatalog.userProvidedServiceEntity.storage2.getPaginationService(
       this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
 
-    // cfEntityCatalog.userProvidedServiceEntity.storage.instances.
-    const allInSpacePagMonitor = cfEntityCatalog.userProvidedServiceEntity.storage.instances.getAllInSpace.getPaginationMonitor(
+    // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
+    const allInSpacePagMonitor = cfEntityCatalog.userProvidedServiceEntity.storage2.getAllInSpace.getPaginationMonitor(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
@@ -113,7 +114,7 @@ export class CloudFoundryUserProvidedServicesService {
       true// Per action builder
     ).currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
-    const allInSpacePagObservables = cfEntityCatalog.userProvidedServiceEntity.storage.instances.getAllInSpace.getPaginationService(
+    const allInSpacePagObservables = cfEntityCatalog.userProvidedServiceEntity.storage2.getAllInSpace.getPaginationService(
       this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
@@ -122,7 +123,7 @@ export class CloudFoundryUserProvidedServicesService {
       true// Per action builderS
     ).entities$.subscribe(a => console.log('allInSpacePagObservables: ', a));
 
-    // cfEntityCatalog.userProvidedServiceEntity.storage.instances.
+    // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
 
     const updateAction = cfEntityCatalog.userProvidedServiceEntity.actions.update(
       upsiGuid, // Per action builder
@@ -135,7 +136,7 @@ export class CloudFoundryUserProvidedServicesService {
   public getUserProvidedServices(cfGuid: string, spaceGuid?: string, relations = getUserProvidedServiceInstanceRelations)
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
 
-    const pagObs = cfEntityCatalog.userProvidedServiceEntity.storage.instances.getAllInSpace.getPaginationService(
+    const pagObs = cfEntityCatalog.userProvidedServiceEntity.storage2.getAllInSpace.getPaginationService(
       this.ech,
       cfGuid, spaceGuid, null, relations, true
     );
@@ -190,7 +191,7 @@ export class CloudFoundryUserProvidedServicesService {
   }
 
   public getUserProvidedService(cfGuid: string, upsGuid: string): Observable<APIResource<IUserProvidedServiceInstance>> {
-    return cfEntityCatalog.userProvidedServiceEntity.storage.getEntityService(this.ech, upsGuid, cfGuid, {}).waitForEntity$.pipe(
+    return cfEntityCatalog.userProvidedServiceEntity.storage2.getEntityService(this.ech, upsGuid, cfGuid, {}).waitForEntity$.pipe(
       map(e => e.entity)
     );
     // const actionBuilder = cfEntityCatalog.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('get');
@@ -260,7 +261,7 @@ export class CloudFoundryUserProvidedServicesService {
     //   data,
     //   this.userProvidedServiceInstancesEntityConfig
     // );
-    // return cfEntityCatalog.userProvidedServiceEntity.storage.getEntityMonitor(
+    // return cfEntityCatalog.userProvidedServiceEntity.storage2.getEntityMonitor(
     //   this.ech,
     //   guid
     // ).entityRequest$.pipe(
