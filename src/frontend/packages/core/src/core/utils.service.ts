@@ -24,6 +24,12 @@ export type NonOptionalKeys<T extends object> = Exclude<{
   : never
 }[keyof T], undefined>
 
+export type NeverKeys<T extends object> = Exclude<{
+  [K in keyof T]: T[K] extends never
+  ? K
+  : never
+}[keyof T], undefined>
+
 
 /**
  * Remove keys such as typed indexes  (i.e. [key: string])
@@ -41,6 +47,13 @@ export type KnownKeys<T> = {
 export type FilteredByReturnType<T extends { [key: string]: (...args: any[]) => any }, U> = {
   [P in keyof T]: ReturnType<T[P]> extends U ? T[P] : never
 };
+
+export type FilteredByValueType<T extends { [key: string]: (...args: any[]) => any }, U> = {
+  [P in keyof T]: T[P] extends U ? never : T[P]
+}[keyof T];
+
+export type JustMethodKeys<T> = ({ [P in keyof T]: T[P] extends never ? never : P })[keyof T];
+export type JustMethods<T> = Pick<T, JustMethodKeys<T>>;
 
 export const urlValidationExpression =
   '^' +

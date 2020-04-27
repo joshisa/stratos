@@ -116,7 +116,18 @@ export class CloudFoundryUserProvidedServicesService {
     // TODO: RC Fix (optional)
     cfEntityCatalog.appEnvVar.api.get
 
-    cfEntityCatalog.appEnvVar.store.instances.
+    cfEntityCatalog.userProvidedService.store.;
+    cfEntityCatalog.userProvidedService.ggggg.;
+
+    cfEntityCatalog.appEnvVar.store.
+      cfEntityCatalog.appEnvVar.eeeee.;
+
+    cfEntityCatalog.userProvidedService.aaaaa.getEntityMonitor;
+    cfEntityCatalog.userProvidedService.store.;
+    cfEntityCatalog.userProvidedService.ccccc.junk;
+    cfEntityCatalog.userProvidedService.eeeee.;
+
+
 
 
     // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.

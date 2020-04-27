@@ -2,6 +2,7 @@ import { Action } from '@ngrx/store';
 
 import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
+import { PaginatedAction } from '../../../store/src/types/pagination.types';
 import { DeleteApplication } from '../actions/application.actions';
 import {
   CreateUserProvidedServiceInstance,
@@ -24,7 +25,7 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     endpointGuid: string,
     guid: string,
     data: IUserProvidedServiceInstanceData,
-    proxyPaginationEntityConfig?: EntityCatalogEntityConfig) => CreateUserProvidedServiceInstance;
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig) => CreateUserProvidedServiceInstance,
   remove: (guid: string, endpointGuid: string) => DeleteApplication;
   update: (
     guid: string,
@@ -44,7 +45,8 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GetAllUserProvidedServices;
-  junk: () => Action;
+  pjunk: () => PaginatedAction;
+  ajunk: () => Action;
 }
 
 export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder = {

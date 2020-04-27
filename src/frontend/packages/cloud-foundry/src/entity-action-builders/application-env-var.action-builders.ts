@@ -1,84 +1,50 @@
-import { KnownKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
+import { FilteredByValueType, JustMethodKeys, NeverKeys } from '../../../core/src/core/utils.service';
 import {
-  OrchestratedActionBuilders,
-  OrchestratedActionCoreBuilders,
-} from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
+  CustomBuilders,
+  EntityInstances,
+  PaginationBuilders,
+} from '../../../store/src/entity-catalog/action-builder-config.mapper';
+import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { GetAppEnvVarsAction } from '../actions/app-metadata.actions';
 import { AppVariablesAdd, AppVariablesDelete, AppVariablesEdit } from '../actions/app-variables.actions';
 import { ListAppEnvVar } from '../shared/components/list/list-types/app-variables/cf-app-variables-data-source';
+import { UserProvidedServiceActionBuilder } from './user-provided-service.action-builders';
+
+type q = PaginationBuilders<UserProvidedServiceActionBuilder>;
+type w = CustomBuilders<UserProvidedServiceActionBuilder>;
+type e = UserProvidedServiceActionBuilder;
+type r = EntityInstances<any, q>;
+const rr: r;
+rr.
 
 
-type RequiredKeys<T> = { [K in keyof T]-?:
-  ({} extends { [P in K]: T[K] } ? never : K)
-}[keyof T]
 
-type OptionalKeys<T> = { [K in keyof T]-?:
-  ({} extends { [P in K]: T[K] } ? K : never)
-}[keyof T]
-
-type ExcludeOptionalProps<T> = Pick<T, RequiredKeys<T>>
-
-type I3 = {
-  a: string,
-  b?: number,
-  c: boolean | undefined
-}
-
-type MutableRequired<T> = { -readonly [P in keyof T]-?: T[P] };
-
-type I4 = ExcludeOptionalProps<I3>;
-type I5 = ExcludeOptionalProps<OrchestratedActionCoreBuilders>;
-
-// type ABC = AppEnvVarActionBuilders;
-type sdfsdf = MutableRequired<ABC>;
-type optional = OptionalKeys<ABC>;
-type known = KnownKeys<ABC>;
-type a = Pick<sdfsdf, KnownKeys<ABC>>;
-const sdfdsf: a;
-sdfdsf.
+// type store<Y, ABC> = EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
+// type aaaaa<ABC> = EntityAccess<Y, ABC>;
+// type bbbbb<ABC> = EntityInstances<Y, PaginationBuilders<ABC>>;
+type ccccc<ABC extends OrchestratedActionBuilders> = PaginationBuilders<ABC>;
+const c: ccccc<UserProvidedServiceActionBuilder>;
+type eeeee = NeverKeys<ccccc<UserProvidedServiceActionBuilder>>
 
 
-type OptionalPropNames<T> = { [P in keyof T]: undefined extends T[P] ? P : never }[keyof T];
-type RequiredPropNames<T> = { [P in keyof T]: undefined extends T[P] ? never : P }[keyof T];
+type ddddd = ccccc<UserProvidedServiceActionBuilder>
+type a = FilteredByValueType<ccccc<UserProvidedServiceActionBuilder>, never>;
 
-type OptionalProps<T> = { [P in OptionalPropNames<T>]: T[P] };
-type RequiredProps<T> = { [P in RequiredPropNames<T>]: T[P] };
-
-type Foo = {
-  a: string;
-  b: number;
-  c?: string;
-  d?: number;
-}
-
-type T1 = OptionalPropNames<Foo>;  // { a: string, b: number }
-type T2 = RequiredPropNames<Foo>;  // { c?: string | undefined, d?: number | undefined }
-const t1i: T1;
-t1i.
-
-type NonPartialIsh<ABC> = { [K in keyof ABC]-?: ABC[K] | undefined };
-const npi: NonPartialIsh<AppEnvVarActionBuilders>;
-npi.
-type T3 = Pick<ABC, KnownKeys<NonPartialIsh<ABC>>>;
+type b = FilteredByValueType<ddddd, never>;
+const bb: b;
 
 
-// type OptionalPropertyOf<T extends object> = Exclude<{
-//   [K in keyof T]: T extends Record<K, T[K]>
-//     ? never
-//     : K
-// }[keyof T], undefined>
-// type NonOptionalPropertyOf<T extends object> = Exclude<{
-//   [K in keyof T]: T extends Record<K, T[K]>
-//     ? K
-//     : never
-// }[keyof T], undefined>
+// type JustMethodKeys<T> = ({ [P in keyof T]: T[P] extends never ? never : P })[keyof T];
+// type JustMethods<T> = Pick<T, JustMethodKeys<T>>;
+type c<ABC> = JustMethodKeys<ABC>;
+type d = c<UserProvidedServiceActionBuilder>;
 
-type aa<ABC> = Pick<ABC, KnownKeys<ABC>>;
-type bb<ABC extends {}> = NonOptionalKeys<ABC>
-type T4 = Pick<AppEnvVarActionBuilders, NonOptionalKeys<aa<AppEnvVarActionBuilders>>>;
-type T5<ABC> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>;
-type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
-type i = KnownActionBuilders<AppEnvVarActionBuilders>;
+type fffff<ABC extends {}> = NeverKeys<ABC>;
+type ggggg = Omit<q, fffff<q>>;
+type hhhhh<ABC extends OrchestratedActionBuilders> = Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>;
+type iiiii = hhhhh<UserProvidedServiceActionBuilder>;
+
+
 
 export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders {
   get: (appGuid, endpointGuid) => GetAppEnvVarsAction;

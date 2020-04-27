@@ -1,7 +1,7 @@
 import { ActionReducer } from '@ngrx/store';
 
 import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
-import { KnownKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
+import { JustMethods, KnownKeys, NeverKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
 import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
 import { IRequestEntityTypeState } from '../app-state';
 import {
@@ -128,7 +128,19 @@ export class StratosBaseCatalogEntity<
   /**
    * Monitor an entity or collection of entities.
    */
-  public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, PaginationBuilders<ABC>>;
+  // public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, ABC>;
+  public readonly store: EntityAccess<Y, ABC> & EntityInstances<Y, Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>>;
+  public readonly aaaaa: EntityAccess<Y, ABC>;
+  public readonly bbbbb: EntityInstances<Y, PaginationBuilders<ABC>>;
+  public readonly ccccc: PaginationBuilders<ABC>;
+  public readonly ddddd: Exclude<PaginationBuilders<ABC>, never>;
+  public readonly eeeee: EntityInstances<Y, PaginationBuilders<JustMethods<ABC>>>;
+  public readonly fffff: JustMethods<ABC>;
+  public readonly ggggg: ABC;
+
+
+
+
 
 
 

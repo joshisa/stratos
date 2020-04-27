@@ -103,7 +103,8 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-export type EntityInstances<Y, ABC extends OrchestratedActionBuilders> = {
+// TODO: RC rename
+export type EntityInstances<Y, ABC extends { [key: string]: any }> = {
   // Remove any entry that equals 'never'
   [K in keyof ABC]: ABC[K] extends never ?
   never : {
