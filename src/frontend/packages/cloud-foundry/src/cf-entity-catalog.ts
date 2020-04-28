@@ -8,6 +8,7 @@ import {
   IUserProvidedServiceInstance,
 } from '../../core/src/core/cf-api-svc.types';
 import {
+  CfEvent,
   IApp,
   IAppSummary,
   IBuildpack,
@@ -63,9 +64,11 @@ import { AppStat } from './store/types/app-metadata.types';
 import { GitBranch, GitCommit, GitRepo } from './store/types/git.types';
 import { CfUser } from './store/types/user.types';
 
+/**
+ * A strongly typed collection of Cloud Foundry Catalog Entities.
+ * This can be used to access functionality exposed by each specific type, such as get, update, delete, etc
+ */
 export class CfEntityCatalog {
-  // public entities: StratosBaseCatalogEntity[];
-
   public cfEndpoint: StratosCatalogEndpointEntity;
 
   public quotaDefinition: StratosBaseCatalogEntity<
@@ -178,22 +181,21 @@ export class CfEntityCatalog {
 
   public gitRepo: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<GitRepo>, // TODO: RC is this correct???
+    GitRepo,
     GitRepoActionBuilders
   >;
 
   public gitBranch: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<GitBranch>, // TODO: RC is this correct???
+    GitBranch,
     GitBranchActionBuilders
   >;
 
   public event: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource, // TODO: RC
+    APIResource<CfEvent>,
     CfEventActionBuilders
   >;
-
 
   public route: StratosBaseCatalogEntity<
     IBasicCFMetaData,

@@ -128,7 +128,7 @@ export class AppModule {
     private favoritesConfigMapper: FavoritesConfigMapper,
     ech: EntityCatalogHelper
   ) {
-    EntityCatalogHelpers.SetEntityCatalogHelper(ech);
+    EntityCatalogHelpers.SetEntityCatalogEntityHelper(ech);
 
     eventService.addEventConfig<boolean>({
       eventTriggered: (state: GeneralEntityAppState) => new GlobalEventData(!state.dashboard.timeoutSession),

@@ -6,22 +6,14 @@ import { filter, first, map, pairwise, tap } from 'rxjs/operators';
 import {
   getUserProvidedServiceInstanceRelations,
   IUserProvidedServiceInstanceData,
-  UpdateUserProvidedServiceInstance,
 } from '../../../../cloud-foundry/src/actions/user-provided-service.actions';
 import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
 import { cfEntityCatalog } from '../../../../cloud-foundry/src/cf-entity-catalog';
-import {
-  organizationEntityType,
-  serviceInstancesEntityType,
-  spaceEntityType,
-  userProvidedServiceInstanceEntityType,
-} from '../../../../cloud-foundry/src/cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../cloud-foundry/src/cf-types';
+import { organizationEntityType, spaceEntityType } from '../../../../cloud-foundry/src/cf-entity-types';
 import { createEntityRelationPaginationKey } from '../../../../cloud-foundry/src/entity-relations/entity-relations.types';
 import { fetchTotalResults } from '../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 import { QParam, QParamJoiners } from '../../../../cloud-foundry/src/shared/q-param';
 import { ClearPaginationOfType } from '../../../../store/src/actions/pagination.actions';
-import { EntityCatalogEntityConfig } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../store/src/types/api.types';
@@ -29,17 +21,6 @@ import { IUserProvidedServiceInstance } from '../../core/cf-api-svc.types';
 
 @Injectable()
 export class CloudFoundryUserProvidedServicesService {
-
-  private serviceInstancesEntityConfig: EntityCatalogEntityConfig = {
-    endpointType: CF_ENDPOINT_TYPE,
-    entityType: serviceInstancesEntityType
-  };
-
-  // TODO: RC 1 test, demo
-  private userProvidedServiceInstancesEntityConfig: EntityCatalogEntityConfig = {
-    endpointType: CF_ENDPOINT_TYPE,
-    entityType: userProvidedServiceInstanceEntityType
-  };
 
   constructor(
     private store: Store<CFAppState>,
@@ -109,7 +90,7 @@ export class CloudFoundryUserProvidedServicesService {
     // cfEntityCatalog.appEnvVar.store;
 
     // cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService()
-    cfEntityCatalog.userProvidedService.api.;
+    // cfEntityCatalog.userProvidedService.api.;
     // cfEntityCatalog.application.store.getAllInSpace.getPaginationMonitor()
     // cfEntityCatalog.application.actions.;
 
@@ -159,19 +140,6 @@ export class CloudFoundryUserProvidedServicesService {
       filter(([, fetching]) => !fetching),
       map(([entities]) => entities)
     );
-
-    // const actionBuilder = cfEntityCatalog.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('getAllInSpace');
-    // const action = actionBuilder(cfGuid, spaceGuid, null, relations, true);
-    // // const action = new GetAllU
-    // const pagObs = getPaginationObservables({
-    //   store: this.store,
-    //   action,
-    //   paginationMonitor: this.paginationMonitorFactory.create(
-    //     action.paginationKey,
-    //     action,
-    //     action.flattenPagination
-    //   )
-    // }, action.flattenPagination);
   }
 
   public fetchUserProvidedServiceInstancesCount(cfGuid: string, orgGuid?: string, spaceGuid?: string)
@@ -192,29 +160,12 @@ export class CloudFoundryUserProvidedServicesService {
       action.initialParams.q.push(new QParam('space_guid', spaceGuid, QParamJoiners.in).toString());
     }
     return fetchTotalResults(action, this.store, this.paginationMonitorFactory);
-
-
-    // const actionBuilder = cfEntityCatalog.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('getMultiple');
-    // const action = actionBuilder(
-    //   createEntityRelationPaginationKey(parentSchemaKey, uniqueKey),
-    //   cfGuid,
-    //   { includeRelations: [], populateMissing: false }
-    // ) as PaginatedAction;
   }
 
   public getUserProvidedService(cfGuid: string, upsGuid: string): Observable<APIResource<IUserProvidedServiceInstance>> {
     return cfEntityCatalog.userProvidedService.store.getEntityService(upsGuid, cfGuid, {}).waitForEntity$.pipe(
       map(e => e.entity)
     );
-    // const actionBuilder = cfEntityCatalog.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('get');
-    // const getUserProvidedServiceAction = actionBuilder(upsGuid, cfGuid);
-    // const service = this.entityServiceFactory.create<APIResource<IUserProvidedServiceInstance>>(
-    //   upsGuid,
-    //   getUserProvidedServiceAction
-    // );
-    // return service.waitForEntity$.pipe(
-    //   map(e => e.entity)
-    // );
   }
 
   public createUserProvidedService(
@@ -226,7 +177,7 @@ export class CloudFoundryUserProvidedServicesService {
       cfGuid,
       guid,
       data,
-      this.userProvidedServiceInstancesEntityConfig
+      // this.userProvidedServiceInstancesEntityConfig
     ).pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
@@ -236,14 +187,10 @@ export class CloudFoundryUserProvidedServicesService {
         if (!v.error) {
           // Problem - Lists with multiple actions aren't updated following the creation of an entity based on secondary action
           // Here the service instance list (1st action SI, 2nd action UPSI) isn't updated so manually do so
-          this.store.dispatch(new ClearPaginationOfType(this.serviceInstancesEntityConfig));
+          this.store.dispatch(new ClearPaginationOfType(cfEntityCatalog.service));
         }
       })
     );
-
-    // const action = new CreateUserProvidedServiceInstance(cfGuid, guid, data, this.userProvidedServiceInstancesEntityConfig);
-    // const create$ = this.store.select(selectCfRequestInfo(userProvidedServiceInstanceEntityType, guid));
-    // this.store.dispatch(action);
   }
 
   updateUserProvidedService(
@@ -251,37 +198,22 @@ export class CloudFoundryUserProvidedServicesService {
     guid: string,
     data: Partial<IUserProvidedServiceInstanceData>,
   ): Observable<RequestInfoState> {
+    // TODO: RC Q
+    const updatingKey = cfEntityCatalog.userProvidedService.actions.update(guid, cfGuid, data).updatingKey;
+    // const updatingKey = UpdateUserProvidedServiceInstance.updateServiceInstance;
     return cfEntityCatalog.userProvidedService.api.update<RequestInfoState>(
       guid,
       cfGuid,
       data,
-      this.userProvidedServiceInstancesEntityConfig
+      // this.userProvidedServiceInstancesEntityConfig
     ).pipe(
-      filter(v => !!v.updating[UpdateUserProvidedServiceInstance.updateServiceInstance]),
+      filter(v => !!v.updating[updatingKey]),
       pairwise(),
       filter(([oldV, newV]) =>
-        oldV.updating[UpdateUserProvidedServiceInstance.updateServiceInstance].busy &&
-        !newV.updating[UpdateUserProvidedServiceInstance.updateServiceInstance].busy),
+        oldV.updating[updatingKey].busy &&
+        !newV.updating[updatingKey].busy),
       map(([, newV]) => newV)
     );
-    // TODO: RC
-    // cfEntityCatalog.userProvidedServiceEntity.actionDispatchManager.dispatchUpdate(
-    //   guid,
-    //   cfGuid,
-    //   data,
-    //   this.userProvidedServiceInstancesEntityConfig
-    // );
-    // return cfEntityCatalog.userProvidedServiceEntity.storage2.getEntityMonitor(
-    //   this.ech,
-    //   guid
-    // ).entityRequest$.pipe(
-    //   filter(v => !!v.updating[UpdateUserProvidedServiceInstance.updateServiceInstance]),
-    //   pairwise(),
-    //   filter(([oldV, newV]) =>
-    //     oldV.updating[UpdateUserProvidedServiceInstance.updateServiceInstance].busy &&
-    //     !newV.updating[UpdateUserProvidedServiceInstance.updateServiceInstance].busy),
-    //   map(([, newV]) => newV)
-    // );
   }
 
 }

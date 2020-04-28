@@ -90,15 +90,6 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
   private dispatchDeleteAction(newValues: ListAppEnvVar[]) {
     const confirmation = this.getConfirmationModal(newValues);
 
-    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('removeFromApplication');
-    // const action = actionBuilder(
-    //   this.envVarsDataSource.appGuid,
-    //   this.envVarsDataSource.cfGuid,
-    //   this.envVarsDataSource.transformedEntities,
-    //   newValues
-    // );
-
     const entityReq$ = this.getEntityMonitor();
     const trigger$ = new Subject();
     this.confirmDialog.open(
@@ -110,7 +101,6 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
           this.envVarsDataSource.transformedEntities,
           newValues
         );
-        // this.store.dispatch(action);
         trigger$.next();
       }
     );
@@ -161,19 +151,6 @@ export class CfAppVariablesListConfigService implements IListConfig<ListAppEnvVa
     private confirmDialog: ConfirmationDialogService,
   ) {
     this.envVarsDataSource = new CfAppVariablesDataSource(this.store, this.appService, this);
-
-
-    // cfEntityCatalog.appEnvVar.storage.instances..getPaginationService(
-    //   this.ech,
-    //   'uEQrNbUurmOUnGqj6cHGyMP60XA',
-    //   null
-    // ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
-    // TODO: RC -----
-    // cfEntityCatalog.privateDomain.storage.instances..getPaginationService(
-    //   this.ech,
-    //   'uEQrNbUurmOUnGqj6cHGyMP60XA',
-    //   null
-    // ).entities$.subscribe(a => console.log('sdfsdfdsf: ', a));
   }
 
 }

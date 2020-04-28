@@ -13,6 +13,7 @@ import {
   IUserProvidedServiceInstance,
 } from '../../core/src/core/cf-api-svc.types';
 import {
+  CfEvent,
   IApp,
   IAppSummary,
   IBuildpack,
@@ -169,24 +170,20 @@ import { CFResponse } from './store/types/cf-api.types';
 import { GitBranch, GitCommit, GitRepo } from './store/types/git.types';
 import { CfUser } from './store/types/user.types';
 
-// const getBaseCfMetaData = <T>(ent: APIResource<T>): IBasicCFMetaData => ({
-//   name: ent.entity.name,
-//   guid: ent.metadata.guid
-// });
-// const getBaseCfEntityBuilder = <T>(): IStratosEntityBuilder<IBasicCFMetaData, APIResource<T>> => ({
-//   getMetadata: getBaseCfMetaData,
-//   getGuid: metadata => metadata.guid,
-// })
-
 export interface CFBasePipelineRequestActionMeta {
+  /**
+   * Define a set of children that a cf entity should have, for instance organisation --> space, application --> space --> organisation
+   */
   includeRelations?: string[];
+  /**
+   * If relations, as described in `includeRelations` are missing, should they be fetched?
+   */
   populateMissing?: boolean;
-  flatten?: boolean; // TODO: RC only applicable to lists
+  /**
+   * Only applicable to collections
+   */
+  flatten?: boolean;
 }
-
-// export function registerCFEntities() {
-//   generateCFEntities().forEach(entity => entityCatalog.register(entity));
-// }
 
 export function generateCFEntities(): StratosBaseCatalogEntity[] {
   const endpointDefinition: StratosEndpointExtensionDefinition = {
@@ -854,7 +851,7 @@ function generateGitRepoEntity(endpointDefinition: StratosEndpointExtensionDefin
   };
   cfEntityCatalog.gitRepo = new StratosCatalogEntity<
     IBasicCFMetaData,
-    APIResource<GitRepo>,
+    GitRepo,
     GitRepoActionBuilders
   >(
     definition,
@@ -863,13 +860,6 @@ function generateGitRepoEntity(endpointDefinition: StratosEndpointExtensionDefin
         endpointDisconnectRemoveEntitiesReducer()
       ],
       actionBuilders: gitRepoActionBuilders,
-      entityBuilder: {
-        getMetadata: ent => ({
-          name: ent.entity.full_name,
-          guid: ent.metadata.guid // TODO: RC CHECK
-        }),
-        getGuid: metadata => metadata.guid,
-      }
     }
   );
   return cfEntityCatalog.gitRepo;
@@ -883,20 +873,13 @@ function generateGitBranchEntity(endpointDefinition: StratosEndpointExtensionDef
     labelPlural: 'Git Branches',
     endpoint: endpointDefinition
   };
-  cfEntityCatalog.gitBranch = new StratosCatalogEntity<IBasicCFMetaData, APIResource<GitBranch>, GitBranchActionBuilders>(
+  cfEntityCatalog.gitBranch = new StratosCatalogEntity<IBasicCFMetaData, GitBranch, GitBranchActionBuilders>(
     definition,
     {
       dataReducers: [
         endpointDisconnectRemoveEntitiesReducer()
       ],
       actionBuilders: gitBranchActionBuilders,
-      entityBuilder: {
-        getMetadata: ent => ({
-          guid: ent.metadata.guid,
-          name: ent.metadata.guid,
-        }),
-        getGuid: metadata => metadata.guid,
-      }
     }
   );
   return cfEntityCatalog.gitBranch;
@@ -912,7 +895,7 @@ function generateEventEntity(endpointDefinition: StratosEndpointExtensionDefinit
   };
   cfEntityCatalog.event = new StratosCatalogEntity<
     IBasicCFMetaData,
-    APIResource,
+    APIResource<CfEvent>,
     CfEventActionBuilders>(
       definition,
       {

@@ -31,11 +31,11 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
 
 // TODO: RC
 export class EntityCatalogEntityStoreHelpers {
-  static createPaginationMonitor<Y>(
+  private static createPaginationMonitor<Y>(
     actionBuilderKey: string,
     action: any,
   ): PaginationMonitor<Y> {
-    const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
+    const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
     if (!isPaginatedAction(action)) {
       throw new Error(`\`${actionBuilderKey}\` action is not of type pagination`);
     }
@@ -43,11 +43,11 @@ export class EntityCatalogEntityStoreHelpers {
     return helper.pmf.create<Y>(pAction.paginationKey, pAction, pAction.flattenPagination);
   }
 
-  static createPaginationService<Y>(
+  private static createPaginationService<Y>(
     actionBuilderKey: string,
     action: any,
   ): PaginationObservables<Y> {
-    const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
+    const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
     if (!isPaginatedAction(action)) {
       // TODO: RC push error message check up
       throw new Error(`\`${actionBuilderKey}\` action is not of type pagination`);
@@ -84,14 +84,14 @@ export class EntityCatalogEntityStoreHelpers {
     }, {} as ActionDispatchers<ABC>);
   }
 
-  static getActionDispatcher<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
+  private static getActionDispatcher<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
     es: CoreEntityCatalogEntityStore<Y, ABC>,
     builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
     actionKey: string,
   ): ActionDispatcher<K, ABC> {
     return <T extends RequestInfoState | ListActionState>(
       ...args: Parameters<ABC[K]>): Observable<T> => {
-      const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
+      const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
 
       const action = builder(...args);
       helper.store.dispatch(action);
@@ -128,12 +128,12 @@ export class EntityCatalogEntityStoreHelpers {
           startWithNull: false
         }
       ): EntityMonitor<Y> =>
-        new EntityMonitor<Y>(EntityCatalogHelpers.GetEntityCatalogHelper().store, entityId, entityKey, getSchema(params.schemaKey), params.startWithNull)
+        new EntityMonitor<Y>(EntityCatalogHelpers.GetEntityCatalogEntityHelper().store, entityId, entityKey, getSchema(params.schemaKey), params.startWithNull)
       ,
       getEntityService: (
         ...args: Parameters<ABC['get']>
       ): EntityService<Y> => {
-        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
+        const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
         const actionBuilder = actionOrchestrator.getActionBuilder('get');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${entityKey}`);

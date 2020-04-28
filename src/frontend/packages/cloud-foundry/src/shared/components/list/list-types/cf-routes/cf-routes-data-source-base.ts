@@ -14,8 +14,8 @@ import {
   TableRowStateManager,
 } from '../../../../../../../core/src/shared/components/list/list-table/table-row/table-row-state-manager';
 import { IListConfig } from '../../../../../../../core/src/shared/components/list/list.component.types';
+import { AppState } from '../../../../../../../store/src/app-state';
 import { entityCatalog } from '../../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelpers } from '../../../../../../../store/src/entity-catalog/entity-catalog.helper';
 import { PaginationMonitor } from '../../../../../../../store/src/monitors/pagination-monitor';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { PaginatedAction, PaginationParam } from '../../../../../../../store/src/types/pagination.types';
@@ -118,12 +118,12 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
    * Create a row state manager that will set the route row state to busy/blocked/deleting etc
    */
   private static createRowState(
-    store,
+    store: Store<AppState>,
     paginationKey,
     genericRouteState: boolean,
     isLocal: boolean): { rowsState: Observable<RowsState>, sub: Subscription } {
     if (genericRouteState) {
-      const { rowStateManager, sub } = CfRoutesDataSourceBase.getRowStateManager(paginationKey, isLocal);
+      const { rowStateManager, sub } = CfRoutesDataSourceBase.getRowStateManager(store, paginationKey, isLocal);
       return {
         rowsState: rowStateManager.observable,
         sub
@@ -136,15 +136,13 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     }
   }
 
-  private static getRowStateManager(paginationKey: string, isLocal: boolean): {
+  private static getRowStateManager(store: Store<AppState>, paginationKey: string, isLocal: boolean): {
     rowStateManager: TableRowStateManager,
     sub: Subscription
   } {
     const rowStateManager = new TableRowStateManager();
-    // TODO: RC FIX
-    const ech = EntityCatalogHelpers.GetEntityCatalogHelper();
     const paginationMonitor = new PaginationMonitor(
-      ech.store,
+      store,
       paginationKey,
       {
         entityType: routeEntityType,
