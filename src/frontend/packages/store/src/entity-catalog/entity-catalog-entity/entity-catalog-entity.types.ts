@@ -6,6 +6,10 @@ import { PaginationObservables } from '../../reducers/pagination-reducer/paginat
 import { PaginatedAction } from '../../types/pagination.types';
 import { OrchestratedActionBuilders, OrchestratedActionCoreBuilders } from '../action-orchestrator/action-orchestrator';
 
+export interface EntityCatalogStoreParams {
+  schemaKey?: string;
+}
+
 // TODO: RC tidy up `extends OrchestratedActionBuilders`, could be more specific
 /**
  * Core entity and entities access (entity/entities monitors and services)
@@ -25,18 +29,21 @@ export interface CoreEntityCatalogEntityStore<Y, ABC extends OrchestratedActionB
    * Return a collection of observables for the given entity id. Subscribing to core observables (like entityObs$) will fetch the entity if missing
    */
   getEntityService: (
+    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['get']>
   ) => EntityService<Y>;
   /**
    * Return a collection of observables for the given collection of entities. If the collection is missing it will NOT be fetched
    */
   getPaginationMonitor: (
+    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationMonitor<Y>;
   /**
    * Return a collection of observables for the given collection of entities. Subscribing to core (like entities$) will fetch the entity if missing
    */
   getPaginationService: (
+    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
 }

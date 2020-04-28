@@ -17,6 +17,7 @@ import { EntityCatalogHelpers } from '../entity-catalog.helper';
 import {
   CoreEntityCatalogEntityStore,
   EntityCatalogEntityStore,
+  EntityCatalogStoreParams,
   PaginatedActionBuilders,
   PaginationEntityCatalogEntityStore,
 } from './entity-catalog-entity.types';
@@ -127,6 +128,7 @@ export class EntityCatalogEntityStoreHelpers {
         new EntityMonitor<Y>(EntityCatalogHelpers.GetEntityCatalogEntityHelper().store, entityId, entityKey, getSchema(params.schemaKey), params.startWithNull)
       ,
       getEntityService: (
+        params?: EntityCatalogStoreParams,
         ...args: Parameters<ABC['get']>
       ): EntityService<Y> => {
         const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
@@ -141,6 +143,7 @@ export class EntityCatalogEntityStoreHelpers {
         );
       },
       getPaginationMonitor: (
+        params?: EntityCatalogStoreParams,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
         const actionBuilder = actionOrchestrator.getActionBuilder('getMultiple');
@@ -153,6 +156,7 @@ export class EntityCatalogEntityStoreHelpers {
         );
       },
       getPaginationService: (
+        params?: EntityCatalogStoreParams,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
         const actionBuilder = actionOrchestrator.getActionBuilder('getMultiple');

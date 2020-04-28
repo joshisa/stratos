@@ -15,7 +15,6 @@ import {
   appEnvVarsEntityType,
   applicationEntityType,
   appStatsEntityType,
-  appSummaryEntityType,
   domainEntityType,
   organizationEntityType,
   routeEntityType,
@@ -46,7 +45,7 @@ import { selectUpdateInfo } from '../../../../store/src/selectors/api.selectors'
 import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoint.selectors';
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
 import { PaginatedAction, PaginationEntityState } from '../../../../store/src/types/pagination.types';
-import { cfEntityFactory } from '../../cf-entity-factory';
+import { cfEntityCatalog } from '../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../cf-types';
 import { createEntityRelationKey } from '../../entity-relations/entity-relations.types';
 import { AppStat } from '../../store/types/app-metadata.types';
@@ -92,16 +91,17 @@ export class ApplicationService {
     private appEnvVarsService: ApplicationEnvVarsHelper,
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
-    this.appEntityService = this.entityServiceFactory.create<APIResource<IApp>>(
+    this.appEntityService = cfEntityCatalog.application.store.getEntityService(
       appGuid,
-      createGetApplicationAction(appGuid, cfGuid)
+      cfGuid,
+      {
+        includeRelations: createGetApplicationAction(appGuid, cfGuid).includeRelations,
+        populateMissing: true
+      }
     );
-    const appSummaryEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appSummaryEntityType);
-    const actionBuilder = appSummaryEntity.actionOrchestrator.getActionBuilder('get');
-    const getAppSummaryAction = actionBuilder(appGuid, cfGuid);
-    this.appSummaryEntityService = this.entityServiceFactory.create<IAppSummary>(
+    this.appSummaryEntityService = cfEntityCatalog.appSummary.store.getEntityService(
       appGuid,
-      getAppSummaryAction
+      cfGuid
     );
 
     this.constructCoreObservables();
@@ -147,9 +147,7 @@ export class ApplicationService {
     app: IApp,
     appGuid: string,
     cfGuid: string): Observable<ApplicationStateData> {
-    const appStatsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appStatsEntityType);
-    const actionBuilder = appStatsEntity.actionOrchestrator.getActionBuilder('get');
-    const dummyAction = actionBuilder(appGuid, cfGuid) as PaginatedAction;
+    const dummyAction = cfEntityCatalog.appStats.actions.get(appGuid, cfGuid);
     const paginationMonitor = new PaginationMonitor(
       store,
       dummyAction.paginationKey,
@@ -172,21 +170,27 @@ export class ApplicationService {
     this.appSpace$ = moreWaiting$.pipe(
       first(),
       switchMap(app => {
-        const spaceEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, spaceEntityType);
-        const actionBuilder = spaceEntity.actionOrchestrator.getActionBuilder('get');
-        const getSpaceAction = actionBuilder(
+        return cfEntityCatalog.space.store.getEntityService({
+          schemaKey: spaceWithOrgEntityType
+        },
           app.space_guid,
-          app.cfGuid,
-          { includeRelations: [createEntityRelationKey(spaceEntityType, organizationEntityType)], populateMissing: true }
-        );
-        getSpaceAction.entity = cfEntityFactory(spaceWithOrgEntityType);
-        getSpaceAction.schemaKey = spaceWithOrgEntityType;
-        return this.entityServiceFactory.create<APIResource<ISpace>>(
-          app.space_guid,
-          getSpaceAction
+          app.cfGuid
         ).waitForEntity$.pipe(
           map(entityInfo => entityInfo.entity)
         );
+
+        // const getSpaceAction = cfEntityCatalog.space.actions.get(
+        //   app.space_guid,
+        //   app.cfGuid,
+        // )
+        // getSpaceAction.entity = [cfEntityFactory(spaceWithOrgEntityType)];
+        // getSpaceAction.schemaKey = spaceWithOrgEntityType; // TODO: RC SNAG Nicer way to do
+        // return this.entityServiceFactory.create<APIResource<ISpace>>(
+        //   app.space_guid,
+        //   getSpaceAction
+        // ).waitForEntity$.pipe(
+        //   map(entityInfo => entityInfo.entity)
+        // );
       }),
       publishReplay(1),
       refCount()
