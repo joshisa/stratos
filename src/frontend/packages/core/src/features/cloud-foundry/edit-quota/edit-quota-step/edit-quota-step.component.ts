@@ -15,7 +15,6 @@ import {
 import { ActiveRouteCfOrgSpace } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf-page.types';
 import { getActiveRouteCfOrgSpaceProvider } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../store/src/types/api.types';
@@ -48,7 +47,6 @@ export class EditQuotaStepComponent implements OnDestroy {
     private activatedRoute: ActivatedRoute,
     private entityServiceFactory: EntityServiceFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
-    private ech: EntityCatalogHelper,
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
     this.quotaGuid = this.activatedRoute.snapshot.params.quotaId;
@@ -76,7 +74,7 @@ export class EditQuotaStepComponent implements OnDestroy {
     const entityConfig =
       entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
     entityConfig.actionDispatchManager.dispatchUpdate(this.quotaGuid, this.cfGuid, formValues);
-    return entityConfig.store.getEntityMonitor(this.ech, this.quotaGuid)
+    return entityConfig.store.getEntityMonitor(this.quotaGuid)
       .getUpdatingSection(UpdateQuotaDefinition.UpdateExistingQuota).pipe(
         pairwise(),
         filter(([oldV, newV]) => oldV.busy && !newV.busy),

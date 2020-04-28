@@ -490,21 +490,6 @@ function generateCFUserProvidedServiceInstanceEntity(endpointDefinition: Stratos
         }),
         getGuid: metadata => metadata.guid,
       },
-      // entityAPI: {
-      //   getAllInSpace: (
-      //     helper: EntityCatalogHelper,
-      //     endpointGuid: string,
-      //     spaceGuid: string,
-      //     paginationKey?: string,
-      //     includeRelations?: string[],
-      //     populateMissing?: boolean,
-      //   ): EntityAccessPagination<APIResource<IUserProvidedServiceInstance>> => {
-      //     return createEntityApiPagination<APIResource<IUserProvidedServiceInstance>>(
-      //       helper,
-      //       userProvidedServiceActionBuilder.getAllInSpace(endpointGuid, spaceGuid, paginationKey, includeRelations, populateMissing)
-      //     );
-      //   }
-      // }
     }
   );
   return cfEntityCatalog.userProvidedService;
@@ -658,33 +643,6 @@ function generateCFServiceBindingEntity(endpointDefinition: StratosEndpointExten
           guid: ent.metadata.guid
         }),
         getGuid: metadata => metadata.guid,
-        // },
-        // entityAPI: {
-        //   getAllForApplication: (
-        //     ech: EntityCatalogHelper,
-        //     applicationGuid: string,
-        //     endpointGuid: string,
-        //     paginationKey: string,
-        //     { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta = {}
-        //   ) => createEntityApiPagination(
-        //     ech,
-        //     serviceBindingActionBuilders.getAllForApplication(applicationGuid, endpointGuid, paginationKey, {
-        //       includeRelations,
-        //       populateMissing
-        //     })
-        //   ),
-        //   getAllForServiceInstance: (
-        //     ech: EntityCatalogHelper,
-        //     serviceInstanceGuid: string,
-        //     endpointGuid: string,
-        //     paginationKey: string,
-        //     { includeRelations }: CFBasePipelineRequestActionMeta
-        //   ) => createEntityApiPagination(
-        //     ech,
-        //     serviceBindingActionBuilders.getAllForServiceInstance(serviceInstanceGuid, endpointGuid, paginationKey, {
-        //       includeRelations,
-        //     })
-        //   )
       }
     }
   );
@@ -717,19 +675,6 @@ function generateCFServiceEntity(endpointDefinition: StratosEndpointExtensionDef
         }),
         getGuid: metadata => metadata.guid,
       },
-      // entityAPI: {
-      //   getAllInSpace: (
-      //     ech: EntityCatalogHelper,
-      //     endpointGuid: string,
-      //     paginationKey: string,
-      //     spaceGuid: string,
-      //     includeRelations?: string[],
-      //     populateMissing?: boolean,
-      //   ) => createEntityApiPagination(
-      //     ech,
-      //     serviceActionBuilders.getAllInSpace(endpointGuid, paginationKey, spaceGuid, includeRelations, populateMissing)
-      //   )
-      // }
     }
   );
   return cfEntityCatalog.service;

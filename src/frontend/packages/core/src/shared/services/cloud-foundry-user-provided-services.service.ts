@@ -21,7 +21,6 @@ import { createEntityRelationPaginationKey } from '../../../../cloud-foundry/src
 import { fetchTotalResults } from '../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 import { QParam, QParamJoiners } from '../../../../cloud-foundry/src/shared/q-param';
 import { ClearPaginationOfType } from '../../../../store/src/actions/pagination.actions';
-import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../store/src/reducers/api-request-reducer/types';
@@ -46,8 +45,6 @@ export class CloudFoundryUserProvidedServicesService {
     private store: Store<CFAppState>,
     // private entityServiceFactory: EntityServiceFactory,
     private paginationMonitorFactory: PaginationMonitorFactory,
-    private ech: EntityCatalogHelper
-
   ) {
 
     const endpointGuid = 'uEQrNbUurmOUnGqj6cHGyMP60XA';
@@ -84,12 +81,10 @@ export class CloudFoundryUserProvidedServicesService {
 
 
     const entMonitor = cfEntityCatalog.userProvidedService.store.getEntityMonitor(
-      this.ech, // TODO: RC REMOVE
       upsiGuid
     ).entity$.subscribe(a => console.log('entMonitor: ', a));
 
     const entService = cfEntityCatalog.userProvidedService.store.getEntityService(
-      this.ech,
       upsiGuid, // Per action builder
       endpointGuid, {
       includeRelations: [
@@ -100,13 +95,11 @@ export class CloudFoundryUserProvidedServicesService {
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
     const pagMon = cfEntityCatalog.userProvidedService.store.getPaginationMonitor(
-      this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
     const pagObservables = cfEntityCatalog.userProvidedService.store.getPaginationService(
-      this.ech,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
@@ -124,7 +117,6 @@ export class CloudFoundryUserProvidedServicesService {
 
     // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
     const allInSpacePagMonitor = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationMonitor(
-      this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
       null, // Per action builder
@@ -133,7 +125,6 @@ export class CloudFoundryUserProvidedServicesService {
     ).currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
     const allInSpacePagObservables = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService(
-      this.ech,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
       null, // Per action builder
@@ -155,7 +146,6 @@ export class CloudFoundryUserProvidedServicesService {
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
 
     const pagObs = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService(
-      this.ech,
       cfGuid, spaceGuid, null, relations, true
     );
     return combineLatest([
@@ -209,7 +199,7 @@ export class CloudFoundryUserProvidedServicesService {
   }
 
   public getUserProvidedService(cfGuid: string, upsGuid: string): Observable<APIResource<IUserProvidedServiceInstance>> {
-    return cfEntityCatalog.userProvidedService.store.getEntityService(this.ech, upsGuid, cfGuid, {}).waitForEntity$.pipe(
+    return cfEntityCatalog.userProvidedService.store.getEntityService(upsGuid, cfGuid, {}).waitForEntity$.pipe(
       map(e => e.entity)
     );
     // const actionBuilder = cfEntityCatalog.userProvidedServiceEntity.actionOrchestrator.getActionBuilder('get');
@@ -229,7 +219,6 @@ export class CloudFoundryUserProvidedServicesService {
     data: IUserProvidedServiceInstanceData
   ): Observable<RequestInfoState> {
     return cfEntityCatalog.userProvidedService.api.create<RequestInfoState>(
-      this.ech,
       cfGuid,
       guid,
       data,
@@ -259,7 +248,6 @@ export class CloudFoundryUserProvidedServicesService {
     data: Partial<IUserProvidedServiceInstanceData>,
   ): Observable<RequestInfoState> {
     return cfEntityCatalog.userProvidedService.api.update<RequestInfoState>(
-      this.ech,
       guid,
       cfGuid,
       data,

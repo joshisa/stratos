@@ -10,7 +10,6 @@ import { createEntityRelationPaginationKey } from '../../../../cloud-foundry/src
 import { ISpaceQuotaDefinition } from '../../../../core/src/core/cf-api.types';
 import { StepOnNextResult } from '../../../../core/src/shared/components/stepper/step/step.component';
 import { getPaginationKey } from '../../../../store/src/actions/pagination.actions';
-import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
@@ -31,12 +30,10 @@ export class AddEditSpaceStepBase {
     protected activatedRoute: ActivatedRoute,
     protected paginationMonitorFactory: PaginationMonitorFactory,
     protected activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
-    ech: EntityCatalogHelper
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
     this.orgGuid = activeRouteCfOrgSpace.orgGuid;
     this.allSpacesInOrg$ = cfEntityCatalog.space.store.getAllInOrganization.getPaginationService(
-      ech,
       this.orgGuid,
       this.cfGuid,
       getPaginationKey(organizationEntityType, this.orgGuid), {
@@ -73,7 +70,6 @@ export class AddEditSpaceStepBase {
 
 
     this.quotaDefinitions$ = cfEntityCatalog.spaceQuota.store.getAllInOrganization.getPaginationService(
-      ech,
       this.orgGuid,
       this.cfGuid,
       createEntityRelationPaginationKey(organizationEntityType, this.orgGuid)

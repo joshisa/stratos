@@ -16,6 +16,8 @@ import { GeneralEntityAppState, GeneralRequestDataState } from '../../store/src/
 import { EntityCatalogModule } from '../../store/src/entity-catalog.module';
 import { EntityActionDispatcher } from '../../store/src/entity-catalog/action-dispatcher/action-dispatcher';
 import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelpers } from '../../store/src/entity-catalog/entity-catalog.helper';
+import { EntityCatalogHelper } from '../../store/src/entity-catalog/entity-catalog.service';
 import { endpointSchemaKey } from '../../store/src/helpers/entity-factory';
 import { getAPIRequestDataState, selectEntity } from '../../store/src/selectors/api.selectors';
 import { internalEventStateSelector } from '../../store/src/selectors/internal-events.selectors';
@@ -125,8 +127,11 @@ export class AppModule {
     eventService: GlobalEventService,
     private userFavoriteManager: UserFavoriteManager,
     private favoritesConfigMapper: FavoritesConfigMapper,
+    ech: EntityCatalogHelper
   ) {
-    EntityActionDispatcher.initialize(this.store);
+    EntityActionDispatcher.initialize(this.store); // TODO: RC REMOVE
+    EntityCatalogHelpers.SetEntityCatalogHelper(ech);
+
     eventService.addEventConfig<boolean>({
       eventTriggered: (state: GeneralEntityAppState) => new GlobalEventData(!state.dashboard.timeoutSession),
       message: 'Timeout session is disabled - this is considered a security risk.',

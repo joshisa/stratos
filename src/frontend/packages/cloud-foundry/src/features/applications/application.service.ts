@@ -31,7 +31,6 @@ import {
 } from '../../../../core/src/shared/components/application-state/application-state.service';
 import { APP_GUID, CF_GUID } from '../../../../core/src/shared/entity.tokens';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityService } from '../../../../store/src/entity-service';
 import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
 import { EntityMonitorFactory } from '../../../../store/src/monitors/entity-monitor.factory.service';
@@ -92,7 +91,6 @@ export class ApplicationService {
     private appStateService: ApplicationStateService,
     private appEnvVarsService: ApplicationEnvVarsHelper,
     private paginationMonitorFactory: PaginationMonitorFactory,
-    private ech: EntityCatalogHelper
   ) {
     this.appEntityService = this.entityServiceFactory.create<APIResource<IApp>>(
       appGuid,

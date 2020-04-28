@@ -52,7 +52,6 @@ import {
 import { SetClientFilterKey, SetPage } from '../../../../../store/src/actions/pagination.actions';
 import { GeneralAppState } from '../../../../../store/src/app-state';
 import { entityCatalog } from '../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityCatalogEntityConfig } from '../../../../../store/src/entity-catalog/entity-catalog.types';
 import { ActionState } from '../../../../../store/src/reducers/api-request-reducer/types';
 import { getListStateObservables } from '../../../../../store/src/reducers/list.reducer';
@@ -232,7 +231,6 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
     private cd: ChangeDetectorRef,
     @Optional() public config: ListConfig<T>,
     private ngZone: NgZone,
-    private ech: EntityCatalogHelper
   ) { }
 
   ngOnInit() {
@@ -693,7 +691,6 @@ export class ListComponent<T> implements OnInit, OnChanges, OnDestroy, AfterView
       }
       const catalogEntity = entityCatalog.getEntity(entityConfig);
       const entityMonitor = catalogEntity.store.getEntityMonitor(
-        this.ech,
         dataSource.getRowUniqueId(row),
         {
           schemaKey: entityConfig.schemaKey

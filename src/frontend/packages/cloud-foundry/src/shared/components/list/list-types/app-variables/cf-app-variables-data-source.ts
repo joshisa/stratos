@@ -8,7 +8,6 @@ import {
   ListDataSource,
 } from '../../../../../../../core/src/shared/components/list/data-sources-controllers/list-data-source';
 import { IListConfig } from '../../../../../../../core/src/shared/components/list/list.component.types';
-import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { CFAppState } from '../../../../../cf-app-state';
 import { cfEntityCatalog } from '../../../../../cf-entity-catalog';
@@ -26,13 +25,11 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
 
   public cfGuid: string;
   public appGuid: string;
-  private ech: EntityCatalogHelper;
 
   constructor(
     store: Store<CFAppState>,
     appService: ApplicationService,
     listConfig: IListConfig<ListAppEnvVar>,
-    ech: EntityCatalogHelper
   ) {
     // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
     // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
@@ -61,7 +58,6 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
 
     this.cfGuid = appService.cfGuid;
     this.appGuid = appService.appGuid;
-    this.ech = ech;
   }
 
   saveAdd() {
@@ -69,7 +65,7 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
     // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('addNewToApplication');
     // const appVariablesAddAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
     // this.store.dispatch(appVariablesAddAction);
-    cfEntityCatalog.appEnvVar.api.addNewToApplication(this.ech, this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
+    cfEntityCatalog.appEnvVar.api.addNewToApplication(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
 
 
     super.saveAdd();
@@ -84,7 +80,7 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
     // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('editInApplication');
     // const appVariablesEditAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
     // this.store.dispatch(appVariablesEditAction);
-    cfEntityCatalog.appEnvVar.api.editInApplication(this.ech, this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
+    cfEntityCatalog.appEnvVar.api.editInApplication(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
 
     super.saveEdit();
   }

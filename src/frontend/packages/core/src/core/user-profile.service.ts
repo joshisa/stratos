@@ -11,7 +11,6 @@ import {
 import { AppState } from '../../../store/src/app-state';
 import { UserProfileEffect, userProfilePasswordUpdatingKey } from '../../../store/src/effects/user-profile.effects';
 import { entityCatalog } from '../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityMonitor } from '../../../store/src/monitors/entity-monitor';
 import { ActionState, getDefaultActionState, rootUpdatingKey } from '../../../store/src/reducers/api-request-reducer/types';
 import { AuthState } from '../../../store/src/reducers/auth.reducer';
@@ -35,7 +34,6 @@ export class UserProfileService {
 
   constructor(
     private store: Store<AppState>,
-    private ech: EntityCatalogHelper
   ) {
     if (!this.stratosUserConfig) {
       console.error('Can not get user profile entity');
@@ -43,7 +41,7 @@ export class UserProfileService {
       return;
     }
 
-    this.entityMonitor = this.stratosUserConfig.store.getEntityMonitor(this.ech, UserProfileEffect.guid);
+    this.entityMonitor = this.stratosUserConfig.store.getEntityMonitor(UserProfileEffect.guid);
 
     this.userProfile$ = this.entityMonitor.entity$.pipe(
       filter(data => data && !!data.id)

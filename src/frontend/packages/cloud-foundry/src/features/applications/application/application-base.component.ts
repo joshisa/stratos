@@ -7,7 +7,6 @@ import {
   ApplicationStateService,
 } from '../../../../../core/src/shared/components/application-state/application-state.service';
 import { APP_GUID, CF_GUID, ENTITY_SERVICE } from '../../../../../core/src/shared/entity.tokens';
-import { EntityCatalogHelper } from '../../../../../store/src/entity-catalog/entity-catalog.service';
 import { EntityServiceFactory } from '../../../../../store/src/entity-service-factory.service';
 import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
 import { ApplicationService, createGetApplicationAction } from '../application.service';
@@ -21,7 +20,6 @@ export function applicationServiceFactory(
   appStateService: ApplicationStateService,
   appEnvVarsService: ApplicationEnvVarsHelper,
   paginationMonitorFactory: PaginationMonitorFactory,
-  ech: EntityCatalogHelper
 ) {
   return new ApplicationService(
     cfId,
@@ -31,7 +29,6 @@ export function applicationServiceFactory(
     appStateService,
     appEnvVarsService,
     paginationMonitorFactory,
-    ech
   );
 }
 

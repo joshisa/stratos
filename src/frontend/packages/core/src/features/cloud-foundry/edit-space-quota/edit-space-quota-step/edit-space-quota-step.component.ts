@@ -15,7 +15,6 @@ import {
 } from '../../../../../../cloud-foundry/src/entity-action-builders/space-quota.action-builders';
 import { AppState } from '../../../../../../store/src/app-state';
 import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../store/src/types/api.types';
@@ -44,7 +43,6 @@ export class EditSpaceQuotaStepComponent implements OnDestroy {
 
   constructor(
     private store: Store<AppState>,
-    private ech: EntityCatalogHelper,
     private activatedRoute: ActivatedRoute,
     private entityServiceFactory: EntityServiceFactory,
   ) {
@@ -77,7 +75,7 @@ export class EditSpaceQuotaStepComponent implements OnDestroy {
       entityCatalog.getEntity<IEntityMetadata, any, SpaceQuotaDefinitionActionBuilders>(CF_ENDPOINT_TYPE, spaceQuotaEntityType);
     entityConfig.actionDispatchManager.dispatchUpdate(this.spaceQuotaGuid, this.cfGuid, formValues);
 
-    return entityConfig.store.getEntityMonitor(this.ech, this.spaceQuotaGuid)
+    return entityConfig.store.getEntityMonitor(this.spaceQuotaGuid)
       .getUpdatingSection(UpdateSpaceQuotaDefinition.UpdateExistingSpaceQuota)
       .pipe(
         pairwise(),

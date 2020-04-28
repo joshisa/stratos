@@ -9,7 +9,6 @@ import {
   SpaceQuotaDefinitionActionBuilders,
 } from '../../../../../../cloud-foundry/src/entity-action-builders/space-quota.action-builders';
 import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { IQuotaDefinition } from '../../../../core/cf-api.types';
@@ -33,7 +32,6 @@ export class CreateSpaceQuotaStepComponent {
   form: SpaceQuotaDefinitionFormComponent;
 
   constructor(
-    private ech: EntityCatalogHelper,
     private activatedRoute: ActivatedRoute,
   ) {
     this.cfGuid = this.activatedRoute.snapshot.params.endpointId;
@@ -52,7 +50,7 @@ export class CreateSpaceQuotaStepComponent {
       createQuota: formValues
     });
 
-    return entityConfig.store.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
+    return entityConfig.store.getEntityMonitor(formValues.name).entityRequest$.pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
       map(([, newV]) => newV),

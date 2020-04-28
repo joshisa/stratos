@@ -10,7 +10,6 @@ import {
   QuotaDefinitionActionBuilder,
 } from '../../../../../../cloud-foundry/src/entity-action-builders/quota-definition.action-builders';
 import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../../store/src/entity-catalog/entity-catalog.service';
 import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { StepOnNextFunction } from '../../../../shared/components/stepper/step/step.component';
 import { QuotaDefinitionFormComponent } from '../../quota-definition-form/quota-definition-form.component';
@@ -31,7 +30,6 @@ export class CreateQuotaStepComponent {
   form: QuotaDefinitionFormComponent;
 
   constructor(
-    private ech: EntityCatalogHelper,
     private activatedRoute: ActivatedRoute,
   ) {
     this.cfGuid = this.activatedRoute.snapshot.params.endpointId;
@@ -44,7 +42,7 @@ export class CreateQuotaStepComponent {
     const entityConfig =
       entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
     entityConfig.actionDispatchManager.dispatchCreate(formValues.name, this.cfGuid, formValues);
-    return entityConfig.store.getEntityMonitor(this.ech, formValues.name).entityRequest$.pipe(
+    return entityConfig.store.getEntityMonitor(formValues.name).entityRequest$.pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
       map(([, newV]) => newV),

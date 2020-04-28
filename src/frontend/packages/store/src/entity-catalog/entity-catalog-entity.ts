@@ -28,7 +28,6 @@ import {
   OrchestratedActionBuilders,
 } from './action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
-import { EntityCatalogHelper } from './entity-catalog.service';
 import {
   EntityCatalogSchemas,
   IEntityMetadata,
@@ -39,19 +38,8 @@ import {
   StratosEndpointExtensionDefinition,
 } from './entity-catalog.types';
 
-// ------------ 1
-
-// export function apiCustomDispatch(
-//   helper: EntityCatalogHelper,
-//   action: Action
-// ) {
-//   helper.store.dispatch(action);
-// }
 
 type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
-
-
-
 
 
 export interface EntityCatalogBuilders<
@@ -63,7 +51,6 @@ export interface EntityCatalogBuilders<
   // Allows extensions to modify entities data in the store via none API Effect or unrelated actions.
   dataReducers?: ActionReducer<IRequestEntityTypeState<Y>>[];
   actionBuilders?: AB;
-  // entityAPI?: AA;
 }
 type DefinitionTypes = IStratosEntityDefinition<EntityCatalogSchemas> |
   IStratosEndpointDefinition<EntityCatalogSchemas> |
@@ -97,11 +84,14 @@ export class StratosBaseCatalogEntity<
     );
 
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
+
+    const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
     this.store = {
       ...this.createStorage(),
-      ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
+      ...ActionBuilderConfigMapper.getEntityInstances(helper, this.actions)
     } as EntityCatalogStore<Y, ABC>;
     this.api = ActionBuilderConfigMapper.getActionDispatchers(
+      helper,
       this.store,
       actionBuilders as ABC
     );
@@ -126,11 +116,6 @@ export class StratosBaseCatalogEntity<
    * Monitor an entity or collection of entities.
    */
   public readonly store: EntityCatalogStore<Y, ABC>;
-
-
-
-
-
 
 
   public readonly entityKey: string;
@@ -276,19 +261,20 @@ export class StratosBaseCatalogEntity<
   private createStorage(): EntityAccess<Y, ABC> {
     return {
       getEntityMonitor: (
-        helper: EntityCatalogHelper,
+        // helper: EntityCatalogHelper,
         entityId: string,
         params = {
           schemaKey: '',
           startWithNull: false
         }
       ): EntityMonitor<Y> =>
-        new EntityMonitor<Y>(helper.store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull)
+        new EntityMonitor<Y>(EntityCatalogHelpers.GetEntityCatalogHelper().store, entityId, this.entityKey, this.getSchema(params.schemaKey), params.startWithNull)
       ,
       getEntityService: (
-        helper: EntityCatalogHelper,
+        // helper: EntityCatalogHelper,
         ...args: Parameters<ABC['get']>
       ): EntityService<Y> => {
+        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
         const actionBuilder = this.actionOrchestrator.getActionBuilder('get');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
@@ -300,9 +286,10 @@ export class StratosBaseCatalogEntity<
         );
       },
       getPaginationMonitor: (
-        helper: EntityCatalogHelper,
+        // helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
+        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
         const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
@@ -314,9 +301,10 @@ export class StratosBaseCatalogEntity<
         );
       },
       getPaginationService: (
-        helper: EntityCatalogHelper,
+        // helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
+        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
         const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);

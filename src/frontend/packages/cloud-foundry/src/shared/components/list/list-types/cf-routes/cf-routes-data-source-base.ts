@@ -15,7 +15,7 @@ import {
 } from '../../../../../../../core/src/shared/components/list/list-table/table-row/table-row-state-manager';
 import { IListConfig } from '../../../../../../../core/src/shared/components/list/list.component.types';
 import { entityCatalog } from '../../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogHelper } from '../../../../../../../store/src/entity-catalog/entity-catalog.service';
+import { EntityCatalogHelpers } from '../../../../../../../store/src/entity-catalog/entity-catalog.helper';
 import { PaginationMonitor } from '../../../../../../../store/src/monitors/pagination-monitor';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { PaginatedAction, PaginationParam } from '../../../../../../../store/src/types/pagination.types';
@@ -123,7 +123,7 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     genericRouteState: boolean,
     isLocal: boolean): { rowsState: Observable<RowsState>, sub: Subscription } {
     if (genericRouteState) {
-      const { rowStateManager, sub } = CfRoutesDataSourceBase.getRowStateManager(store, paginationKey, isLocal);
+      const { rowStateManager, sub } = CfRoutesDataSourceBase.getRowStateManager(paginationKey, isLocal);
       return {
         rowsState: rowStateManager.observable,
         sub
@@ -136,11 +136,13 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     }
   }
 
-  private static getRowStateManager(ech: EntityCatalogHelper, paginationKey: string, isLocal: boolean): {
+  private static getRowStateManager(paginationKey: string, isLocal: boolean): {
     rowStateManager: TableRowStateManager,
     sub: Subscription
   } {
     const rowStateManager = new TableRowStateManager();
+    // TODO: RC FIX
+    const ech = EntityCatalogHelpers.GetEntityCatalogHelper();
     const paginationMonitor = new PaginationMonitor(
       ech.store,
       paginationKey,
@@ -152,7 +154,6 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
     );
 
     const sub = this.setUpManager(
-      ech,
       paginationMonitor,
       rowStateManager
     );
@@ -164,7 +165,6 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
 
   // This pattern might be worth pulling out into a more general helper if we use it again.
   private static setUpManager(
-    ech: EntityCatalogHelper,
     paginationMonitor: PaginationMonitor<APIResource>,
     rowStateManager: TableRowStateManager
   ) {
@@ -175,7 +175,7 @@ export abstract class CfRoutesDataSourceBase extends CFListDataSource<APIResourc
             entityType: routeEntityType,
             endpointType: CF_ENDPOINT_TYPE
           });
-          const entityMonitor = catalogEntity.store.getEntityMonitor(ech, route.metadata.guid);
+          const entityMonitor = catalogEntity.store.getEntityMonitor(route.metadata.guid);
           const request$ = entityMonitor.entityRequest$.pipe(
             tap(request => {
               const unmapping = request.updating.unmapping || { busy: false };
