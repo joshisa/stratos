@@ -1,16 +1,10 @@
-import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-
 import { FilteredByReturnType, KnownKeys, NeverKeys } from '../../../core/src/core/utils.service';
-import { AppState } from '../app-state';
 import { EntityService } from '../entity-service';
 import { EntitySchema } from '../helpers/entity-schema';
 import { EntityMonitor } from '../monitors/entity-monitor';
 import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { ListActionState, RequestInfoState } from '../reducers/api-request-reducer/types';
 import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.types';
-import { isPaginatedAction, PaginatedAction } from '../types/pagination.types';
-import { RequestAction } from '../types/request.types';
+import { PaginatedAction } from '../types/pagination.types';
 import {
   BaseEntityRequestAction,
   BaseEntityRequestConfig,
@@ -65,12 +59,7 @@ export type EntityCatalogStore<Y, ABC extends OrchestratedActionBuilders> = Enti
 
 
 // TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
-type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = <T extends RequestInfoState | ListActionState>(
-  ...args: Parameters<ABC[K]>
-) => Observable<T>;
-export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: ActionDispatcher<K, ABC>
-};
+
 
 export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: {
@@ -85,6 +74,7 @@ export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
 
 export class ActionBuilderConfigMapper {
 
+  // TODO: RC understand and use?
   static actionKeyHttpMethodMapper = {
     get: 'GET',
     getMultiple: 'GET',
@@ -109,7 +99,6 @@ export class ActionBuilderConfigMapper {
             ...args: Parameters<ABC[K]>
           ): PaginationMonitor<Y> => {
             return EntityCatalogTOSORT.createPaginationMonitor(
-              helper,
               key,
               builders[key](...args)
             );
@@ -118,7 +107,6 @@ export class ActionBuilderConfigMapper {
             ...args: Parameters<ABC[K]>
           ): PaginationObservables<Y> => {
             return EntityCatalogTOSORT.createPaginationService(
-              helper,
               key,
               builders[key](...args)
             );
@@ -131,56 +119,7 @@ export class ActionBuilderConfigMapper {
 
 
 
-  static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(
-    store: Store<AppState>,
-    es: EntityCatalogStore<Y, ABC>,
-    builders: ABC,
-  ): ActionDispatchers<ABC> {
-    if (!builders) {
-      return {} as ActionDispatchers<ABC>;
-    }
-    return Object.keys(builders).reduce((actionDispatchers, key) => {
-      return {
-        ...actionDispatchers,
-        [key]: ActionBuilderConfigMapper.getActionDispatcher(
-          store,
-          es,
-          builders[key],
-          key
-        )
-      };
-    }, {} as ActionDispatchers<ABC>);
-  }
 
-  static getActionDispatcher<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
-    store: Store<AppState>,
-    es: EntityAccess<Y, ABC>,
-    builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
-    actionKey: string,
-  ): ActionDispatcher<K, ABC> {
-    return <T extends RequestInfoState | ListActionState>(
-      ...args: Parameters<ABC[K]>): Observable<T> => {
-      const action = builder(...args);
-      store.dispatch(action);
-      if (isPaginatedAction(action)) {
-        // TODO: RC cf Routes page
-        // TODO: RC TEST??
-        return es[actionKey].getPaginationMonitor(
-          ...args
-        ).currentPageState$;
-      }
-      const rAction = action as RequestAction;
-      const schema = rAction.entity ? rAction.entity[0] || rAction.entity : null;
-      const schemaKey = schema ? schema.schemaKey : null;
-      return es.getEntityMonitor(
-        rAction.guid,
-        {
-          schemaKey,
-          startWithNull: true
-        }
-      ).entityRequest$ as unknown as Observable<T>;
-    };
-  }
 
   static getActionBuilders(
     builders: OrchestratedActionBuilders | OrchestratedActionBuilderConfig,

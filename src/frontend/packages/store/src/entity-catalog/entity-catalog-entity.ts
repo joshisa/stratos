@@ -14,12 +14,7 @@ import { EntityMonitor } from '../monitors/entity-monitor';
 import { EndpointModel } from '../types/endpoint.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
 import { IEndpointFavMetadata } from '../types/user-favorites.types';
-import {
-  ActionBuilderConfigMapper,
-  ActionDispatchers,
-  EntityAccess,
-  EntityCatalogStore,
-} from './action-builder-config.mapper';
+import { ActionBuilderConfigMapper, EntityAccess, EntityCatalogStore } from './action-builder-config.mapper';
 import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
@@ -27,6 +22,7 @@ import {
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
 } from './action-orchestrator/action-orchestrator';
+import { ActionDispatchers, EntityCatalogTOSORT } from './entity-catalog-TOSORT';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
 import {
   EntityCatalogSchemas,
@@ -85,13 +81,11 @@ export class StratosBaseCatalogEntity<
 
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
 
-    const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
     this.store = {
       ...this.createStorage(),
-      ...ActionBuilderConfigMapper.getEntityInstances(helper, this.actions)
+      ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
     } as EntityCatalogStore<Y, ABC>;
-    this.api = ActionBuilderConfigMapper.getActionDispatchers(
-      helper,
+    this.api = EntityCatalogTOSORT.getActionDispatchers(
       this.store,
       actionBuilders as ABC
     );
@@ -289,13 +283,11 @@ export class StratosBaseCatalogEntity<
         // helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
-        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
         const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
         }
-        return ActionBuilderConfigMapper.createPaginationMonitor(
-          helper,
+        return EntityCatalogTOSORT.createPaginationMonitor(
           'getMultiple',
           actionBuilder(...args),
         );
@@ -304,13 +296,11 @@ export class StratosBaseCatalogEntity<
         // helper: EntityCatalogHelper,
         ...args: Parameters<ABC['getMultiple']>
       ) => {
-        const helper = EntityCatalogHelpers.GetEntityCatalogHelper();
         const actionBuilder = this.actionOrchestrator.getActionBuilder('getMultiple');
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
         }
-        return ActionBuilderConfigMapper.createPaginationService(
-          helper,
+        return EntityCatalogTOSORT.createPaginationService(
           'getMultiple',
           actionBuilder(...args),
         );
