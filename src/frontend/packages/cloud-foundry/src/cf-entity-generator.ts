@@ -35,7 +35,7 @@ import {
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
   StratosCatalogEntity,
-} from '../../store/src/entity-catalog/entity-catalog-entity';
+} from '../../store/src/entity-catalog/entity-catalog-entity/entity-catalog-entity';
 import {
   IStratosEntityDefinition,
   StratosEndpointExtensionDefinition,

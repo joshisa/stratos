@@ -3,7 +3,7 @@ import { ReducerManager, Store } from '@ngrx/store';
 
 import { InitCatalogEntitiesAction } from './entity-catalog.actions';
 import { entityCatalog } from './entity-catalog/entity-catalog';
-import { StratosBaseCatalogEntity } from './entity-catalog/entity-catalog-entity';
+import { StratosBaseCatalogEntity } from './entity-catalog/entity-catalog-entity/entity-catalog-entity';
 import { requestDataReducerFactory } from './reducers/api-request-data-reducer/request-data-reducer.factory';
 import { chainApiReducers, requestActions } from './reducers/api-request-reducers.generator.helpers';
 

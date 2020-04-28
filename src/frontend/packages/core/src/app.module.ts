@@ -16,8 +16,8 @@ import { GeneralEntityAppState, GeneralRequestDataState } from '../../store/src/
 import { EntityCatalogModule } from '../../store/src/entity-catalog.module';
 import { EntityActionDispatcher } from '../../store/src/entity-catalog/action-dispatcher/action-dispatcher';
 import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
+import { EntityCatalogHelper } from '../../store/src/entity-catalog/entity-catalog-entity/entity-catalog.service';
 import { EntityCatalogHelpers } from '../../store/src/entity-catalog/entity-catalog.helper';
-import { EntityCatalogHelper } from '../../store/src/entity-catalog/entity-catalog.service';
 import { endpointSchemaKey } from '../../store/src/helpers/entity-factory';
 import { getAPIRequestDataState, selectEntity } from '../../store/src/selectors/api.selectors';
 import { internalEventStateSelector } from '../../store/src/selectors/internal-events.selectors';

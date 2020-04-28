@@ -26,7 +26,7 @@ import {
 import {
   StratosBaseCatalogEntity,
   StratosCatalogEndpointEntity,
-} from '../../store/src/entity-catalog/entity-catalog-entity';
+} from '../../store/src/entity-catalog/entity-catalog-entity/entity-catalog-entity';
 import { APIResource } from '../../store/src/types/api.types';
 import { IAppFavMetadata, IBasicCFMetaData, IOrgFavMetadata, ISpaceFavMetadata } from './cf-metadata-types';
 import { AppEnvVarActionBuilders } from './entity-action-builders/application-env-var.action-builders';

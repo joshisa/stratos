@@ -1,29 +1,27 @@
 import { ActionReducer } from '@ngrx/store';
 
-import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
-import { KnownKeys, NonOptionalKeys } from '../../../core/src/core/utils.service';
-import { getFullEndpointApiUrl } from '../../../core/src/features/endpoints/endpoint-helpers';
-import { IRequestEntityTypeState } from '../app-state';
+import { endpointEntitySchema, STRATOS_ENDPOINT_TYPE } from '../../../../core/src/base-entity-schemas';
+import { KnownKeys, NonOptionalKeys } from '../../../../core/src/core/utils.service';
+import { getFullEndpointApiUrl } from '../../../../core/src/features/endpoints/endpoint-helpers';
+import { IRequestEntityTypeState } from '../../app-state';
 import {
   PaginationPageIteratorConfig,
-} from '../entity-request-pipeline/pagination-request-base-handlers/pagination-iterator.pipe';
-import { EntityPipelineEntity, stratosEndpointGuidKey } from '../entity-request-pipeline/pipeline.types';
-import { EntityService } from '../entity-service';
-import { EntitySchema } from '../helpers/entity-schema';
-import { EntityMonitor } from '../monitors/entity-monitor';
-import { EndpointModel } from '../types/endpoint.types';
-import { APISuccessOrFailedAction, EntityRequestAction } from '../types/request.types';
-import { IEndpointFavMetadata } from '../types/user-favorites.types';
-import { ActionBuilderConfigMapper, EntityAccess, EntityCatalogStore } from './action-builder-config.mapper';
-import { EntityActionDispatcherManager } from './action-dispatcher/action-dispatcher';
+} from '../../entity-request-pipeline/pagination-request-base-handlers/pagination-iterator.pipe';
+import { EntityPipelineEntity, stratosEndpointGuidKey } from '../../entity-request-pipeline/pipeline.types';
+import { EntityService } from '../../entity-service';
+import { EntitySchema } from '../../helpers/entity-schema';
+import { EntityMonitor } from '../../monitors/entity-monitor';
+import { EndpointModel } from '../../types/endpoint.types';
+import { APISuccessOrFailedAction, EntityRequestAction } from '../../types/request.types';
+import { IEndpointFavMetadata } from '../../types/user-favorites.types';
+import { EntityActionDispatcherManager } from '../action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
   ActionOrchestrator,
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
-} from './action-orchestrator/action-orchestrator';
-import { ActionDispatchers, EntityCatalogTOSORT } from './entity-catalog-TOSORT';
-import { EntityCatalogHelpers } from './entity-catalog.helper';
+} from '../action-orchestrator/action-orchestrator';
+import { EntityCatalogHelpers } from '../entity-catalog.helper';
 import {
   EntityCatalogSchemas,
   IEntityMetadata,
@@ -32,7 +30,10 @@ import {
   IStratosEntityBuilder,
   IStratosEntityDefinition,
   StratosEndpointExtensionDefinition,
-} from './entity-catalog.types';
+} from '../entity-catalog.types';
+import { ActionBuilderConfigMapper } from './action-builder-config.mapper';
+import { EntityAccess, EntityCatalogStore } from './entity-catalog-entity.types';
+import { ActionDispatchers, EntityCatalogTOSORT } from './entity-catalog-TOSORT';
 
 
 type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>

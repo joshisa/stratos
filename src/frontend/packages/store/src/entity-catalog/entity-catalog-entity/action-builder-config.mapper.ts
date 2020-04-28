@@ -1,10 +1,6 @@
-import { FilteredByReturnType, KnownKeys, NeverKeys } from '../../../core/src/core/utils.service';
-import { EntityService } from '../entity-service';
-import { EntitySchema } from '../helpers/entity-schema';
-import { EntityMonitor } from '../monitors/entity-monitor';
-import { PaginationMonitor } from '../monitors/pagination-monitor';
-import { PaginationObservables } from '../reducers/pagination-reducer/pagination-reducer.types';
-import { PaginatedAction } from '../types/pagination.types';
+import { EntitySchema } from '../../helpers/entity-schema';
+import { PaginationMonitor } from '../../monitors/pagination-monitor';
+import { PaginationObservables } from '../../reducers/pagination-reducer/pagination-reducer.types';
 import {
   BaseEntityRequestAction,
   BaseEntityRequestConfig,
@@ -15,62 +11,14 @@ import {
   OrchestratedActionBuilder,
   OrchestratedActionBuilderConfig,
   OrchestratedActionBuilders,
-  OrchestratedActionCoreBuilders,
   PaginationRequestActionConfig,
-} from './action-orchestrator/action-orchestrator';
+} from '../action-orchestrator/action-orchestrator';
+import { EntityCustomAccess, PaginationBuilders } from './entity-catalog-entity.types';
 import { EntityCatalogTOSORT } from './entity-catalog-TOSORT';
-
-
-/**
- * Filter out all common builders in OrchestratedActionCoreBuilders from ABC
- */
-export type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
-
-/**
- * Filter out builders that don't return pagination actions from ABC
- */
-export type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
-
-export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
-  /**
-   * // TODO: RC Add Comments to all of these
-   */
-  getEntityMonitor: (
-    entityId: string,
-    params?: {
-      schemaKey?: string,
-      startWithNull?: boolean
-    }
-  ) => EntityMonitor<Y>;
-  getEntityService: (
-    ...args: Parameters<ABC['get']>
-  ) => EntityService<Y>;
-  getPaginationMonitor: (
-    ...args: Parameters<ABC['getMultiple']>
-  ) => PaginationMonitor<Y>;
-  getPaginationService: (
-    ...args: Parameters<ABC['getMultiple']>
-  ) => PaginationObservables<Y>;
-  // instances: EntityInstances<Y, PaginationBuilders<ABC>>;
-}
-
-type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>
-export type EntityCatalogStore<Y, ABC extends OrchestratedActionBuilders> = EntityAccess<Y, ABC> & EntityCustomAccess<Y, PaginatedActionBuilders<ABC>>
 
 
 // TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
 
-
-export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
-  [K in keyof ABC]: {
-    getPaginationMonitor: (
-      ...args: Parameters<ABC[K]>
-    ) => PaginationMonitor<Y>;
-    getPaginationService: (
-      ...args: Parameters<ABC[K]>
-    ) => PaginationObservables<Y>;
-  }
-};
 
 export class ActionBuilderConfigMapper {
 
@@ -115,11 +63,6 @@ export class ActionBuilderConfigMapper {
       };
     }, {} as EntityCustomAccess<Y, PaginationBuilders<ABC>>);
   }
-
-
-
-
-
 
   static getActionBuilders(
     builders: OrchestratedActionBuilders | OrchestratedActionBuilderConfig,

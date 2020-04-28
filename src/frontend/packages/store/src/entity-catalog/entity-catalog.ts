@@ -2,7 +2,11 @@ import { STRATOS_ENDPOINT_TYPE } from '../../../core/src/base-entity-schemas';
 import { IRequestEntityTypeState } from '../app-state';
 import { ExtraApiReducers } from '../reducers/api-request-reducers.generator.helpers';
 import { OrchestratedActionBuilders } from './action-orchestrator/action-orchestrator';
-import { StratosBaseCatalogEntity, StratosCatalogEndpointEntity, StratosCatalogEntity } from './entity-catalog-entity';
+import {
+  StratosBaseCatalogEntity,
+  StratosCatalogEndpointEntity,
+  StratosCatalogEntity,
+} from './entity-catalog-entity/entity-catalog-entity';
 import { EntityCatalogHelpers } from './entity-catalog.helper';
 import { EntityCatalogEntityConfig, IEntityMetadata, IStratosBaseEntityDefinition } from './entity-catalog.types';
 

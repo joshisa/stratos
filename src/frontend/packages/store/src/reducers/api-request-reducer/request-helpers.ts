@@ -5,7 +5,7 @@ import { APIResponse } from '../../actions/request.actions';
 import { BaseRequestState, GeneralAppState } from '../../app-state';
 import { BaseEntityRequestAction } from '../../entity-catalog/action-orchestrator/action-orchestrator';
 import { entityCatalog } from '../../entity-catalog/entity-catalog';
-import { StratosBaseCatalogEntity } from '../../entity-catalog/entity-catalog-entity';
+import { StratosBaseCatalogEntity } from '../../entity-catalog/entity-catalog-entity/entity-catalog-entity';
 import { mergeState } from '../../helpers/reducer.helper';
 import { NormalizedResponse } from '../../types/api.types';
 import { PaginatedAction } from '../../types/pagination.types';

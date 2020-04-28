@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { entityCatalog } from '../../../../../store/src/entity-catalog/entity-catalog';
-import { StratosBaseCatalogEntity } from '../../../../../store/src/entity-catalog/entity-catalog-entity';
+import {
+  StratosBaseCatalogEntity,
+} from '../../../../../store/src/entity-catalog/entity-catalog-entity/entity-catalog-entity';
 import { EntityCatalogHelpers } from '../../../../../store/src/entity-catalog/entity-catalog.helper';
 import { IEntityMetadata, IStratosEntityDefinition } from '../../../../../store/src/entity-catalog/entity-catalog.types';
 import { EndpointModel } from '../../../../../store/src/types/endpoint.types';
