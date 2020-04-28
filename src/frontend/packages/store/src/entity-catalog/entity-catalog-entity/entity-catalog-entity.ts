@@ -32,8 +32,8 @@ import {
   StratosEndpointExtensionDefinition,
 } from '../entity-catalog.types';
 import { ActionBuilderConfigMapper } from './action-builder-config.mapper';
-import { EntityAccess, EntityCatalogStore } from './entity-catalog-entity.types';
-import { ActionDispatchers, EntityCatalogTOSORT } from './entity-catalog-TOSORT';
+import { CoreEntityCatalogEntityStore, EntityCatalogEntityStore } from './entity-catalog-entity.types';
+import { ActionDispatchers, EntityCatalogEntityStoreHelpers } from './entity-catalog-TOSORT';
 
 
 type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
@@ -82,19 +82,23 @@ export class StratosBaseCatalogEntity<
 
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
 
-    this.store = {
-      ...this.createStorage(),
-      ...ActionBuilderConfigMapper.getEntityInstances(this.actions)
-    } as EntityCatalogStore<Y, ABC>;
-    this.api = EntityCatalogTOSORT.getActionDispatchers(
-      this.store,
-      actionBuilders as ABC
-    );
-
     // TODO: RC why is the all so convoluted????
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
     // TODO: Remove, have api now
     this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
+
+    this.store = {
+      ...EntityCatalogEntityStoreHelpers.createCoreStore<Y, ABC>(
+        this.actionOrchestrator,
+        this.entityKey,
+        Object.bind(this.getSchema, this)
+      ),
+      ...EntityCatalogEntityStoreHelpers.getPaginationStore<Y>(this.actions)
+    } as EntityCatalogEntityStore<Y, ABC>;
+    this.api = EntityCatalogEntityStoreHelpers.getActionDispatchers(
+      this.store,
+      actionBuilders as ABC
+    );
   }
 
 
@@ -110,7 +114,7 @@ export class StratosBaseCatalogEntity<
   /**
    * Monitor an entity or collection of entities.
    */
-  public readonly store: EntityCatalogStore<Y, ABC>;
+  public readonly store: EntityCatalogEntityStore<Y, ABC>;
 
 
   public readonly entityKey: string;
@@ -253,7 +257,7 @@ export class StratosBaseCatalogEntity<
       null;
   }
 
-  private createStorage(): EntityAccess<Y, ABC> {
+  private createStorage(): CoreEntityCatalogEntityStore<Y, ABC> {
     return {
       getEntityMonitor: (
         // helper: EntityCatalogHelper,
@@ -288,7 +292,7 @@ export class StratosBaseCatalogEntity<
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
         }
-        return EntityCatalogTOSORT.createPaginationMonitor(
+        return EntityCatalogEntityStoreHelpers.createPaginationMonitor(
           'getMultiple',
           actionBuilder(...args),
         );
@@ -301,7 +305,7 @@ export class StratosBaseCatalogEntity<
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${this.entityKey}`);
         }
-        return EntityCatalogTOSORT.createPaginationService(
+        return EntityCatalogEntityStoreHelpers.createPaginationService(
           'getMultiple',
           actionBuilder(...args),
         );

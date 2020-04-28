@@ -6,17 +6,11 @@ import { PaginationObservables } from '../../reducers/pagination-reducer/paginat
 import { PaginatedAction } from '../../types/pagination.types';
 import { OrchestratedActionBuilders, OrchestratedActionCoreBuilders } from '../action-orchestrator/action-orchestrator';
 
+// TODO: RC tidy up `extends OrchestratedActionBuilders`, could be more specific
 /**
- * Filter out all common builders in OrchestratedActionCoreBuilders from ABC
+ * Core entity and entities access (entity/entities monitors and services)
  */
-type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
-
-/**
- * Filter out builders that don't return pagination actions from ABC
- */
-export type PaginationBuilders<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
-
-export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
+export interface CoreEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> {
   /**
    * // TODO: RC Add Comments to all of these
    */
@@ -39,13 +33,25 @@ export interface EntityAccess<Y, ABC extends OrchestratedActionBuilders> {
   // instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
-type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginationBuilders<ABC>, NeverKeys<PaginationBuilders<ABC>>>
-export type EntityCatalogStore<Y, ABC extends OrchestratedActionBuilders> = EntityAccess<Y, ABC> & EntityCustomAccess<Y, PaginatedActionBuilders<ABC>>
+/**
+ * Filter out all common builders in OrchestratedActionCoreBuilders from ABC
+ */
+type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedActionCoreBuilders>;
 
+/**
+ * Mark builders that don't return a pagination action as `never`
+ */
+type PaginatedActionBuildersWithNevers<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
 
+/**
+ * Filter out builders that don't return pagination actions from ABC
+ */
+export type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginatedActionBuildersWithNevers<ABC>, NeverKeys<PaginatedActionBuildersWithNevers<ABC>>>
 
-
-export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
+/**
+ * Provided a typed way to create pagination monitor/service per action (this ultimately only provides ones for paginated actions)
+ */
+export type PaginationEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: {
     getPaginationMonitor: (
       ...args: Parameters<ABC[K]>
@@ -55,3 +61,8 @@ export type EntityCustomAccess<Y, ABC extends OrchestratedActionBuilders> = {
     ) => PaginationObservables<Y>;
   }
 };
+
+/**
+ * Combine CoreEntityCatalogEntityStore (entity and entities store access) with PaginationEntityCatalogEntityStore (per entity custom entities lists)
+ */
+export type EntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = CoreEntityCatalogEntityStore<Y, ABC> & PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>>

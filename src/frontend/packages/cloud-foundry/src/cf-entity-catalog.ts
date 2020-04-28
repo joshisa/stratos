@@ -32,6 +32,7 @@ import { IAppFavMetadata, IBasicCFMetaData, IOrgFavMetadata, ISpaceFavMetadata }
 import { AppEnvVarActionBuilders } from './entity-action-builders/application-env-var.action-builders';
 import { AppStatsActionBuilders } from './entity-action-builders/application-stats.action-builders';
 import { AppSummaryActionBuilders } from './entity-action-builders/application-summary.action-builders';
+import { ApplicationActionBuilders } from './entity-action-builders/application.action-builders';
 import { BuildpackActionBuilders } from './entity-action-builders/buildpack.action-builders';
 import { CfInfoDefinitionActionBuilders } from './entity-action-builders/cf-info.action-builders';
 import { GitCommitActionBuilders, GitCommitActionBuildersConfig } from './entity-action-builders/git-action-builder';
@@ -202,8 +203,8 @@ export class CfEntityCatalog {
 
   public application: StratosBaseCatalogEntity<
     IAppFavMetadata,
-    APIResource<IApp>
-  //   applicationActionBuilder,
+    APIResource<IApp>,
+    ApplicationActionBuilders
   >;
 
   public space: StratosBaseCatalogEntity<

@@ -99,7 +99,7 @@ import {
   AppSummaryActionBuilders,
   appSummaryActionBuilders,
 } from './entity-action-builders/application-summary.action-builders';
-import { applicationActionBuilder } from './entity-action-builders/application.action-builders';
+import { applicationActionBuilder, ApplicationActionBuilders } from './entity-action-builders/application.action-builders';
 import { BuildpackActionBuilders, buildpackActionBuilders } from './entity-action-builders/buildpack.action-builders';
 import { cfEventActionBuilders } from './entity-action-builders/cf-event.action-builders';
 import {
@@ -1032,7 +1032,11 @@ function generateCfApplicationEntity(endpointDefinition: StratosEndpointExtensio
     }
   };
 
-  cfEntityCatalog.application = new StratosCatalogEntity<IAppFavMetadata, APIResource<IApp>>(
+  cfEntityCatalog.application = new StratosCatalogEntity<
+    IAppFavMetadata,
+    APIResource<IApp>,
+    ApplicationActionBuilders
+  >(
     applicationDefinition,
     {
       dataReducers: [

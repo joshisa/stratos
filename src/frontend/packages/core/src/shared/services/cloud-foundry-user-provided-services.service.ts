@@ -105,11 +105,13 @@ export class CloudFoundryUserProvidedServicesService {
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
 
-    // cfEntityCatalog.appEnvVar.actions.;
+    // cfEntityCatalog.appEnvVar.actions.
 
-    // cfEntityCatalog.userProvidedService.store.;
+    // cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService()
+    // cfEntityCatalog.application.store.getAllInSpace.getPaginationMonitor()
+    // cfEntityCatalog.application.actions.
 
-    // cfEntityCatalog.appEnvVar.store.;
+    // cfEntityCatalog.appEnvVar.store.
 
 
 

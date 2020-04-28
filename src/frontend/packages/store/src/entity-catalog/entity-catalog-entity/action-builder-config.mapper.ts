@@ -1,6 +1,4 @@
 import { EntitySchema } from '../../helpers/entity-schema';
-import { PaginationMonitor } from '../../monitors/pagination-monitor';
-import { PaginationObservables } from '../../reducers/pagination-reducer/pagination-reducer.types';
 import {
   BaseEntityRequestAction,
   BaseEntityRequestConfig,
@@ -13,16 +11,9 @@ import {
   OrchestratedActionBuilders,
   PaginationRequestActionConfig,
 } from '../action-orchestrator/action-orchestrator';
-import { EntityCustomAccess, PaginationBuilders } from './entity-catalog-entity.types';
-import { EntityCatalogTOSORT } from './entity-catalog-TOSORT';
-
-
-// TODO: RC TIDY THIS WHOLE MESS. SPLIT OUT
-
 
 export class ActionBuilderConfigMapper {
 
-  // TODO: RC understand and use?
   static actionKeyHttpMethodMapper = {
     get: 'GET',
     getMultiple: 'GET',
@@ -30,39 +21,6 @@ export class ActionBuilderConfigMapper {
     remove: 'DELETE',
     update: 'PUT'
   };
-
-  static getEntityInstances<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
-    builders: ABC,
-  ): EntityCustomAccess<Y, PaginationBuilders<ABC>> {
-    if (!builders) {
-      return {} as EntityCustomAccess<Y, ABC>;
-    }
-    return Object.keys(builders).reduce((entityInstances, key) => {
-      // This isn't smart like the PaginationBuilders type. Here key will be all properties from an action builder (get, getMultiple, etc)
-      // which will be available from the dev console. Attempting to use in code pre-transpile will result in error
-      return {
-        ...entityInstances,
-        [key]: {
-          getPaginationMonitor: (
-            ...args: Parameters<ABC[K]>
-          ): PaginationMonitor<Y> => {
-            return EntityCatalogTOSORT.createPaginationMonitor(
-              key,
-              builders[key](...args)
-            );
-          },
-          getPaginationService: (
-            ...args: Parameters<ABC[K]>
-          ): PaginationObservables<Y> => {
-            return EntityCatalogTOSORT.createPaginationService(
-              key,
-              builders[key](...args)
-            );
-          }
-        }
-      };
-    }, {} as EntityCustomAccess<Y, PaginationBuilders<ABC>>);
-  }
 
   static getActionBuilders(
     builders: OrchestratedActionBuilders | OrchestratedActionBuilderConfig,
