@@ -78,7 +78,7 @@ export class StratosBaseCatalogEntity<
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
 
     // TODO: RC Replace usage, test remove
-    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
+    this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
 
     this.store = {
       ...EntityCatalogEntityStoreHelpers.createCoreStore<Y, ABC>(
@@ -96,16 +96,15 @@ export class StratosBaseCatalogEntity<
 
 
   /**
-   * Create action // TODO: RC comment
+   * Create actions specific to the entity type
    */
   public readonly actions: KnownActionBuilders<ABC>;
   /**
-   * Dispatch action // TODO: RC comment
-   *
+   * Create and dispatch actions specific to the entity type. Response will provide an observable reporting entity or pagination state
    */
   public readonly api: ActionDispatchers<KnownActionBuilders<ABC>>;
   /**
-   * Monitor an entity or collection of entities.
+   * Monitor an entity or collection of entities. Services will fetch the entity/entities if missing, monitors will not
    */
   public readonly store: EntityCatalogEntityStore<Y, ABC>;
 
@@ -114,7 +113,6 @@ export class StratosBaseCatalogEntity<
   public readonly type: string;
   public readonly definition: DefinitionTypes;
   public readonly isEndpoint: boolean;
-  // public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
 

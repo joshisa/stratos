@@ -9,7 +9,7 @@
 //   // noop
 // }
 
-// TODO: RC
+// TODO: RC Update tests
 // describe('ActionDispatcher', () => {
 //   it('should not dispatch unknown action', () => {
 //     const actionOrchestrator = new ActionOrchestrator('Empty');

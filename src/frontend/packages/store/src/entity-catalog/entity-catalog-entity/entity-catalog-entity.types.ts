@@ -12,7 +12,7 @@ import { OrchestratedActionBuilders, OrchestratedActionCoreBuilders } from '../a
  */
 export interface CoreEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> {
   /**
-   * // TODO: RC Add Comments to all of these
+   * Return a collection of observables for the given entity id. If the entity is missing is will NOT be fetched
    */
   getEntityMonitor: (
     entityId: string,
@@ -21,16 +21,24 @@ export interface CoreEntityCatalogEntityStore<Y, ABC extends OrchestratedActionB
       startWithNull?: boolean
     }
   ) => EntityMonitor<Y>;
+  /**
+   * Return a collection of observables for the given entity id. Subscribing to core observables (like entityObs$) will fetch the entity if missing
+   */
   getEntityService: (
     ...args: Parameters<ABC['get']>
   ) => EntityService<Y>;
+  /**
+   * Return a collection of observables for the given collection of entities. If the collection is missing it will NOT be fetched
+   */
   getPaginationMonitor: (
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationMonitor<Y>;
+  /**
+   * Return a collection of observables for the given collection of entities. Subscribing to core (like entities$) will fetch the entity if missing
+   */
   getPaginationService: (
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
-  // instances: EntityInstances<Y, PaginationBuilders<ABC>>;
 }
 
 /**

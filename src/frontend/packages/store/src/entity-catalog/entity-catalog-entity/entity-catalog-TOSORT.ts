@@ -29,7 +29,6 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-// TODO: RC
 export class EntityCatalogEntityStoreHelpers {
   private static createPaginationMonitor<Y>(
     actionBuilderKey: string,
@@ -49,7 +48,6 @@ export class EntityCatalogEntityStoreHelpers {
   ): PaginationObservables<Y> {
     const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
     if (!isPaginatedAction(action)) {
-      // TODO: RC push error message check up
       throw new Error(`\`${actionBuilderKey}\` action is not of type pagination`);
     }
     const pAction = action as PaginatedAction;
@@ -86,7 +84,7 @@ export class EntityCatalogEntityStoreHelpers {
 
   private static getActionDispatcher<Y, ABC extends OrchestratedActionBuilders, K extends keyof ABC>(
     es: CoreEntityCatalogEntityStore<Y, ABC>,
-    builder: OrchestratedActionBuilder, // TODO: RC support | OrchestratedActionBuilderConfig
+    builder: OrchestratedActionBuilder,
     actionKey: string,
   ): ActionDispatcher<K, ABC> {
     return <T extends RequestInfoState | ListActionState>(
@@ -96,8 +94,6 @@ export class EntityCatalogEntityStoreHelpers {
       const action = builder(...args);
       helper.store.dispatch(action);
       if (isPaginatedAction(action)) {
-        // TODO: RC cf Routes page
-        // TODO: RC TEST??
         return es[actionKey].getPaginationMonitor(
           ...args
         ).currentPageState$;

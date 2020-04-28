@@ -87,9 +87,9 @@ export class CloudFoundryUserProvidedServicesService {
 
 
     // cfEntityCatalog.appEnvVar.actions.;
-    // cfEntityCatalog.appEnvVar.store;
+    // cfEntityCatalog.appEnvVar.store.;
 
-    // cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService()
+    // cfEntityCatalog.userProvidedService.store..getAllInSpace.getPaginationService()
     // cfEntityCatalog.userProvidedService.api.;
     // cfEntityCatalog.application.store.getAllInSpace.getPaginationMonitor()
     // cfEntityCatalog.application.actions.;

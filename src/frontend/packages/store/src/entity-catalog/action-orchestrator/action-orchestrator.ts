@@ -154,22 +154,23 @@ export class BasePaginationRequestAction extends BasePipelineRequestAction imple
   }
 }
 
+/**
+ * Collection of common types of actions that should be associated with an entity.
+ * Generic code will make use of get and getMultiple
+ */
 export interface OrchestratedActionCoreBuilders {
-  get?: KnownEntityActionBuilder; // TODO: RC Q make mandatory
+  get?: KnownEntityActionBuilder;
   remove?: KnownEntityActionBuilder;
   update?: KnownEntityActionBuilder;
   create?: CreateActionBuilder;
   getMultiple?: GetMultipleActionBuilder;
 }
 
-// A list of functions that can be used get interface with the entity
+/**
+ * Generic interface for functions that create actions for an entity
+ */
 export interface OrchestratedActionBuilders extends OrchestratedActionCoreBuilders {
-  [actionType: string]: OrchestratedActionBuilder; // TODO: RC this can be removed now with the custom API??
-  // get?: KnownEntityActionBuilder; // TODO: RC Q make mandatory
-  // remove?: KnownEntityActionBuilder;
-  // update?: KnownEntityActionBuilder;
-  // create?: CreateActionBuilder;
-  // getMultiple?: GetMultipleActionBuilder;
+  [actionType: string]: OrchestratedActionBuilder;
 }
 
 export interface OrchestratedActionBuilderConfig {
@@ -180,7 +181,7 @@ export interface OrchestratedActionBuilderConfig {
   getMultiple?: GetMultipleActionBuilder | PaginationRequestActionConfig<GetMultipleActionBuilder>;
   [actionType: string]: OrchestratedActionBuilder |
   EntityRequestActionConfig<KnownEntityActionBuilder> |
-  PaginationRequestActionConfig<GetMultipleActionBuilder>; // TODO: RC this can be removed now with the custom API??
+  PaginationRequestActionConfig<GetMultipleActionBuilder>;
 }
 
 export class ActionOrchestrator<T extends OrchestratedActionBuilders = OrchestratedActionBuilders> {
