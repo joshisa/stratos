@@ -4,7 +4,6 @@ import { Action } from '@ngrx/store';
 import { EntitySchema } from '../../helpers/entity-schema';
 import { PaginatedAction } from '../../types/pagination.types';
 import { EntityRequestAction, StartAction } from '../../types/request.types';
-import { EntityActionDispatcherManager } from '../action-dispatcher/action-dispatcher';
 
 export interface ActionBuilderAction extends EntityRequestAction {
   actionBuilderActionType: string;
@@ -184,16 +183,8 @@ export interface OrchestratedActionBuilderConfig {
   PaginationRequestActionConfig<GetMultipleActionBuilder>; // TODO: RC this can be removed now with the custom API??
 }
 
-// export class OrchestratedActionBuildersClass implements OrchestratedActionBuilders {
-//   // get: KnownEntityActionBuilder;
-//   // getMultiple: GetMultipleActionBuilder;
-//   [actionType: string]: OrchestratedActionBuilder<any[], EntityRequestAction>;
-// }
 export class ActionOrchestrator<T extends OrchestratedActionBuilders = OrchestratedActionBuilders> {
 
-  public getEntityActionDispatcher(actionDispatcher?: (action: Action) => void) {
-    return new EntityActionDispatcherManager<T>(actionDispatcher, this);
-  }
   public getActionBuilder<Y extends keyof T>(actionType: Y) {
     const actionBuilderForType = this.actionBuilders[actionType];
     if (!actionBuilderForType) {

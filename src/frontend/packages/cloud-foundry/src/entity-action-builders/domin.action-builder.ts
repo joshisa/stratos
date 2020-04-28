@@ -2,7 +2,19 @@ import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/ac
 import { FetchAllDomains, FetchDomain } from '../actions/domains.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
-export const domainActionBuilders = {
+export interface DomainActionBuilders extends OrchestratedActionBuilders {
+  get: (
+    guid,
+    endpointGuid
+  ) => FetchDomain;
+  getMultiple: (
+    endpointGuid,
+    paginationKey,
+    { flatten }: CFBasePipelineRequestActionMeta
+  ) => FetchAllDomains;
+};
+
+export const domainActionBuilders: DomainActionBuilders = {
   get: (
     guid,
     endpointGuid
@@ -14,6 +26,6 @@ export const domainActionBuilders = {
     paginationKey,
     { flatten }: CFBasePipelineRequestActionMeta = {}
   ) => new FetchAllDomains(endpointGuid, paginationKey, flatten)
-} as OrchestratedActionBuilders;
+};
 
 

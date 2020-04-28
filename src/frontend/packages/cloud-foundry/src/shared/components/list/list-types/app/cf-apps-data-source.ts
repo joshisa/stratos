@@ -43,6 +43,11 @@ export class CfAppsDataSource extends CFListDataSource<APIResource> {
   ];
   private subs: Subscription[];
   public action: GetAllApplications;
+  public static createAction(paginationKey: string = CfAppsDataSource.paginationKey, startingCfGuid?: string): GetAllApplications {
+    const action = new GetAllApplications(paginationKey, null, CfAppsDataSource.includeRelations);
+    action.endpointGuid = startingCfGuid;
+    return action;
+  }
 
 
   constructor(
@@ -54,8 +59,7 @@ export class CfAppsDataSource extends CFListDataSource<APIResource> {
     startingCfGuid?: string
   ) {
     const syncNeeded = paginationKey !== seedPaginationKey;
-    const action = new GetAllApplications(paginationKey, null, CfAppsDataSource.includeRelations);
-    action.endpointGuid = startingCfGuid;
+    const action = CfAppsDataSource.createAction(paginationKey, startingCfGuid)
 
     const dispatchSequencer = new DispatchSequencer(store);
 

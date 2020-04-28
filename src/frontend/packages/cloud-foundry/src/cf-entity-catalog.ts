@@ -34,16 +34,29 @@ import { AppStatsActionBuilders } from './entity-action-builders/application-sta
 import { AppSummaryActionBuilders } from './entity-action-builders/application-summary.action-builders';
 import { ApplicationActionBuilders } from './entity-action-builders/application.action-builders';
 import { BuildpackActionBuilders } from './entity-action-builders/buildpack.action-builders';
+import { CfEventActionBuilders } from './entity-action-builders/cf-event.action-builders';
 import { CfInfoDefinitionActionBuilders } from './entity-action-builders/cf-info.action-builders';
-import { GitCommitActionBuilders, GitCommitActionBuildersConfig } from './entity-action-builders/git-action-builder';
+import { DomainActionBuilders } from './entity-action-builders/domin.action-builder';
+import { FeatureFlagActionBuilders } from './entity-action-builders/feature-flag.action-builder';
+import {
+  GitBranchActionBuilders,
+  GitCommitActionBuilders,
+  GitCommitActionBuildersConfig,
+  GitRepoActionBuilders,
+} from './entity-action-builders/git-action-builder';
+import { OrganizationActionBuilders } from './entity-action-builders/organization.action-builders';
 import { QuotaDefinitionActionBuilder } from './entity-action-builders/quota-definition.action-builders';
+import { RoutesActionBuilders } from './entity-action-builders/routes.action-builder';
 import { SecurityGroupBuilders } from './entity-action-builders/security-groups.action-builder';
 import { ServiceBindingActionBuilders } from './entity-action-builders/service-binding.action-builders';
 import { ServiceBrokerActionBuilders } from './entity-action-builders/service-broker.entity-builders';
+import { ServiceInstanceActionBuilders } from './entity-action-builders/service-instance.action.builders';
 import { ServicePlanVisibilityActionBuilders } from './entity-action-builders/service-plan-visibility.action-builders';
+import { ServicePlanActionBuilders } from './entity-action-builders/service-plan.action-builders';
 import { ServiceActionBuilders } from './entity-action-builders/service.entity-builders';
 import { SpaceQuotaDefinitionActionBuilders } from './entity-action-builders/space-quota.action-builders';
 import { SpaceActionBuilders } from './entity-action-builders/space.action-builders';
+import { StackActionBuilders } from './entity-action-builders/stack-action-builders';
 import { UserProvidedServiceActionBuilder } from './entity-action-builders/user-provided-service.action-builders';
 import { UserActionBuilders } from './entity-action-builders/user.action-builders';
 import { AppStat } from './store/types/app-metadata.types';
@@ -123,7 +136,6 @@ export class CfEntityCatalog {
   public serviceBinding: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IServiceBinding>,
-    ServiceBindingActionBuilders,
     ServiceBindingActionBuilders
   >;
 
@@ -135,14 +147,14 @@ export class CfEntityCatalog {
 
   public servicePlan: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IServicePlan>
-  //  servicePlanActionBuilders,
+    APIResource<IServicePlan>,
+    ServicePlanActionBuilders
   >;
 
   public serviceInstance: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IServiceInstance>
-  //   serviceInstanceActionBuilders,
+    APIResource<IServiceInstance>,
+    ServiceInstanceActionBuilders
   >;
 
   public user: StratosBaseCatalogEntity<
@@ -153,8 +165,8 @@ export class CfEntityCatalog {
 
   public domain: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IDomain>
-  //  domainActionBuilders,
+    APIResource<IDomain>,
+    DomainActionBuilders
   >;
 
   public gitCommit: StratosBaseCatalogEntity<
@@ -166,39 +178,39 @@ export class CfEntityCatalog {
 
   public gitRepo: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<GitRepo> // TODO: RC is this correct???
-  //  gitRepoActionBuilders,
+    APIResource<GitRepo>, // TODO: RC is this correct???
+    GitRepoActionBuilders
   >;
 
   public gitBranch: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<GitBranch> // TODO: RC is this correct???
-  //  gitBranchActionBuilders,
+    APIResource<GitBranch>, // TODO: RC is this correct???
+    GitBranchActionBuilders
   >;
 
   public event: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource // TODO: RC
-  //  cfEventActionBuilders,
+    APIResource, // TODO: RC
+    CfEventActionBuilders
   >;
 
 
   public route: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IRoute>
-  //  routesActionBuilders,
+    APIResource<IRoute>,
+    RoutesActionBuilders
   >;
 
   public stack: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    APIResource<IStack>
-  //  stackActionBuilders,
+    APIResource<IStack>,
+    StackActionBuilders
   >;
 
   public featureFlag: StratosBaseCatalogEntity<
     IBasicCFMetaData,
-    IFeatureFlag
-  // featureFlagActionBuilders,
+    IFeatureFlag,
+    FeatureFlagActionBuilders
   >;
 
   public application: StratosBaseCatalogEntity<
@@ -215,22 +227,19 @@ export class CfEntityCatalog {
 
   public org: StratosBaseCatalogEntity<
     IOrgFavMetadata,
-    APIResource<IOrganization>
-  //  organizationActionBuilders
+    APIResource<IOrganization>,
+    OrganizationActionBuilders
   >;
 
   public metric: StratosBaseCatalogEntity<
     IBasicCFMetaData
   >;
 
-
   public userProvidedService: StratosBaseCatalogEntity<
     IBasicCFMetaData,
     APIResource<IUserProvidedServiceInstance>,
     UserProvidedServiceActionBuilder
   >;
-  // public userProvidedServiceEntityApi: EntityApiProxy<APIResource<IUserProvidedServiceInstance>, UserProvidedServiceActionBuilder, UserProvidedServiceAccessBuilders>;
 }
 
-// export const cfEntityCatalog = () => new CfEntityCatalog();
 export const cfEntityCatalog: CfEntityCatalog = new CfEntityCatalog();

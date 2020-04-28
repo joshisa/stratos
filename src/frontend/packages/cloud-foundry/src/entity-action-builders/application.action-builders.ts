@@ -15,6 +15,25 @@ import { GetAllAppsInSpace } from '../actions/space.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
 export interface ApplicationActionBuilders extends OrchestratedActionBuilders {
+  get: (
+    guid,
+    endpointGuid,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => GetApplication;
+  remove: (guid: string, endpointGuid: string) => DeleteApplication;
+  create: (id: string, endpointGuid: string, application: IApp) => CreateNewApplication;
+  update: (
+    guid: string,
+    endpointGuid: string,
+    updatedApplication: UpdateApplication,
+    existingApplication?: IApp,
+    updateEntities?: AppMetadataTypes[]
+  ) => UpdateExistingApplication;
+  getMultiple: (
+    endpointGuid: string,
+    paginationKey: string,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => GetAllApplications;
   restage: (guid: string, endpointGuid: string) => RestageApplication;
   assignRoute: (endpointGuid: string, routeGuid: string, applicationGuid: string) => AssignRouteToApplication;
   getAllInSpace: (

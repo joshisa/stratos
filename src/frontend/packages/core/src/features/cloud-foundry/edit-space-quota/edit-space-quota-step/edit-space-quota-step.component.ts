@@ -4,18 +4,9 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { filter, map, pairwise, tap } from 'rxjs/operators';
 
-import {
-  GetSpaceQuotaDefinition,
-  UpdateSpaceQuotaDefinition,
-} from '../../../../../../cloud-foundry/src/actions/quota-definitions.actions';
-import { spaceQuotaEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../../../cloud-foundry/src/cf-types';
-import {
-  SpaceQuotaDefinitionActionBuilders,
-} from '../../../../../../cloud-foundry/src/entity-action-builders/space-quota.action-builders';
+import { GetSpaceQuotaDefinition } from '../../../../../../cloud-foundry/src/actions/quota-definitions.actions';
+import { cfEntityCatalog } from '../../../../../../cloud-foundry/src/cf-entity-catalog';
 import { AppState } from '../../../../../../store/src/app-state';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { IQuotaDefinition } from '../../../../core/cf-api.types';
@@ -68,15 +59,11 @@ export class EditSpaceQuotaStepComponent implements OnDestroy {
 
   submit: StepOnNextFunction = () => {
     const formValues = this.form.formGroup.value;
-    const action = new UpdateSpaceQuotaDefinition(this.spaceQuotaGuid, this.cfGuid, formValues);
+
+    const action = cfEntityCatalog.spaceQuota.actions.update(this.spaceQuotaGuid, this.cfGuid, formValues);
     this.store.dispatch(action);
-
-    const entityConfig =
-      entityCatalog.getEntity<IEntityMetadata, any, SpaceQuotaDefinitionActionBuilders>(CF_ENDPOINT_TYPE, spaceQuotaEntityType);
-    entityConfig.actionDispatchManager.dispatchUpdate(this.spaceQuotaGuid, this.cfGuid, formValues);
-
-    return entityConfig.store.getEntityMonitor(this.spaceQuotaGuid)
-      .getUpdatingSection(UpdateSpaceQuotaDefinition.UpdateExistingSpaceQuota)
+    return cfEntityCatalog.quotaDefinition.store.getEntityMonitor(this.spaceQuotaGuid)
+      .getUpdatingSection(action.updatingKey)
       .pipe(
         pairwise(),
         filter(([oldV, newV]) => oldV.busy && !newV.busy),

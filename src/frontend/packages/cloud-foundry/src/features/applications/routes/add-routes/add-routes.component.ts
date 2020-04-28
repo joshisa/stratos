@@ -15,16 +15,17 @@ import { createEntityRelationKey } from '../../../../../../cloud-foundry/src/ent
 import { selectCfRequestInfo } from '../../../../../../cloud-foundry/src/store/selectors/api.selectors';
 import { Route, RouteMode } from '../../../../../../cloud-foundry/src/store/types/route.types';
 import { IDomain, ISpace } from '../../../../../../core/src/core/cf-api.types';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { pathGet } from '../../../../../../core/src/core/utils.service';
 import {
   StepOnNextFunction,
   StepOnNextResult,
 } from '../../../../../../core/src/shared/components/stepper/step/step.component';
 import { RouterNav } from '../../../../../../store/src/actions/router.actions';
+import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
+import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../../../store/src/types/api.types';
+import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
 import { ApplicationService } from '../../application.service';
 
@@ -263,12 +264,7 @@ export class AddRoutesComponent implements OnInit, OnDestroy {
   private mapRouteSubmit(): Observable<StepOnNextResult> {
 
     return this.selectedRoute$.pipe(
-      tap(route => {
-        entityCatalog.getEntity(CF_ENDPOINT_TYPE, applicationEntityType)
-          .actionOrchestrator
-          .getEntityActionDispatcher((action) => this.store.dispatch(action))
-          .dispatchAction('assignRoute', this.cfGuid, route.metadata.guid, this.appGuid);
-      }),
+      tap(route => cfEntityCatalog.application.api.assignRoute(this.cfGuid, route.metadata.guid, this.appGuid)),
       switchMap(() => this.appService.app$),
       map(requestInfo => requestInfo.entityRequestInfo.updating['Assigning-Route']),
       filter(requestInfo => !requestInfo.busy),

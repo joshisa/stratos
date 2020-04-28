@@ -14,7 +14,6 @@ import {
 } from '../../store/src/actions/user-favourites-actions/update-user-favorite-metadata-action';
 import { GeneralEntityAppState, GeneralRequestDataState } from '../../store/src/app-state';
 import { EntityCatalogModule } from '../../store/src/entity-catalog.module';
-import { EntityActionDispatcher } from '../../store/src/entity-catalog/action-dispatcher/action-dispatcher';
 import { entityCatalog } from '../../store/src/entity-catalog/entity-catalog';
 import { EntityCatalogHelper } from '../../store/src/entity-catalog/entity-catalog-entity/entity-catalog.service';
 import { EntityCatalogHelpers } from '../../store/src/entity-catalog/entity-catalog.helper';
@@ -129,7 +128,6 @@ export class AppModule {
     private favoritesConfigMapper: FavoritesConfigMapper,
     ech: EntityCatalogHelper
   ) {
-    EntityActionDispatcher.initialize(this.store); // TODO: RC REMOVE
     EntityCatalogHelpers.SetEntityCatalogHelper(ech);
 
     eventService.addEventConfig<boolean>({

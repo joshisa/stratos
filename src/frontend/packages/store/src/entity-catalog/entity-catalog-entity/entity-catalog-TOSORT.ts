@@ -24,6 +24,7 @@ import {
 type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilders> = <T extends RequestInfoState | ListActionState>(
   ...args: Parameters<ABC[K]>
 ) => Observable<T>;
+
 export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };

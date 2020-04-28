@@ -4,13 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter, map, pairwise } from 'rxjs/operators';
 
-import { quotaDefinitionEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../../../cloud-foundry/src/cf-types';
-import {
-  QuotaDefinitionActionBuilder,
-} from '../../../../../../cloud-foundry/src/entity-action-builders/quota-definition.action-builders';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
+import { cfEntityCatalog } from '../../../../../../cloud-foundry/src/cf-entity-catalog';
+import { RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { StepOnNextFunction } from '../../../../shared/components/stepper/step/step.component';
 import { QuotaDefinitionFormComponent } from '../../quota-definition-form/quota-definition-form.component';
 
@@ -39,10 +34,7 @@ export class CreateQuotaStepComponent {
 
   submit: StepOnNextFunction = () => {
     const formValues = this.form.formGroup.value;
-    const entityConfig =
-      entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
-    entityConfig.actionDispatchManager.dispatchCreate(formValues.name, this.cfGuid, formValues);
-    return entityConfig.store.getEntityMonitor(formValues.name).entityRequest$.pipe(
+    return cfEntityCatalog.quotaDefinition.api.create<RequestInfoState>(formValues.name, this.cfGuid, formValues).pipe(
       pairwise(),
       filter(([oldV, newV]) => oldV.creating && !newV.creating),
       map(([, newV]) => newV),

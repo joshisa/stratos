@@ -14,7 +14,6 @@ import { EntityMonitor } from '../../monitors/entity-monitor';
 import { EndpointModel } from '../../types/endpoint.types';
 import { APISuccessOrFailedAction, EntityRequestAction } from '../../types/request.types';
 import { IEndpointFavMetadata } from '../../types/user-favorites.types';
-import { EntityActionDispatcherManager } from '../action-dispatcher/action-dispatcher';
 import {
   ActionBuilderAction,
   ActionOrchestrator,
@@ -84,8 +83,6 @@ export class StratosBaseCatalogEntity<
 
     // TODO: RC why is the all so convoluted????
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC); // TODO: RC not public?
-    // TODO: Remove, have api now
-    this.actionDispatchManager = this.actionOrchestrator.getEntityActionDispatcher(); // TODO: RC not public?
 
     this.store = {
       ...EntityCatalogEntityStoreHelpers.createCoreStore<Y, ABC>(
@@ -94,7 +91,7 @@ export class StratosBaseCatalogEntity<
         Object.bind(this.getSchema, this)
       ),
       ...EntityCatalogEntityStoreHelpers.getPaginationStore<Y>(this.actions)
-    } as EntityCatalogEntityStore<Y, ABC>;
+    } as EntityCatalogEntityStore<Y, ABC>; // TODO: RC investigate more
     this.api = EntityCatalogEntityStoreHelpers.getActionDispatchers(
       this.store,
       actionBuilders as ABC
@@ -121,7 +118,7 @@ export class StratosBaseCatalogEntity<
   public readonly type: string;
   public readonly definition: DefinitionTypes;
   public readonly isEndpoint: boolean;
-  public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
+  // public readonly actionDispatchManager: EntityActionDispatcherManager<ABC>;
   public readonly actionOrchestrator: ActionOrchestrator<ABC>;
   public readonly endpointType: string;
 

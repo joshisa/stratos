@@ -1,21 +1,14 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { filter, first, map, pairwise, tap } from 'rxjs/operators';
 
-import {
-  GetQuotaDefinition,
-  UpdateQuotaDefinition,
-} from '../../../../../../cloud-foundry/src/actions/quota-definitions.actions';
-import { quotaDefinitionEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../../../cloud-foundry/src/cf-types';
-import {
-  QuotaDefinitionActionBuilder,
-} from '../../../../../../cloud-foundry/src/entity-action-builders/quota-definition.action-builders';
+import { GetQuotaDefinition } from '../../../../../../cloud-foundry/src/actions/quota-definitions.actions';
+import { cfEntityCatalog } from '../../../../../../cloud-foundry/src/cf-entity-catalog';
 import { ActiveRouteCfOrgSpace } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf-page.types';
 import { getActiveRouteCfOrgSpaceProvider } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
-import { IEntityMetadata } from '../../../../../../store/src/entity-catalog/entity-catalog.types';
+import { AppState } from '../../../../../../store/src/app-state';
 import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { IQuotaDefinition } from '../../../../core/cf-api.types';
@@ -44,6 +37,7 @@ export class EditQuotaStepComponent implements OnDestroy {
   form: QuotaDefinitionFormComponent;
 
   constructor(
+    private store: Store<AppState>,
     private activatedRoute: ActivatedRoute,
     private entityServiceFactory: EntityServiceFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
@@ -71,11 +65,10 @@ export class EditQuotaStepComponent implements OnDestroy {
 
   submit: StepOnNextFunction = () => {
     const formValues = this.form.formGroup.value;
-    const entityConfig =
-      entityCatalog.getEntity<IEntityMetadata, any, QuotaDefinitionActionBuilder>(CF_ENDPOINT_TYPE, quotaDefinitionEntityType);
-    entityConfig.actionDispatchManager.dispatchUpdate(this.quotaGuid, this.cfGuid, formValues);
-    return entityConfig.store.getEntityMonitor(this.quotaGuid)
-      .getUpdatingSection(UpdateQuotaDefinition.UpdateExistingQuota).pipe(
+    const action = cfEntityCatalog.quotaDefinition.actions.update(this.quotaGuid, this.cfGuid, formValues);
+    this.store.dispatch(action);
+    return cfEntityCatalog.quotaDefinition.store.getEntityMonitor(this.quotaGuid)
+      .getUpdatingSection(action.updatingKey).pipe(
         pairwise(),
         filter(([oldV, newV]) => oldV.busy && !newV.busy),
         map(([, newV]) => newV),
