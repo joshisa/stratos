@@ -46,6 +46,7 @@ import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoi
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
 import { PaginatedAction, PaginationEntityState } from '../../../../store/src/types/pagination.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
+import { cfEntityFactory } from '../../cf-entity-factory';
 import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../cf-types';
 import { createEntityRelationKey } from '../../entity-relations/entity-relations.types';
 import { AppStat } from '../../store/types/app-metadata.types';
@@ -92,6 +93,7 @@ export class ApplicationService {
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
     this.appEntityService = cfEntityCatalog.application.store.getEntityService(
+      undefined,
       appGuid,
       cfGuid,
       {
@@ -100,6 +102,7 @@ export class ApplicationService {
       }
     );
     this.appSummaryEntityService = cfEntityCatalog.appSummary.store.getEntityService(
+      undefined,
       appGuid,
       cfGuid
     );
@@ -171,7 +174,10 @@ export class ApplicationService {
       first(),
       switchMap(app => {
         return cfEntityCatalog.space.store.getEntityService({
-          schemaKey: spaceWithOrgEntityType
+          schema: {
+            entity: [cfEntityFactory(spaceWithOrgEntityType)],
+            schemaKey: spaceWithOrgEntityType
+          }
         },
           app.space_guid,
           app.cfGuid

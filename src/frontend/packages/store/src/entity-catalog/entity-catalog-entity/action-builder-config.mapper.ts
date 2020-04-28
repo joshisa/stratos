@@ -12,6 +12,10 @@ import {
   PaginationRequestActionConfig,
 } from '../action-orchestrator/action-orchestrator';
 
+export interface EntityCatalogStoreParams {
+  schemaKey: string;
+}
+
 export class ActionBuilderConfigMapper {
 
   static actionKeyHttpMethodMapper = {
@@ -49,10 +53,14 @@ export class ActionBuilderConfigMapper {
     schemaGetter: (schemaKey: string) => EntitySchema
   ): OrchestratedActionBuilder {
     if (configOrBuilder instanceof EntityRequestActionConfig) {
-      return (...args: Parameters<KnownEntityActionBuilder>) => {
+      return (
+        params?: EntityCatalogStoreParams, // TODO: RC RENAME
+        ...args: Parameters<KnownEntityActionBuilder>
+      ) => {
         const [guid, endpointGuid, ...meta] = args;
+        const schemaKey = params && params.schemaKey ? params.schemaKey : configOrBuilder.schemaKey
         return new BaseEntityRequestAction(
-          schemaGetter(configOrBuilder.schemaKey),
+          schemaGetter(schemaKey),
           guid,
           endpointGuid,
           entityType,

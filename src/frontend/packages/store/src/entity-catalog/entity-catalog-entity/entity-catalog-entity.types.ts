@@ -6,10 +6,6 @@ import { PaginationObservables } from '../../reducers/pagination-reducer/paginat
 import { PaginatedAction } from '../../types/pagination.types';
 import { OrchestratedActionBuilders, OrchestratedActionCoreBuilders } from '../action-orchestrator/action-orchestrator';
 
-export interface EntityCatalogStoreParams {
-  schemaKey?: string;
-}
-
 // TODO: RC tidy up `extends OrchestratedActionBuilders`, could be more specific
 /**
  * Core entity and entities access (entity/entities monitors and services)
@@ -69,9 +65,11 @@ export type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Om
 export type PaginationEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: {
     getPaginationMonitor: (
+      params?: EntityCatalogStoreParams,
       ...args: Parameters<ABC[K]>
     ) => PaginationMonitor<Y>;
     getPaginationService: (
+      params?: EntityCatalogStoreParams,
       ...args: Parameters<ABC[K]>
     ) => PaginationObservables<Y>;
   }

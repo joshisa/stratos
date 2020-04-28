@@ -7,13 +7,14 @@ import { PaginationMonitor } from '../../monitors/pagination-monitor';
 import { ListActionState, RequestInfoState } from '../../reducers/api-request-reducer/types';
 import { PaginationObservables } from '../../reducers/pagination-reducer/pagination-reducer.types';
 import { isPaginatedAction, PaginatedAction } from '../../types/pagination.types';
-import { RequestAction } from '../../types/request.types';
+import { EntityRequestAction, RequestAction } from '../../types/request.types';
 import {
   ActionOrchestrator,
   OrchestratedActionBuilder,
   OrchestratedActionBuilders,
 } from '../action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from '../entity-catalog.helper';
+import { KnownActionBuilders } from './entity-catalog-entity';
 import {
   CoreEntityCatalogEntityStore,
   EntityCatalogEntityStore,
@@ -29,6 +30,14 @@ type ActionDispatcher<K extends keyof ABC, ABC extends OrchestratedActionBuilder
 export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
+
+// const applySchema = <T extends EntityRequestAction>(action: T, params: EntityCatalogStoreParams): T => {
+//   if (params && params.schema) {
+//     action.entity = params.schema.entity || action.entity;
+//     action.schemaKey = params.schema.schemaKey || action.schemaKey;
+//   }
+//   return action;
+// }
 
 export class EntityCatalogEntityStoreHelpers {
   private static createPaginationMonitor<Y>(
@@ -136,7 +145,7 @@ export class EntityCatalogEntityStoreHelpers {
         if (!actionBuilder) {
           throw new Error(`\`get\` action builder not implemented for ${entityKey}`);
         }
-        const action = actionBuilder(...args);
+        const action = applySchema<ReturnType<ABC["get"]>>(actionBuilder(...args), params);
         return helper.esf.create<Y>(
           action.guid,
           action
@@ -152,7 +161,7 @@ export class EntityCatalogEntityStoreHelpers {
         }
         return EntityCatalogEntityStoreHelpers.createPaginationMonitor(
           'getMultiple',
-          actionBuilder(...args),
+          applySchema<ReturnType<ABC["getMultiple"]>>(actionBuilder(...args), params),
         );
       },
       getPaginationService: (
@@ -165,14 +174,14 @@ export class EntityCatalogEntityStoreHelpers {
         }
         return EntityCatalogEntityStoreHelpers.createPaginationService(
           'getMultiple',
-          actionBuilder(...args),
+          applySchema<ReturnType<ABC["getMultiple"]>>(actionBuilder(...args), params),
         );
       },
     };
   }
 
   static getPaginationStore<Y, ABC extends OrchestratedActionBuilders = OrchestratedActionBuilders, K extends keyof ABC = ''>(
-    builders: ABC,
+    builders: KnownActionBuilders<ABC>,
   ): PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>> {
     if (!builders) {
       return {} as PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>>;
@@ -184,19 +193,21 @@ export class EntityCatalogEntityStoreHelpers {
         ...entityInstances,
         [key]: {
           getPaginationMonitor: (
-            ...args: Parameters<ABC[K]>
+            params?: EntityCatalogStoreParams,
+            ...args: any
           ): PaginationMonitor<Y> => {
             return EntityCatalogEntityStoreHelpers.createPaginationMonitor(
               key,
-              builders[key](...args)
+              applySchema<EntityRequestAction>(builders[key](...args), params),
             );
           },
           getPaginationService: (
+            params?: EntityCatalogStoreParams,
             ...args: Parameters<ABC[K]>
           ): PaginationObservables<Y> => {
             return EntityCatalogEntityStoreHelpers.createPaginationService(
               key,
-              builders[key](...args)
+              applySchema<EntityRequestAction>(builders[key](...args), params),
             );
           }
         }

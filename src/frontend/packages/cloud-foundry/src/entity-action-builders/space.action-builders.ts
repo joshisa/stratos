@@ -38,6 +38,10 @@ export interface SpaceActionBuilders extends OrchestratedActionBuilders {
   ) => GetAllOrganizationSpaces;
 }
 
+const a = () => { };
+a.test = true;
+
+
 export const spaceActionBuilders: SpaceActionBuilders = {
   get: (
     guid: string,

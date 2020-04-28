@@ -34,6 +34,7 @@ export class AddEditSpaceStepBase {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
     this.orgGuid = activeRouteCfOrgSpace.orgGuid;
     this.allSpacesInOrg$ = cfEntityCatalog.space.store.getAllInOrganization.getPaginationService(
+      undefined,
       this.orgGuid,
       this.cfGuid,
       getPaginationKey(organizationEntityType, this.orgGuid), {
@@ -45,31 +46,10 @@ export class AddEditSpaceStepBase {
       tap(spaceNames => this.allSpacesInOrg = spaceNames),
       first(),
     );
-    // const paginationKey = getPaginationKey(organizationEntityType, this.orgGuid);
-    // const spaceEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, spaceEntityType);
-    // const getAllSpaceActionBuilder = spaceEntity.actionOrchestrator.getActionBuilder('getAllInOrganization');
-    // const action = getAllSpaceActionBuilder(this.orgGuid, this.cfGuid, paginationKey) as PaginatedAction;
-    // this.allSpacesInOrg$ = getPaginationObservables<APIResource, CFAppState>(
-    //   {
-    //     store: this.store,
-    //     action,
-    //     paginationMonitor: this.paginationMonitorFactory.create(
-    //       action.paginationKey,
-    //       new CFEntityConfig(spaceEntityType),
-    //       action.flattenPagination
-    //     )
-    //   },
-    //   action.flattenPagination
-    // ).entities$.pipe(
-    //   filter(spaces => !!spaces),
-    //   map(spaces => spaces.map(space => space.entity.name)),
-    //   tap(spaceNames => this.allSpacesInOrg = spaceNames),
-    //   first(),
-    // );
     this.fetchSpacesSubscription = this.allSpacesInOrg$.subscribe();
 
-
     this.quotaDefinitions$ = cfEntityCatalog.spaceQuota.store.getAllInOrganization.getPaginationService(
+      undefined,
       this.orgGuid,
       this.cfGuid,
       createEntityRelationPaginationKey(organizationEntityType, this.orgGuid)
@@ -77,30 +57,6 @@ export class AddEditSpaceStepBase {
       filter(o => !!o),
       first()
     );
-
-    // const quotaPaginationKey = createEntityRelationPaginationKey(organizationEntityType, this.orgGuid);
-
-    // const spaceQuotaEntity = entityCatalog.getEntity<IEntityMetadata, any, SpaceQuotaDefinitionActionBuilders>(
-    //   CF_ENDPOINT_TYPE,
-    //   spaceQuotaEntityType
-    // );
-    // const actionBuilder = spaceQuotaEntity.actionOrchestrator.getActionBuilder('getAllInOrganization');
-    // const getAllInOrganization = actionBuilder(this.orgGuid, this.cfGuid, quotaPaginationKey);
-    // this.quotaDefinitions$ = getPaginationObservables<APIResource<ISpaceQuotaDefinition>>(
-    //   {
-    //     store: this.store,
-    //     action: getAllInOrganization as PaginatedAction,
-    //     paginationMonitor: this.paginationMonitorFactory.create(
-    //       quotaPaginationKey,
-    //       cfEntityFactory(spaceQuotaEntityType),
-    //       getAllInOrganization.flattenPagination
-    //     )
-    //   },
-    //   getAllInOrganization.flattenPagination
-    // ).entities$.pipe(
-    //   filter(o => !!o),
-    //   first()
-    // );
 
     this.hasSpaceQuotas$ = this.quotaDefinitions$.pipe(
       map(q => q && q.length > 0)

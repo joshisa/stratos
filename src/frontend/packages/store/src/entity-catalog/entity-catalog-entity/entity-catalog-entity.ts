@@ -32,7 +32,7 @@ import { ActionBuilderConfigMapper } from './action-builder-config.mapper';
 import { EntityCatalogEntityStore } from './entity-catalog-entity.types';
 import { ActionDispatchers, EntityCatalogEntityStoreHelpers } from './entity-catalog-TOSORT';
 
-type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
+export type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
 
 export interface EntityCatalogBuilders<
   T extends IEntityMetadata = IEntityMetadata,
