@@ -34,7 +34,6 @@ export class AddEditSpaceStepBase {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
     this.orgGuid = activeRouteCfOrgSpace.orgGuid;
     this.allSpacesInOrg$ = cfEntityCatalog.space.store.getAllInOrganization.getPaginationService(
-      undefined,
       this.orgGuid,
       this.cfGuid,
       getPaginationKey(organizationEntityType, this.orgGuid), {
@@ -49,7 +48,6 @@ export class AddEditSpaceStepBase {
     this.fetchSpacesSubscription = this.allSpacesInOrg$.subscribe();
 
     this.quotaDefinitions$ = cfEntityCatalog.spaceQuota.store.getAllInOrganization.getPaginationService(
-      undefined,
       this.orgGuid,
       this.cfGuid,
       createEntityRelationPaginationKey(organizationEntityType, this.orgGuid)

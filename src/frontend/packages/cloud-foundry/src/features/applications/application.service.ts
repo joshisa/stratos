@@ -30,7 +30,6 @@ import {
 import { APP_GUID, CF_GUID } from '../../../../core/src/shared/entity.tokens';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
 import { EntityService } from '../../../../store/src/entity-service';
-import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
 import { EntityMonitorFactory } from '../../../../store/src/monitors/entity-monitor.factory.service';
 import { PaginationMonitor } from '../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
@@ -85,13 +84,11 @@ export class ApplicationService {
     @Inject(CF_GUID) public cfGuid: string,
     @Inject(APP_GUID) public appGuid: string,
     private store: Store<CFAppState>,
-    private entityServiceFactory: EntityServiceFactory,
     private appStateService: ApplicationStateService,
     private appEnvVarsService: ApplicationEnvVarsHelper,
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
     this.appEntityService = cfEntityCatalog.application.store.getEntityService(
-      undefined,
       appGuid,
       cfGuid,
       {
@@ -100,7 +97,6 @@ export class ApplicationService {
       }
     );
     this.appSummaryEntityService = cfEntityCatalog.appSummary.store.getEntityService(
-      undefined,
       appGuid,
       cfGuid
     );
@@ -171,36 +167,12 @@ export class ApplicationService {
     this.appSpace$ = moreWaiting$.pipe(
       first(),
       switchMap(app => {
-        // return cfEntityCatalog.space.store.getEntityService(
-        //   undefined,
-        //   app.space_guid,
-        //   app.cfGuid
-        // ).waitForEntity$.pipe(
-        //   map(entityInfo => entityInfo.entity)
-        // );
-
         return cfEntityCatalog.space.store.getWithOrganization.getEntityService(
-          undefined,
           app.space_guid,
           app.cfGuid,
         ).waitForEntity$.pipe(
           map(entityInfo => entityInfo.entity)
         );
-
-        // const getSpaceAction = cfEntityCatalog.space.actions.get(
-        //   app.space_guid,
-        //   app.cfGuid,
-        // )
-        // getSpaceAction.entity = [cfEntityFactory(spaceWithOrgEntityType)];
-        // getSpaceAction.schemaKey = spaceWithOrgEntityType; // TODO: RC SNAG Nicer way to do
-        // return this.entityServiceFactory.create<APIResource<ISpace>>(
-        //   app.space_guid,
-        //   getSpaceAction
-        // ).waitForEntity$.pipe(
-        //   map(entityInfo => entityInfo.entity)
-        // );
-        //   { includeRelations: [createEntityRelationKey(spaceEntityType, organizationEntityType)], populateMissing: true }
-
       }),
       publishReplay(1),
       refCount()

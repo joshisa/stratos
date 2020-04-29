@@ -16,7 +16,6 @@ export function applicationServiceFactory(
   cfId: string,
   id: string,
   store: Store<CFAppState>,
-  entityServiceFactoryInstance: EntityServiceFactory,
   appStateService: ApplicationStateService,
   appEnvVarsService: ApplicationEnvVarsHelper,
   paginationMonitorFactory: PaginationMonitorFactory,
@@ -25,7 +24,6 @@ export function applicationServiceFactory(
     cfId,
     id,
     store,
-    entityServiceFactoryInstance,
     appStateService,
     appEnvVarsService,
     paginationMonitorFactory,
@@ -76,7 +74,6 @@ export function getGuids(type?: string) {
         CF_GUID,
         APP_GUID,
         Store,
-        EntityServiceFactory,
         ApplicationStateService,
         ApplicationEnvVarsHelper,
         PaginationMonitorFactory

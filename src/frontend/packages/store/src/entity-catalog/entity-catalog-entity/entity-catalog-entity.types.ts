@@ -10,7 +10,6 @@ import { PaginationMonitor } from '../../monitors/pagination-monitor';
 import { PaginationObservables } from '../../reducers/pagination-reducer/pagination-reducer.types';
 import { PaginatedAction } from '../../types/pagination.types';
 import { OrchestratedActionBuilders, OrchestratedActionCoreBuilders } from '../action-orchestrator/action-orchestrator';
-import { EntityCatalogStoreParams } from './action-builder-config.mapper';
 
 // TODO: RC tidy up `extends OrchestratedActionBuilders`, could be more specific
 /**
@@ -31,21 +30,18 @@ export interface CoreEntityCatalogEntityStore<Y, ABC extends OrchestratedActionB
    * Return a collection of observables for the given entity id. Subscribing to core observables (like entityObs$) will fetch the entity if missing
    */
   getEntityService: (
-    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['get']>
   ) => EntityService<Y>;
   /**
    * Return a collection of observables for the given collection of entities. If the collection is missing it will NOT be fetched
    */
   getPaginationMonitor: (
-    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationMonitor<Y>;
   /**
    * Return a collection of observables for the given collection of entities. Subscribing to core (like entities$) will fetch the entity if missing
    */
   getPaginationService: (
-    params?: EntityCatalogStoreParams,
     ...args: Parameters<ABC['getMultiple']>
   ) => PaginationObservables<Y>;
 }
@@ -59,16 +55,19 @@ type CustomBuilders<ABC> = Omit<Pick<ABC, KnownKeys<ABC>>, keyof OrchestratedAct
  * Mark builders that don't return a pagination action as `never`
  */
 type PaginatedActionBuildersWithNevers<ABC extends OrchestratedActionBuilders> = FilteredByReturnType<CustomBuilders<ABC>, PaginatedAction>;
-
 /**
  * Filter out builders that don't return pagination actions from ABC
  */
-export type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginatedActionBuildersWithNevers<ABC>, NeverKeys<PaginatedActionBuildersWithNevers<ABC>>>
+type PaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<PaginatedActionBuildersWithNevers<ABC>, NeverKeys<PaginatedActionBuildersWithNevers<ABC>>>
 
-
-// TODO: RC docs
+/**
+ * Mark builders that return a pagination action as `never`
+ */
 type NonPaginatedActionBuildersWithNevers<ABC extends OrchestratedActionBuilders> = FilteredByNotReturnType<CustomBuilders<ABC>, PaginatedAction>;
-export type NonPaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<NonPaginatedActionBuildersWithNevers<ABC>, NeverKeys<NonPaginatedActionBuildersWithNevers<ABC>>>
+/**
+ * Filter out builders that return pagination actions from ABC
+ */
+type NonPaginatedActionBuilders<ABC extends OrchestratedActionBuilders> = Omit<NonPaginatedActionBuildersWithNevers<ABC>, NeverKeys<NonPaginatedActionBuildersWithNevers<ABC>>>
 
 
 
@@ -76,40 +75,46 @@ export type NonPaginatedActionBuilders<ABC extends OrchestratedActionBuilders> =
 /**
  * Provided a typed way to create pagination monitor/service per action (this ultimately only provides ones for paginated actions)
  */
-export type PaginationEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = {
+type EntityCatalogEntityStoreCollections<Y, ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: {
     getPaginationMonitor: (
-      params?: EntityCatalogStoreParams,
       ...args: Parameters<ABC[K]>
     ) => PaginationMonitor<Y>;
     getPaginationService: (
-      params?: EntityCatalogStoreParams,
       ...args: Parameters<ABC[K]>
     ) => PaginationObservables<Y>;
   }
 };
 
-// TODO: RC rename, docs
-export type EntityEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = {
+/**
+ * Provided a typed way to create entity monitor/service per action (this ultimately only provides ones for non-paginated actions)
+ */
+type EntityCatalogEntityStoreSingles<Y, ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: {
     getEntityMonitor: (
       startWithNull: boolean,
       ...args: Parameters<ABC[K]>
     ) => EntityMonitor<Y>;
     getEntityService: (
-      params?: EntityCatalogStoreParams,
       ...args: Parameters<ABC[K]>
     ) => EntityService<Y>
   }
 };
 
+export type CustomEntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> =
+  EntityCatalogEntityStoreCollections<Y, PaginatedActionBuilders<ABC>> &
+  EntityCatalogEntityStoreSingles<Y, NonPaginatedActionBuilders<ABC>>
 
 
 /**
- * Combine CoreEntityCatalogEntityStore (entity and entities store access) with PaginationEntityCatalogEntityStore (per entity custom entities lists)
+ * Combine all types of store
+ * - CoreEntityCatalogEntityStore (entity and entities store access) 
+ * - EntityCatalogEntityStoreCollections (per entity custom entities lists)
+ * - EntityCatalogEntityStoreSingles (per entity custom entity's)
  */
-export type EntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> = CoreEntityCatalogEntityStore<Y, ABC> &
-  PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>> &
-  EntityEntityCatalogEntityStore<Y, NonPaginatedActionBuilders<ABC>>
+export type EntityCatalogEntityStore<Y, ABC extends OrchestratedActionBuilders> =
+  CoreEntityCatalogEntityStore<Y, ABC> &
+  CustomEntityCatalogEntityStore<Y, ABC>
+
 
 

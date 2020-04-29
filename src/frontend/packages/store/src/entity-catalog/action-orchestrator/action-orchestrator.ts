@@ -19,9 +19,6 @@ export type OrchestratedActionBuilder<
 export type KnownEntityActionBuilder<
   T extends Record<any, any> = Record<any, any>
   > = (guid: string, endpointGuid: string, extraArgs?: T) => EntityRequestAction;
-// TODO: RC ADD SCHEMA KEY TO THIS AND GetMultipleActionBuilder? option 1
-// TODO: RC add schemeKey option to getEntityService. pagination types can return their own action
-// TODO: RC add a getSpaceWithOrg.getEntityService concept
 // createTrackingId should be unique to the thing that's being created.
 // It is used to track the status of the entity creation.
 export type CreateActionBuilder<

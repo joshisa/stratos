@@ -66,50 +66,41 @@ export class CloudFoundryUserProvidedServicesService {
     ).entity$.subscribe(a => console.log('entMonitor: ', a));
 
     const entService = cfEntityCatalog.userProvidedService.store.getEntityService(
-      undefined,
       upsiGuid, // Per action builder
-      endpointGuid, {
-      includeRelations: [
-
-      ]
-    } // Per action builder
-
+      endpointGuid, // Per action builder
     ).entityObs$.subscribe(a => console.log('entService: ', a));
 
     const pagMon = cfEntityCatalog.userProvidedService.store.getPaginationMonitor(
-      undefined,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).currentPage$.subscribe(a => console.log('pagMon: ', a));
 
     const pagObservables = cfEntityCatalog.userProvidedService.store.getPaginationService(
-      undefined,
       pagKey, // Per action builder
       endpointGuid, // Per action builder
     ).entities$.subscribe(a => console.log('pagObservables: ', a));
 
 
-    // cfEntityCatalog.appEnvVar.actions.;
+    // cfEntityCatalog.appEnvVar.actions.
     // cfEntityCatalog.appEnvVar.store
 
     // cfEntityCatalog.userProvidedService.store..getAllInSpace.getPaginationService()
-    // cfEntityCatalog.userProvidedService.api.;
+    // cfEntityCatalog.userProvidedService.api.
     // cfEntityCatalog.application.store.getAllInSpace.getPaginationMonitor()
-    // cfEntityCatalog.application.actions.;
+    // cfEntityCatalog.application.store. // TODO: RC!!
+    // cfEntityCatalog.space.actions.
 
     // cfEntityCatalog.appEnvVar.store.
-    cfEntityCatalog.space.store.getEntityService(undefined, spaceGuid, endpointGuid)
-    .entityObs$.subscribe(a => console.log('space.store.getEntityService: ', a));
-    cfEntityCatalog.space.store.getWithOrganization.getEntityService(undefined, spaceGuid, endpointGuid)
-    .entityObs$.subscribe(a => console.log('space.store.getWithOrganization: ', a));
-
+    cfEntityCatalog.space.store.getEntityService(spaceGuid, endpointGuid)
+      .entityObs$.subscribe(a => console.log('space.store.getEntityService: ', a));
+    cfEntityCatalog.space.store.getWithOrganization.getEntityService(spaceGuid, endpointGuid)
+      .entityObs$.subscribe(a => console.log('space.store.getWithOrganization: ', a));
 
 
 
 
     // cfEntityCatalog.userProvidedServiceEntity.storage2.instances.
     const allInSpacePagMonitor = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationMonitor(
-      undefined,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
       null, // Per action builder
@@ -118,7 +109,6 @@ export class CloudFoundryUserProvidedServicesService {
     ).currentPage$.subscribe(a => console.log('allInSpacePagMonitor: ', a));
 
     const allInSpacePagObservables = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService(
-      undefined,
       endpointGuid, // Per action builder
       spaceGuid, // Per action builder
       null, // Per action builder
@@ -141,7 +131,7 @@ export class CloudFoundryUserProvidedServicesService {
     : Observable<APIResource<IUserProvidedServiceInstance>[]> {
 
     const pagObs = cfEntityCatalog.userProvidedService.store.getAllInSpace.getPaginationService(
-      undefined, cfGuid, spaceGuid, null, relations, true
+      cfGuid, spaceGuid, null, relations, true
     );
     return combineLatest([
       pagObs.entities$, // Ensure entities is subbed to the fetch kicks off
@@ -173,7 +163,7 @@ export class CloudFoundryUserProvidedServicesService {
   }
 
   public getUserProvidedService(cfGuid: string, upsGuid: string): Observable<APIResource<IUserProvidedServiceInstance>> {
-    return cfEntityCatalog.userProvidedService.store.getEntityService(undefined, upsGuid, cfGuid, {}).waitForEntity$.pipe(
+    return cfEntityCatalog.userProvidedService.store.getEntityService(upsGuid, cfGuid, {}).waitForEntity$.pipe(
       map(e => e.entity)
     );
   }
