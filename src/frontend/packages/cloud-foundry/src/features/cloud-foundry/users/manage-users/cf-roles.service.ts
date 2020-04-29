@@ -33,6 +33,7 @@ import {
 import { APIResource, EntityInfo } from '../../../../../../store/src/types/api.types';
 import { UsersRolesSetChanges } from '../../../../actions/users-roles.actions';
 import { CFAppState } from '../../../../cf-app-state';
+import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import { cfEntityFactory } from '../../../../cf-entity-factory';
 import { organizationEntityType, spaceEntityType } from '../../../../cf-entity-types';
 import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
@@ -233,13 +234,8 @@ export class CfRolesService {
   }
 
   fetchOrg(cfGuid: string, orgGuid: string): Observable<EntityInfo<APIResource<IOrganization>>> {
-    const orgEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, organizationEntityType);
-    const getOrgActionBuilder = orgEntity.actionOrchestrator.getActionBuilder('get');
-    const getOrgAction = getOrgActionBuilder(orgGuid, cfGuid, { includeRelations: [], populateMissing: false });
-    return this.entityServiceFactory.create<APIResource<IOrganization>>(
-      orgGuid,
-      getOrgAction
-    ).waitForEntity$;
+    return cfEntityCatalog.org.store.getEntityService(orgGuid, cfGuid, { includeRelations: [], populateMissing: false })
+      .waitForEntity$;
   }
 
   fetchOrgEntity(cfGuid: string, orgGuid: string): Observable<APIResource<IOrganization>> {

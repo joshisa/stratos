@@ -9,7 +9,6 @@ import { filter, first, map, share, startWith, switchMap } from 'rxjs/operators'
 import { SaveAppOverrides } from '../../../../../../cloud-foundry/src/actions/deploy-applications.actions';
 import { GetAllOrganizationDomains } from '../../../../../../cloud-foundry/src/actions/organization.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
-import { stackEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
 import {
   selectCfDetails,
   selectDeployAppState,
@@ -18,11 +17,10 @@ import {
 import { OverrideAppDetails, SourceType } from '../../../../../../cloud-foundry/src/store/types/deploy-application.types';
 import { IDomain } from '../../../../../../core/src/core/cf-api.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
 import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
 import { getPaginationObservables } from '../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import { APIResource } from '../../../../../../store/src/types/api.types';
-import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
+import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import {
   ApplicationEnvVarsHelper,
 } from '../../application/application-tabs-base/tabs/build-tab/application-env-vars.service';
@@ -151,23 +149,7 @@ export class DeployApplicationOptionsStepComponent implements OnInit, OnDestroy 
     );
 
     this.stacks$ = cfDetails$.pipe(
-      switchMap(cfDetails => {
-        const stackEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, stackEntityType);
-        const getAllStacksActionBuilder = stackEntity.actionOrchestrator.getActionBuilder('getMultiple');
-        const action = getAllStacksActionBuilder(cfDetails.cloudFoundry, null);
-        return getPaginationObservables<APIResource<IDomain>>(
-          {
-            store: this.store,
-            action,
-            paginationMonitor: this.paginationMonitorFactory.create(
-              action.paginationKey,
-              action,
-              action.flattenPagination
-            )
-          },
-          action.flattenPagination
-        ).entities$;
-      }),
+      switchMap(cfDetails => cfEntityCatalog.stack.store.getPaginationService(null, cfDetails.cloudFoundry).entities$),
       share()
     );
 

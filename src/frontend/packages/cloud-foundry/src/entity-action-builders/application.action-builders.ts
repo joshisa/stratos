@@ -31,8 +31,8 @@ export interface ApplicationActionBuilders extends OrchestratedActionBuilders {
   ) => UpdateExistingApplication;
   getMultiple: (
     endpointGuid: string,
-    paginationKey: string,
-    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+    paginationKey?: string,
+    { includeRelations, populateMissing }?: CFBasePipelineRequestActionMeta
   ) => GetAllApplications;
   restage: (guid: string, endpointGuid: string) => RestageApplication;
   assignRoute: (endpointGuid: string, routeGuid: string, applicationGuid: string) => AssignRouteToApplication;
@@ -63,7 +63,7 @@ export const applicationActionBuilder: ApplicationActionBuilders = {
   ) => new UpdateExistingApplication(guid, endpointGuid, updatedApplication, existingApplication, updateEntities),
   getMultiple: (
     endpointGuid: string,
-    paginationKey: string,
+    paginationKey?: string,
     { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta = {}
   ) => new GetAllApplications(paginationKey, endpointGuid, includeRelations, populateMissing),
   restage: (guid: string, endpointGuid: string) => new RestageApplication(guid, endpointGuid),

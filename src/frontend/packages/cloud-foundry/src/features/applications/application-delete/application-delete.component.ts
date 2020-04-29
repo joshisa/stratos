@@ -4,7 +4,6 @@ import { Store } from '@ngrx/store';
 import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { filter, first, map, pairwise, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { DeleteUserProvidedInstance } from '../../../../../cloud-foundry/src/actions/user-provided-service.actions';
 import {
   applicationEntityType,
   routeEntityType,
@@ -24,6 +23,7 @@ import { EntityMonitor } from '../../../../../store/src/monitors/entity-monitor'
 import { EntityMonitorFactory } from '../../../../../store/src/monitors/entity-monitor.factory.service';
 import { PaginationMonitor } from '../../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
+import { RequestInfoState } from '../../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE } from '../../../cf-types';
@@ -304,34 +304,23 @@ export class ApplicationDeleteComponent<T> {
       return this.redirectToAppWall();
     }
     this.deleteStarted = true;
-    const applicationEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, applicationEntityType);
-    const actionBuilder = applicationEntity.actionOrchestrator.getActionBuilder('remove');
-    const deleteApplicationAction = actionBuilder(this.applicationService.appGuid, this.applicationService.cfGuid);
-    this.store.dispatch(deleteApplicationAction);
-    return this.appMonitor.entityRequest$.pipe(
+    return cfEntityCatalog.application.api.remove<RequestInfoState>(this.applicationService.appGuid, this.applicationService.cfGuid).pipe(
       filter(request => !request.deleting.busy && (request.deleting.deleted || request.deleting.error)),
       map((request) => ({ success: request.deleting.deleted })),
       tap(({ success }) => {
         if (success) {
           if (this.selectedRoutes && this.selectedRoutes.length) {
-            const routeEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, routeEntityType);
-            const delActionBuilder = routeEntity.actionOrchestrator.getActionBuilder('delete');
             this.selectedRoutes.forEach(route => {
-              const deleteRouteAction =
-                delActionBuilder(route.metadata.guid, this.applicationService.cfGuid, this.applicationService.appGuid);
-              this.store.dispatch(deleteRouteAction);
+              cfEntityCatalog.route.api.delete(route.metadata.guid, this.applicationService.cfGuid, this.applicationService.appGuid)
             });
           }
           if (this.selectedServiceInstances && this.selectedServiceInstances.length) {
             this.selectedServiceInstances.forEach(instance => {
-              const serviceInstanceEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, serviceInstancesEntityType);
               if (isUserProvidedServiceInstance(instance.entity.service_instance.entity)) {
-                this.store.dispatch(new DeleteUserProvidedInstance(this.applicationService.cfGuid, instance.entity.service_instance_guid));
+                // TODO: RC Is this the correct guid???
+                cfEntityCatalog.userProvidedService.api.remove(instance.entity.service_instance_guid, this.applicationService.cfGuid)
               } else {
-                const remSiActionBuilder = serviceInstanceEntity.actionOrchestrator.getActionBuilder('remove');
-                const deleteServiceInstanceAction =
-                  remSiActionBuilder(this.applicationService.cfGuid, instance.entity.service_instance_guid);
-                this.store.dispatch(deleteServiceInstanceAction);
+                cfEntityCatalog.serviceInstance.api.remove(instance.entity.service_instance_guid, this.applicationService.cfGuid)
               }
             });
           }
