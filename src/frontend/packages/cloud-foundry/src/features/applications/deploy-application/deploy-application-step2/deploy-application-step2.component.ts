@@ -50,8 +50,7 @@ import {
   DeployApplicationState,
   SourceType,
 } from '../../../../../../cloud-foundry/src/store/types/deploy-application.types';
-import { GitCommit, GitRepo } from '../../../../../../cloud-foundry/src/store/types/git.types';
-import { GitBranch } from '../../../../../../cloud-foundry/src/store/types/github.types';
+import { GitBranch, GitCommit, GitRepo } from '../../../../../../cloud-foundry/src/store/types/git.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
 import { GitSCM } from '../../../../../../core/src/shared/data-services/scm/scm';
 import { GitSCMService, GitSCMType } from '../../../../../../core/src/shared/data-services/scm/scm.service';

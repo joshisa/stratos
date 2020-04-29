@@ -39,6 +39,9 @@ export class EntityCatalogEntityStoreHelpers {
     if (isPaginatedAction(action)) {
       throw new Error(`\`${actionBuilderKey}\` action is of type pagination`);
     }
+    if (!action.guid) {
+      throw new Error(`\`${actionBuilderKey}\` action has no guid`);
+    }
     return helper.esf.create<Y>(
       action.guid,
       action
@@ -113,6 +116,11 @@ export class EntityCatalogEntityStoreHelpers {
       const rAction = action as RequestAction;
       const schema = rAction.entity ? rAction.entity[0] || rAction.entity : null;
       const schemaKey = schema ? schema.schemaKey : null;
+
+      if (!rAction.guid) {
+        throw new Error(`\`${actionKey}\` action has no guid`);
+      }
+
       return es.getEntityMonitor(
         rAction.guid,
         {

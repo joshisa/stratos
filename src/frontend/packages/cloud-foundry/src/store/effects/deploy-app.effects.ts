@@ -18,10 +18,12 @@ import {
 import {
   CHECK_PROJECT_EXISTS,
   CheckProjectExists,
+  FETCH_BRANCH_FOR_PROJECT,
   FETCH_BRANCHES_FOR_PROJECT,
   FETCH_COMMIT,
   FETCH_COMMITS,
   FetchBranchesForProject,
+  FetchBranchForProject,
   FetchCommit,
   FetchCommits,
   ProjectDoesntExist,
@@ -113,6 +115,41 @@ export class DeployAppEffects {
             mappedData.entities[entityKey][id] = b;
             mappedData.result.push(id);
           });
+          return [
+            new WrapperRequestActionSuccess(mappedData, apiAction, actionType)
+          ];
+        }),
+        catchError(err => [
+          new WrapperRequestActionFailed(createFailedGithubRequestMessage(err, this.logger), apiAction, actionType)
+        ]));
+    }));
+
+  @Effect()
+  fetchBranch$ = this.actions$.pipe(
+    ofType<FetchBranchForProject>(FETCH_BRANCH_FOR_PROJECT),
+    mergeMap(action => {
+      const actionType = 'fetch';
+      const apiAction = {
+        entityType: gitBranchesEntityType,
+        endpointType: CF_ENDPOINT_TYPE,
+        type: action.type,
+        guid: action.guid
+      };
+      this.store.dispatch(new StartRequestAction(apiAction, actionType));
+      return action.scm.getBranch(this.httpClient, action.projectName, action.branchName).pipe(
+        mergeMap(branch => {
+          const entityKey = entityCatalog.getEntity(apiAction).entityKey;
+          const mappedData: NormalizedResponse = {
+            entities: { [entityKey]: {} },
+            result: []
+          };
+
+          // const scmType = action.scm.getType();
+          // const id = `${scmType}-${action.projectName}-${branch.name}`; // TODO: RC should come from action guid
+          branch.projectId = action.projectName;
+          branch.entityId = action.guid;
+          mappedData.entities[entityKey][action.guid] = branch;
+          mappedData.result.push(action.guid);
           return [
             new WrapperRequestActionSuccess(mappedData, apiAction, actionType)
           ];

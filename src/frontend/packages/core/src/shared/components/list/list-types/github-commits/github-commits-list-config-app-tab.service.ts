@@ -128,17 +128,19 @@ export class GithubCommitsListConfigServiceAppTab extends GithubCommitsListConfi
       const scmType = stratosProject.deploySource.scm || stratosProject.deploySource.type;
       this.scm = this.scmService.getSCM(scmType as GitSCMType);
 
-      cfEntityCatalog.gitBranch.store.getEntityService(this.projectName, this.cfGuid, {
+      cfEntityCatalog.gitBranch.store.getEntityService(undefined, undefined, {
         scm: this.scm,
-        projectName: this.projectName
-      }).waitForEntity$.pipe(
-        first(),
-      ).subscribe(branch => {
-        this.branchName = branch.entity.name;
-        this.dataSource = new GithubCommitsDataSource(
-          this.store, this, this.scm, this.projectName, this.branchName, this.deployedCommitSha);
-        this.initialised.next(true);
-      });
+        projectName: this.projectName,
+        branchName: stratosProject.deploySource.branch
+      })
+        .waitForEntity$.pipe(
+          first(),
+        ).subscribe(branch => {
+          this.branchName = branch.entity.name;
+          this.dataSource = new GithubCommitsDataSource(
+            this.store, this, this.scm, this.projectName, this.branchName, this.deployedCommitSha);
+          this.initialised.next(true);
+        });
 
       this.setDeployedCommitDetails();
     });
