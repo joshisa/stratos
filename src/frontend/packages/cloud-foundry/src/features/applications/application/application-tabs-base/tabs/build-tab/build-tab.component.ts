@@ -7,7 +7,6 @@ import { combineLatest, delay, distinct, filter, first, map, mergeMap, startWith
 import { AppMetadataTypes } from '../../../../../../../../cloud-foundry/src/actions/app-metadata.actions';
 import { UpdateExistingApplication } from '../../../../../../../../cloud-foundry/src/actions/application.actions';
 import { CFAppState } from '../../../../../../../../cloud-foundry/src/cf-app-state';
-import { applicationEntityType } from '../../../../../../../../cloud-foundry/src/cf-entity-types';
 import { IAppSummary } from '../../../../../../../../core/src/core/cf-api.types';
 import { CurrentUserPermissions } from '../../../../../../../../core/src/core/current-user-permissions.config';
 import { getFullEndpointApiUrl } from '../../../../../../../../core/src/features/endpoints/endpoint-helpers';
@@ -16,12 +15,10 @@ import { ConfirmationDialogService } from '../../../../../../../../core/src/shar
 import { GitSCMService, GitSCMType } from '../../../../../../../../core/src/shared/data-services/scm/scm.service';
 import { ENTITY_SERVICE } from '../../../../../../../../core/src/shared/entity.tokens';
 import { ResetPagination } from '../../../../../../../../store/src/actions/pagination.actions';
-import { entityCatalog } from '../../../../../../../../store/src/entity-catalog/entity-catalog';
 import { EntityService } from '../../../../../../../../store/src/entity-service';
 import { ActionState } from '../../../../../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource, EntityInfo } from '../../../../../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../../../../../cf-entity-catalog';
-import { CF_ENDPOINT_TYPE } from '../../../../../../cf-types';
 import { ApplicationMonitorService } from '../../../../application-monitor.service';
 import { ApplicationData, ApplicationService } from '../../../../application.service';
 import { DEPLOY_TYPES_IDS } from '../../../../deploy-application/deploy-application-steps.types';
@@ -242,9 +239,7 @@ export class BuildTabComponent implements OnInit {
 
   restageApplication() {
     const { cfGuid, appGuid } = this.applicationService;
-    const appEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, applicationEntityType);
-    const actionBuilder = appEntity.actionOrchestrator.getActionBuilder('restage');
-    const restageAppAction = actionBuilder(appGuid, cfGuid);
+    const restageAppAction = cfEntityCatalog.application.actions.restage(appGuid, cfGuid)
     this.confirmAndPollForState(
       appRestageConfirmation,
       () => this.store.dispatch(restageAppAction),

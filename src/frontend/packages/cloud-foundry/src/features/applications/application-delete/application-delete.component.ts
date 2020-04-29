@@ -20,14 +20,13 @@ import { ITableColumn } from '../../../../../core/src/shared/components/list/lis
 import { RouterNav } from '../../../../../store/src/actions/router.actions';
 import { GeneralEntityAppState } from '../../../../../store/src/app-state';
 import { entityCatalog } from '../../../../../store/src/entity-catalog/entity-catalog';
-import { IEntityMetadata } from '../../../../../store/src/entity-catalog/entity-catalog.types';
 import { EntityMonitor } from '../../../../../store/src/monitors/entity-monitor';
 import { EntityMonitorFactory } from '../../../../../store/src/monitors/entity-monitor.factory.service';
 import { PaginationMonitor } from '../../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
 import { APIResource } from '../../../../../store/src/types/api.types';
+import { cfEntityCatalog } from '../../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE } from '../../../cf-types';
-import { RoutesActionBuilders } from '../../../entity-action-builders/routes.action-builder';
 import {
   CfAppRoutesListConfigService,
 } from '../../../shared/components/list/list-types/app-route/cf-app-routes-list-config.service';
@@ -204,10 +203,7 @@ export class ApplicationDeleteComponent<T> {
       startWith(true)
     );
 
-    const appEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, applicationEntityType);
-    const actionBuilder = appEntity.actionOrchestrator.getActionBuilder('get');
-    const getApplicationAction = actionBuilder(applicationService.appGuid, applicationService.cfGuid);
-    this.store.dispatch(getApplicationAction);
+    cfEntityCatalog.application.api.get(applicationService.appGuid, applicationService.cfGuid, {});
   }
 
   private setupAppMonitor() {
@@ -237,32 +233,20 @@ export class ApplicationDeleteComponent<T> {
   public buildRelatedEntitiesActionMonitors() {
     const { appGuid, cfGuid } = this.applicationService;
     const instanceAction = AppServiceBindingDataSource.createGetAllServiceBindings(appGuid, cfGuid);
-
-    const routeEntity = entityCatalog.getEntity<IEntityMetadata, null, RoutesActionBuilders>(CF_ENDPOINT_TYPE, routeEntityType);
-    const actionBuilder = routeEntity.actionOrchestrator.getActionBuilder('getAllForApplication');
-    const routesAction = actionBuilder(appGuid, cfGuid);
-
     const instancePaginationKey = instanceAction.paginationKey;
-    const routesPaginationKey = routesAction.paginationKey;
-
     const instanceMonitor = this.paginationMonitorFactory.create<APIResource<IServiceBinding>>(
       instancePaginationKey,
       instanceAction.entity[0],
       instanceAction.flattenPagination
     );
-    const routeMonitor = this.paginationMonitorFactory.create<APIResource<IRoute>>(
-      routesPaginationKey,
-      routesAction.entity[0],
-      routesAction.flattenPagination
-    );
     return {
       fetch: () => {
         this.store.dispatch(instanceAction);
-        this.store.dispatch(routesAction);
+        cfEntityCatalog.route.api.getAllForApplication(appGuid, cfGuid);
       },
       monitors: {
         instanceMonitor,
-        routeMonitor
+        routeMonitor: cfEntityCatalog.route.store.getAllForApplication.getPaginationMonitor(appGuid, cfGuid)
       }
     };
   }

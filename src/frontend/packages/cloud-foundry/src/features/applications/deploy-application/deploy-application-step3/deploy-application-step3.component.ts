@@ -82,7 +82,7 @@ export class DeployApplicationStep3Component implements OnDestroy {
       const action = CfAppsDataSource.createAction(CfAppsDataSource.paginationKey);
       this.store.dispatch(action);
       // Pre-fetch the app env vars
-      cfEntityCatalog.appEnvVar.api.get(this.appGuid, this.deployer.cfGuid);
+      cfEntityCatalog.appEnvVar.api.getMultiple(this.appGuid, this.deployer.cfGuid);
     });
 
     this.closeable$ = observableCombineLatest(
@@ -162,7 +162,7 @@ export class DeployApplicationStep3Component implements OnDestroy {
     // Take user to applications
     const { cfGuid } = this.deployer;
     if (this.appGuid) {
-      cfEntityCatalog.appEnvVar.api.get(this.appGuid, this.deployer.cfGuid);
+      cfEntityCatalog.appEnvVar.api.getMultiple(this.appGuid, this.deployer.cfGuid);
 
       // Ensure the application package_state is correct
       cfEntityCatalog.application.api.get(

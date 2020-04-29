@@ -11,12 +11,11 @@ import {
 } from '../../../../../../../../core/src/shared/components/list/list-types/github-commits/github-commits-list-config-app-tab.service';
 import { ListConfig } from '../../../../../../../../core/src/shared/components/list/list.component.types';
 import { GitSCMService, GitSCMType } from '../../../../../../../../core/src/shared/data-services/scm/scm.service';
-import { entityCatalog } from '../../../../../../../../store/src/entity-catalog/entity-catalog';
 import { EntityService } from '../../../../../../../../store/src/entity-service';
 import { EntityServiceFactory } from '../../../../../../../../store/src/entity-service-factory.service';
-import { FetchGitHubRepoInfo } from '../../../../../../actions/github.actions';
 import { CFAppState } from '../../../../../../cf-app-state';
-import { gitBranchesEntityType, gitCommitEntityType, gitRepoEntityType } from '../../../../../../cf-entity-types';
+import { cfEntityCatalog } from '../../../../../../cf-entity-catalog';
+import { gitCommitEntityType } from '../../../../../../cf-entity-types';
 import { CF_ENDPOINT_TYPE } from '../../../../../../cf-types';
 import { GitMeta } from '../../../../../../entity-action-builders/git-action-builder';
 import { GitBranch } from '../../../../../../store/types/github.types';
@@ -92,13 +91,20 @@ export class GitSCMTabComponent implements OnInit, OnDestroy {
         const repoEntityID = `${scmType}-${projectName}`;
         const commitEntityID = `${repoEntityID}-${commitSha}`;
 
-        const gitRepoEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, gitRepoEntityType);
-        const getRepoActionBuilder = gitRepoEntity.actionOrchestrator.getActionBuilder('getRepoInfo');
-        const getRepoAction = getRepoActionBuilder(stProject) as FetchGitHubRepoInfo;
+        // TODO: RC INVESTIGATE
+        // this.gitSCMRepoEntityService = cfEntityCatalog.gitRepo.store.getRepoInfo.getEntityService(stProject)
+        const getRepoAction = cfEntityCatalog.gitRepo.actions.getRepoInfo(stProject);
         this.gitSCMRepoEntityService = this.entityServiceFactory.create(
           repoEntityID,
           getRepoAction
         );
+        // const gitRepoEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, gitRepoEntityType);
+        // const getRepoActionBuilder = gitRepoEntity.actionOrchestrator.getActionBuilder('getRepoInfo');
+        // const getRepoAction = getRepoActionBuilder(stProject) as FetchGitHubRepoInfo;
+        // this.gitSCMRepoEntityService = this.entityServiceFactory.create(
+        //   repoEntityID,
+        //   getRepoAction
+        // );
 
         const gitMeta: GitMeta = { projectName: stProject.deploySource.project, scm, commitSha };
         this.gitCommitEntityService = this.entityServiceFactory.create(
@@ -111,12 +117,19 @@ export class GitSCMTabComponent implements OnInit, OnDestroy {
         );
 
         const branchID = `${scmType}-${projectName}-${stProject.deploySource.branch}`;
-        const gitBranchesEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, gitBranchesEntityType);
-        const fetchBranchesActionBuilder = gitBranchesEntity.actionOrchestrator.getActionBuilder('get');
+        // TODO: RC INVESTIGATE
+        // this.gitBranchEntityService = cfEntityCatalog.gitBranch.store.getEntityService(branchID, null, { projectName, scm });
+        const action = cfEntityCatalog.gitBranch.actions.get(branchID, null, { projectName, scm });
         this.gitBranchEntityService = this.entityServiceFactory.create(
           branchID,
-          fetchBranchesActionBuilder(branchID, null, { projectName, scm })
+          action
         );
+        // const gitBranchesEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, gitBranchesEntityType);
+        // const fetchBranchesActionBuilder = gitBranchesEntity.actionOrchestrator.getActionBuilder('get');
+        // this.gitBranchEntityService = this.entityServiceFactory.create(
+        //   branchID,
+        //   fetchBranchesActionBuilder(branchID, null, { projectName, scm })
+        // );
 
         this.gitSCMRepo$ = this.gitSCMRepoEntityService.waitForEntity$.pipe(
           map(p => p.entity && p.entity)

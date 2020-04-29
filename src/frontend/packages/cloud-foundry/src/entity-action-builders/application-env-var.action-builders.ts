@@ -4,7 +4,7 @@ import { AppVariablesAdd, AppVariablesDelete, AppVariablesEdit } from '../action
 import { ListAppEnvVar } from '../shared/components/list/list-types/app-variables/cf-app-variables-data-source';
 
 export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders {
-  get: (appGuid, endpointGuid) => GetAppEnvVarsAction;
+  getMultiple: (appGuid, endpointGuid) => GetAppEnvVarsAction;
   removeFromApplication: (
     appGuid,
     endpointGuid,
@@ -28,7 +28,7 @@ export interface AppEnvVarActionBuilders extends OrchestratedActionBuilders {
 // App variables are a special case where the entities are actually embedded in an application
 // This means that most actions are not standard api actions.
 export const appEnvVarActionBuilders: AppEnvVarActionBuilders = {
-  get: (appGuid, endpointGuid) => new GetAppEnvVarsAction(appGuid, endpointGuid),
+  getMultiple: (appGuid, endpointGuid) => new GetAppEnvVarsAction(appGuid, endpointGuid),
   removeFromApplication: (
     appGuid,
     endpointGuid,

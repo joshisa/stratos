@@ -34,7 +34,7 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
     // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
     // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
     // const getAppEnvVarsAction = actionBuilder(appService.appGuid, appService.cfGuid) as PaginatedAction;
-    const getAppEnvVarsAction = cfEntityCatalog.appEnvVar.actions.get(appService.appGuid, appService.cfGuid);
+    const getAppEnvVarsAction = cfEntityCatalog.appEnvVar.actions.getMultiple(appService.appGuid, appService.cfGuid);
 
     super({
       store,
