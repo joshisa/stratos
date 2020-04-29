@@ -48,6 +48,13 @@ export type FilteredByReturnType<T extends { [key: string]: (...args: any[]) => 
   [P in keyof T]: ReturnType<T[P]> extends U ? T[P] : never
 };
 
+/**
+ * Pick all properties who's function do not have the specified return type U
+ */
+export type FilteredByNotReturnType<T extends { [key: string]: (...args: any[]) => any }, U> = {
+  [P in keyof T]: ReturnType<T[P]> extends U ? never : T[P]
+};
+
 export type FilteredByValueType<T extends { [key: string]: (...args: any[]) => any }, U> = {
   [P in keyof T]: T[P] extends U ? never : T[P]
 }[keyof T];

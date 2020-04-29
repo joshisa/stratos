@@ -14,11 +14,11 @@ import {
   OrchestratedActionBuilders,
 } from '../action-orchestrator/action-orchestrator';
 import { EntityCatalogHelpers } from '../entity-catalog.helper';
+import { EntityCatalogStoreParams } from './action-builder-config.mapper';
 import { KnownActionBuilders } from './entity-catalog-entity';
 import {
   CoreEntityCatalogEntityStore,
   EntityCatalogEntityStore,
-  EntityCatalogStoreParams,
   PaginatedActionBuilders,
   PaginationEntityCatalogEntityStore,
 } from './entity-catalog-entity.types';
@@ -31,13 +31,13 @@ export type ActionDispatchers<ABC extends OrchestratedActionBuilders> = {
   [K in keyof ABC]: ActionDispatcher<K, ABC>
 };
 
-// const applySchema = <T extends EntityRequestAction>(action: T, params: EntityCatalogStoreParams): T => {
-//   if (params && params.schema) {
-//     action.entity = params.schema.entity || action.entity;
-//     action.schemaKey = params.schema.schemaKey || action.schemaKey;
-//   }
-//   return action;
-// }
+const applySchema = <T extends EntityRequestAction>(action: T, params: EntityCatalogStoreParams): T => {
+  // if (params && params.schema) {
+  //   action.entity = params.schema.entity || action.entity;
+  //   action.schemaKey = params.schema.schemaKey || action.schemaKey;
+  // }
+  return action;
+}
 
 export class EntityCatalogEntityStoreHelpers {
   private static createPaginationMonitor<Y>(
@@ -182,6 +182,8 @@ export class EntityCatalogEntityStoreHelpers {
 
   static getPaginationStore<Y, ABC extends OrchestratedActionBuilders = OrchestratedActionBuilders, K extends keyof ABC = ''>(
     builders: KnownActionBuilders<ABC>,
+    entityKey: string,
+    getSchema: (schema: string) => EntitySchema
   ): PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>> {
     if (!builders) {
       return {} as PaginationEntityCatalogEntityStore<Y, PaginatedActionBuilders<ABC>>;
@@ -189,9 +191,37 @@ export class EntityCatalogEntityStoreHelpers {
     return Object.keys(builders).reduce((entityInstances, key) => {
       // This isn't smart like the PaginationBuilders type. Here key will be all properties from an action builder (get, getMultiple, etc)
       // which will be available from the dev console. Attempting to use in code pre-transpile will result in error
+      const a = builders[key] as OrchestratedActionBuilder;
+
+
       return {
         ...entityInstances,
         [key]: {
+          // TODO: RC FIIIIIIIIIIX
+          getEntityMonitor: (
+            startWithNull: boolean,
+            ...args: any
+          ): EntityMonitor<Y> => {
+            const action: EntityRequestAction = builders[key];
+            return new EntityMonitor<Y>(
+              EntityCatalogHelpers.GetEntityCatalogEntityHelper().store,
+              action.guid,
+              entityKey,
+              getSchema(action.schemaKey),
+              startWithNull
+            )
+          },
+          getEntityService: (
+            params?: EntityCatalogStoreParams,
+            ...args: any
+          ): EntityService<Y> => {
+            const action = applySchema<EntityRequestAction>(builders[key](...args), null);
+            const helper = EntityCatalogHelpers.GetEntityCatalogEntityHelper();
+            return helper.esf.create<Y>(
+              action.guid,
+              action
+            );
+          },
           getPaginationMonitor: (
             params?: EntityCatalogStoreParams,
             ...args: any

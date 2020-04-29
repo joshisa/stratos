@@ -20,7 +20,6 @@ import {
   routeEntityType,
   serviceBindingEntityType,
   spaceEntityType,
-  spaceWithOrgEntityType,
   stackEntityType,
 } from '../../../../cloud-foundry/src/cf-entity-types';
 import { IApp, IAppSummary, IDomain, IOrganization, ISpace } from '../../../../core/src/core/cf-api.types';
@@ -46,7 +45,6 @@ import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoi
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
 import { PaginatedAction, PaginationEntityState } from '../../../../store/src/types/pagination.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
-import { cfEntityFactory } from '../../cf-entity-factory';
 import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../cf-types';
 import { createEntityRelationKey } from '../../entity-relations/entity-relations.types';
 import { AppStat } from '../../store/types/app-metadata.types';
@@ -173,14 +171,18 @@ export class ApplicationService {
     this.appSpace$ = moreWaiting$.pipe(
       first(),
       switchMap(app => {
-        return cfEntityCatalog.space.store.getEntityService({
-          schema: {
-            entity: [cfEntityFactory(spaceWithOrgEntityType)],
-            schemaKey: spaceWithOrgEntityType
-          }
-        },
+        // return cfEntityCatalog.space.store.getEntityService(
+        //   undefined,
+        //   app.space_guid,
+        //   app.cfGuid
+        // ).waitForEntity$.pipe(
+        //   map(entityInfo => entityInfo.entity)
+        // );
+
+        return cfEntityCatalog.space.store.getWithOrganization.getEntityService(
+          undefined,
           app.space_guid,
-          app.cfGuid
+          app.cfGuid,
         ).waitForEntity$.pipe(
           map(entityInfo => entityInfo.entity)
         );
@@ -197,6 +199,8 @@ export class ApplicationService {
         // ).waitForEntity$.pipe(
         //   map(entityInfo => entityInfo.entity)
         // );
+        //   { includeRelations: [createEntityRelationKey(spaceEntityType, organizationEntityType)], populateMissing: true }
+
       }),
       publishReplay(1),
       refCount()

@@ -90,7 +90,7 @@ export class CloudFoundryUserProvidedServicesService {
 
 
     // cfEntityCatalog.appEnvVar.actions.;
-    // cfEntityCatalog.appEnvVar.store.;
+    // cfEntityCatalog.appEnvVar.store
 
     // cfEntityCatalog.userProvidedService.store..getAllInSpace.getPaginationService()
     // cfEntityCatalog.userProvidedService.api.;
@@ -98,6 +98,10 @@ export class CloudFoundryUserProvidedServicesService {
     // cfEntityCatalog.application.actions.;
 
     // cfEntityCatalog.appEnvVar.store.
+    cfEntityCatalog.space.store.getEntityService(undefined, spaceGuid, endpointGuid)
+    .entityObs$.subscribe(a => console.log('space.store.getEntityService: ', a));
+    cfEntityCatalog.space.store.getWithOrganization.getEntityService(undefined, spaceGuid, endpointGuid)
+    .entityObs$.subscribe(a => console.log('space.store.getWithOrganization: ', a));
 
 
 
