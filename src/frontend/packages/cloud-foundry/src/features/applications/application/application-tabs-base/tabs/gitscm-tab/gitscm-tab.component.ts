@@ -33,11 +33,10 @@ import { EnvVarStratosProject } from '../build-tab/application-env-vars.service'
         store: Store<CFAppState>,
         datePipe: DatePipe,
         scmService: GitSCMService,
-        applicationService: ApplicationService,
-        entityServiceFactory: EntityServiceFactory) => {
-        return new GithubCommitsListConfigServiceAppTab(store, datePipe, scmService, applicationService, entityServiceFactory);
+        applicationService: ApplicationService) => {
+        return new GithubCommitsListConfigServiceAppTab(store, datePipe, scmService, applicationService);
       },
-      deps: [Store, DatePipe, GitSCMService, ApplicationService, EntityServiceFactory]
+      deps: [Store, DatePipe, GitSCMService, ApplicationService]
     }
   ]
 })

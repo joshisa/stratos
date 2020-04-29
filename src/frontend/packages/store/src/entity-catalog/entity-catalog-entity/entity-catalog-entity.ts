@@ -77,7 +77,6 @@ export class StratosBaseCatalogEntity<
 
     this.actions = actionBuilders as KnownActionBuilders<ABC>;
 
-    // TODO: RC Replace usage, test remove
     this.actionOrchestrator = new ActionOrchestrator<ABC>(this.entityKey, actionBuilders as ABC);
 
     this.store = {
@@ -90,7 +89,7 @@ export class StratosBaseCatalogEntity<
         this.actions,
         this.entityKey,
         Object.bind(this.getSchema, this)
-        )
+      )
     } as EntityCatalogEntityStore<Y, ABC>; // TODO: RC investigate more
     this.api = EntityCatalogEntityStoreHelpers.getActionDispatchers(
       this.store,

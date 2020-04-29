@@ -1,15 +1,14 @@
 import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
 import { EntityCatalogEntityConfig } from '../../../store/src/entity-catalog/entity-catalog.types';
-import { DeleteApplication } from '../actions/application.actions';
 import {
   CreateUserProvidedServiceInstance,
+  DeleteUserProvidedInstance,
   GetAllUserProvidedServices,
   GetUserProvidedService,
   IUserProvidedServiceInstanceData,
   UpdateUserProvidedServiceInstance,
 } from '../actions/user-provided-service.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
-
 
 
 export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuilders {
@@ -23,7 +22,11 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     guid: string,
     data: IUserProvidedServiceInstanceData,
     proxyPaginationEntityConfig?: EntityCatalogEntityConfig) => CreateUserProvidedServiceInstance,
-  remove: (guid: string, endpointGuid: string) => DeleteApplication;
+  remove: (
+    guid: string,
+    endpointGuid: string,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+  ) => DeleteUserProvidedInstance;
   update: (
     guid: string,
     endpointGuid: string,
@@ -42,8 +45,6 @@ export interface UserProvidedServiceActionBuilder extends OrchestratedActionBuil
     includeRelations?: string[],
     populateMissing?: boolean,
   ) => GetAllUserProvidedServices;
-  // pjunk: () => PaginatedAction;
-  // ajunk: () => Action;
 }
 
 export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder = {
@@ -52,7 +53,11 @@ export const userProvidedServiceActionBuilder: UserProvidedServiceActionBuilder 
     endpointGuid,
     { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta = {}
   ) => new GetUserProvidedService(guid, endpointGuid, includeRelations, populateMissing),
-  remove: (guid: string, endpointGuid: string) => new DeleteApplication(guid, endpointGuid),
+  remove: (
+    guid: string,
+    endpointGuid: string,
+    proxyPaginationEntityConfig?: EntityCatalogEntityConfig
+  ) => new DeleteUserProvidedInstance(endpointGuid, guid, proxyPaginationEntityConfig),
   create: (
     endpointGuid: string,
     guid: string,

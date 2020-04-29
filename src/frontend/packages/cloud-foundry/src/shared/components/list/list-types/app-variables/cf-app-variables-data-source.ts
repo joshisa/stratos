@@ -31,9 +31,6 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
     appService: ApplicationService,
     listConfig: IListConfig<ListAppEnvVar>,
   ) {
-    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
-    // const getAppEnvVarsAction = actionBuilder(appService.appGuid, appService.cfGuid) as PaginatedAction;
     const getAppEnvVarsAction = cfEntityCatalog.appEnvVar.actions.getMultiple(appService.appGuid, appService.cfGuid);
 
     super({
@@ -61,12 +58,7 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
   }
 
   saveAdd() {
-    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('addNewToApplication');
-    // const appVariablesAddAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
-    // this.store.dispatch(appVariablesAddAction);
     cfEntityCatalog.appEnvVar.api.addNewToApplication(this.appGuid, this.cfGuid, this.transformedEntities, this.addItem);
-
 
     super.saveAdd();
   }
@@ -76,10 +68,6 @@ export class CfAppVariablesDataSource extends ListDataSource<ListAppEnvVar, APIR
   }
 
   saveEdit() {
-    // const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-    // const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('editInApplication');
-    // const appVariablesEditAction = actionBuilder(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
-    // this.store.dispatch(appVariablesEditAction);
     cfEntityCatalog.appEnvVar.api.editInApplication(this.appGuid, this.cfGuid, this.transformedEntities, this.editRow);
 
     super.saveEdit();

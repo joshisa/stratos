@@ -5,9 +5,6 @@ import { mergeMap } from 'rxjs/operators';
 import { AppMetadataTypes } from '../../../cloud-foundry/src/actions/app-metadata.actions';
 import { UPDATE_SUCCESS, UpdateExistingApplication } from '../../../cloud-foundry/src/actions/application.actions';
 import { cfEntityCatalog } from '../../../cloud-foundry/src/cf-entity-catalog';
-import { appEnvVarsEntityType, appSummaryEntityType } from '../../../cloud-foundry/src/cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../cloud-foundry/src/cf-types';
-import { entityCatalog } from '../entity-catalog/entity-catalog';
 import { WrapperRequestActionSuccess } from '../types/request.types';
 
 
@@ -30,10 +27,7 @@ export class UpdateAppEffects {
         switch (updateEntity) {
           case AppMetadataTypes.ENV_VARS:
             // This is done so the app metadata env vars environment_json matches that of the app
-            const appEnvVarsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appEnvVarsEntityType);
-            const actionBuilder = appEnvVarsEntity.actionOrchestrator.getActionBuilder('get');
-            const getAppEnvVarsAction = actionBuilder(action.apiAction.guid, action.apiAction.endpointGuid as string);
-            actions.push(getAppEnvVarsAction);
+            actions.push(cfEntityCatalog.appEnvVar.actions.getMultiple(action.apiAction.guid, action.apiAction.endpointGuid));
             break;
           case AppMetadataTypes.STATS:
             const statsAction = cfEntityCatalog.appStats.actions.getMultiple(action.apiAction.guid, action.apiAction.endpointGuid as string)
@@ -47,10 +41,7 @@ export class UpdateAppEffects {
             }
             break;
           case AppMetadataTypes.SUMMARY:
-            const appSummaryEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appSummaryEntityType);
-            const appSummaryActionBuilder = appSummaryEntity.actionOrchestrator.getActionBuilder('get');
-            const getAppSummaryAction = appSummaryActionBuilder(action.apiAction.guid, action.apiAction.endpointGuid as string);
-            actions.push(getAppSummaryAction);
+            actions.push(cfEntityCatalog.appSummary.actions.get(action.apiAction.guid, action.apiAction.endpointGuid));
             break;
         }
       });
