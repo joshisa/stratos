@@ -14,7 +14,6 @@ import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
 import {
   appEnvVarsEntityType,
   applicationEntityType,
-  appStatsEntityType,
   domainEntityType,
   organizationEntityType,
   routeEntityType,
@@ -31,7 +30,6 @@ import { APP_GUID, CF_GUID } from '../../../../core/src/shared/entity.tokens';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
 import { EntityService } from '../../../../store/src/entity-service';
 import { EntityMonitorFactory } from '../../../../store/src/monitors/entity-monitor.factory.service';
-import { PaginationMonitor } from '../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { ActionState, rootUpdatingKey } from '../../../../store/src/reducers/api-request-reducer/types';
 import { getPaginationObservables } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
@@ -42,7 +40,7 @@ import {
 import { selectUpdateInfo } from '../../../../store/src/selectors/api.selectors';
 import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoint.selectors';
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
-import { PaginatedAction, PaginationEntityState } from '../../../../store/src/types/pagination.types';
+import { PaginationEntityState } from '../../../../store/src/types/pagination.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../cf-types';
 import { createEntityRelationKey } from '../../entity-relations/entity-relations.types';
@@ -139,19 +137,11 @@ export class ApplicationService {
    * Fetch the current state of the app (given it's instances) as an object ready
    */
   static getApplicationState(
-    store: Store<CFAppState>,
     appStateService: ApplicationStateService,
     app: IApp,
     appGuid: string,
     cfGuid: string): Observable<ApplicationStateData> {
-    const dummyAction = cfEntityCatalog.appStats.actions.get(appGuid, cfGuid);
-    const paginationMonitor = new PaginationMonitor(
-      store,
-      dummyAction.paginationKey,
-      dummyAction,
-      dummyAction.flattenPagination
-    );
-    return paginationMonitor.currentPage$.pipe(
+    return cfEntityCatalog.appStats.store.getPaginationMonitor(appGuid, cfGuid).currentPage$.pipe(
       map(appInstancesPages => {
         return appStateService.get(app, appInstancesPages);
       })
@@ -208,18 +198,7 @@ export class ApplicationService {
 
   private constructAmalgamatedObservables() {
     // Assign/Amalgamate them to public properties (with mangling if required)
-    const appStatsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appStatsEntityType);
-    const actionBuilder = appStatsEntity.actionOrchestrator.getActionBuilder('get');
-    const action = actionBuilder(this.appGuid, this.cfGuid) as PaginatedAction;
-    const appStats = getPaginationObservables({
-      store: this.store,
-      action,
-      paginationMonitor: this.paginationMonitorFactory.create(
-        action.paginationKey,
-        new CFEntityConfig(appStatsEntityType),
-        action.flattenPagination
-      )
-    }, true);
+    const appStats = cfEntityCatalog.appStats.store.getPaginationService(this.appGuid, this.cfGuid)
     // This will fail to fetch the app stats if the current app is not running but we're
     // willing to do this to speed up the initial fetch for a running application.
     this.appStats$ = appStats.entities$;

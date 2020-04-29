@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { mergeMap } from 'rxjs/operators';
 
-import { CF_ENDPOINT_TYPE } from '../../../cloud-foundry/src/cf-types';
 import { AppMetadataTypes } from '../../../cloud-foundry/src/actions/app-metadata.actions';
 import { UPDATE_SUCCESS, UpdateExistingApplication } from '../../../cloud-foundry/src/actions/application.actions';
-import { appEnvVarsEntityType, appStatsEntityType, appSummaryEntityType } from '../../../cloud-foundry/src/cf-entity-types';
+import { cfEntityCatalog } from '../../../cloud-foundry/src/cf-entity-catalog';
+import { appEnvVarsEntityType, appSummaryEntityType } from '../../../cloud-foundry/src/cf-entity-types';
+import { CF_ENDPOINT_TYPE } from '../../../cloud-foundry/src/cf-types';
 import { entityCatalog } from '../entity-catalog/entity-catalog';
 import { WrapperRequestActionSuccess } from '../types/request.types';
 
@@ -35,9 +36,7 @@ export class UpdateAppEffects {
             actions.push(getAppEnvVarsAction);
             break;
           case AppMetadataTypes.STATS:
-            const appStatsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appStatsEntityType);
-            const appStatsActionBuilder = appStatsEntity.actionOrchestrator.getActionBuilder('get');
-            const statsAction = appStatsActionBuilder(action.apiAction.guid, action.apiAction.endpointGuid as string);
+            const statsAction = cfEntityCatalog.appStats.actions.getMultiple(action.apiAction.guid, action.apiAction.endpointGuid as string)
             // Application has changed and the associated app stats need to also be updated.
             // Apps that are started can just make the stats call to update cached stats, however this call will fail for stopped apps.
             // For those cases create a fake stats request response that should result in the same thing

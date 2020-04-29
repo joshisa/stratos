@@ -7,7 +7,6 @@ import { GetAllApplications } from '../../../../../../../cloud-foundry/src/actio
 import { CFAppState } from '../../../../../../../cloud-foundry/src/cf-app-state';
 import {
   applicationEntityType,
-  appStatsEntityType,
   organizationEntityType,
   routeEntityType,
   spaceEntityType,
@@ -23,12 +22,11 @@ import {
 import { IListConfig } from '../../../../../../../core/src/shared/components/list/list.component.types';
 import { CreatePagination } from '../../../../../../../store/src/actions/pagination.actions';
 import { AppState } from '../../../../../../../store/src/app-state';
-import { entityCatalog } from '../../../../../../../store/src/entity-catalog/entity-catalog';
 import { MultiActionListEntity } from '../../../../../../../store/src/monitors/pagination-monitor';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { PaginationParam } from '../../../../../../../store/src/types/pagination.types';
+import { cfEntityCatalog } from '../../../../../cf-entity-catalog';
 import { cfEntityFactory } from '../../../../../cf-entity-factory';
-import { CF_ENDPOINT_TYPE } from '../../../../../cf-types';
 import { cfOrgSpaceFilter, getRowMetadata } from '../../../../../features/cloud-foundry/cf.helpers';
 import { CFListDataSource } from '../../../../cf-list-data-source';
 import { createCfOrSpaceMultipleFilterFn } from '../../../../data-services/cf-org-space-service.service';
@@ -111,12 +109,9 @@ export class CfAppsDataSource extends CFListDataSource<APIResource> {
           const appGuid = app.metadata.guid;
           const cfGuid = app.entity.cfGuid;
           if (appState === 'STARTED') {
-            const appStatsEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, appStatsEntityType);
-            const actionBuilder = appStatsEntity.actionOrchestrator.getActionBuilder('get');
-            const getAction = actionBuilder(appGuid, cfGuid);
             actions.push({
               id: appGuid,
-              action: getAction
+              action: cfEntityCatalog.appStats.actions.getMultiple(app, cfGuid)
             });
           }
         });
