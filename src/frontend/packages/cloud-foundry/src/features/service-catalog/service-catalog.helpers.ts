@@ -11,10 +11,9 @@ import { ServicesService } from './services.service';
 export function servicesServiceFactory(
   store: Store<CFAppState>,
   activatedRoute: ActivatedRoute,
-  entityServiceFactory: EntityServiceFactory,
   paginationMonitorFactory: PaginationMonitorFactory
 ) {
-  return new ServicesService(store, entityServiceFactory, activatedRoute, paginationMonitorFactory);
+  return new ServicesService(store, activatedRoute, paginationMonitorFactory);
 }
 
 export const servicesServiceFactoryProvider: Provider = {

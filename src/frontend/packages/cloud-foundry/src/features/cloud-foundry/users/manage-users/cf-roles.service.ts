@@ -20,11 +20,9 @@ import {
 import { IOrganization, ISpace } from '../../../../../../core/src/core/cf-api.types';
 import { CurrentUserPermissionsChecker } from '../../../../../../core/src/core/current-user-permissions.checker';
 import { CurrentUserPermissionsService } from '../../../../../../core/src/core/current-user-permissions.service';
-import { entityCatalog } from '../../../../../../store/src/entity-catalog/entity-catalog';
 import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { endpointSchemaKey } from '../../../../../../store/src/helpers/entity-factory';
 import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
-import { getPaginationObservables } from '../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import {
   selectUsersRolesCf,
   selectUsersRolesPicked,
@@ -34,9 +32,7 @@ import { APIResource, EntityInfo } from '../../../../../../store/src/types/api.t
 import { UsersRolesSetChanges } from '../../../../actions/users-roles.actions';
 import { CFAppState } from '../../../../cf-app-state';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
-import { cfEntityFactory } from '../../../../cf-entity-factory';
 import { organizationEntityType, spaceEntityType } from '../../../../cf-entity-types';
-import { CF_ENDPOINT_TYPE } from '../../../../cf-types';
 import { CfUserService } from '../../../../shared/data-services/cf-user.service';
 import { createDefaultOrgRoles, createDefaultSpaceRoles } from '../../../../store/reducers/users-roles.reducer';
 import { CfUser, IUserPermissionInOrg, UserRoleInOrg, UserRoleInSpace } from '../../../../store/types/user.types';
@@ -248,9 +244,7 @@ export class CfRolesService {
   fetchOrgs(cfGuid: string): Observable<APIResource<IOrganization>[]> {
     if (!this.cfOrgs[cfGuid]) {
       const paginationKey = createEntityRelationPaginationKey(endpointSchemaKey, cfGuid);
-      const organizationEntity = entityCatalog.getEntity(CF_ENDPOINT_TYPE, organizationEntityType);
-      const actionBuilder = organizationEntity.actionOrchestrator.getActionBuilder('getMultiple');
-      const getAllOrganizationsAction = actionBuilder(
+      const orgs$ = cfEntityCatalog.org.store.getPaginationService(
         cfGuid,
         paginationKey,
         {
@@ -258,18 +252,7 @@ export class CfRolesService {
             createEntityRelationKey(organizationEntityType, spaceEntityType)
           ], populateMissing: true
         }
-      );
-      const orgs$ = getPaginationObservables<APIResource<IOrganization>>({
-        store: this.store,
-        action: getAllOrganizationsAction,
-        paginationMonitor: this.paginationMonitorFactory.create(
-          paginationKey,
-          cfEntityFactory(organizationEntityType),
-          getAllOrganizationsAction.flattenPagination
-        ),
-      },
-        getAllOrganizationsAction.flattenPagination
-      ).entities$;
+      ).entities$
       this.cfOrgs[cfGuid] = CfRolesService.filterEditableOrgOrSpace<IOrganization>(this.userPerms, true, orgs$).pipe(
         map(orgs => orgs.sort((a, b) => a.entity.name.localeCompare(b.entity.name))),
         publishReplay(1),

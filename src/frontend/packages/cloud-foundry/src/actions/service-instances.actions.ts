@@ -114,8 +114,8 @@ export class DeleteServiceInstance extends CFStartAction implements ICFAction {
 }
 export class CreateServiceInstance extends CFStartAction implements ICFAction {
   constructor(
-    public endpointGuid: string,
     public guid: string,
+    public endpointGuid: string,
     public name: string,
     public servicePlanGuid: string,
     public spaceGuid: string,
@@ -159,15 +159,15 @@ export class CreateServiceInstance extends CFStartAction implements ICFAction {
 export class UpdateServiceInstance extends CreateServiceInstance {
   static updateServiceInstance = 'Updating-Service-Instance';
   constructor(
-    public endpointGuid: string,
     public guid: string,
+    public endpointGuid: string,
     public name: string,
     public servicePlanGuid: string,
     public spaceGuid: string,
     public params: object,
     public tags: string[],
   ) {
-    super(endpointGuid, guid, name, servicePlanGuid, spaceGuid, params, tags, 'PUT', `service_instances/${guid}`);
+    super(guid, endpointGuid, name, servicePlanGuid, spaceGuid, params, tags, 'PUT', `service_instances/${guid}`);
     this.actions = getActions('Service Instances', 'Update Service Instance');
   }
   updatingKey = UpdateServiceInstance.updateServiceInstance;
