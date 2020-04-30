@@ -110,24 +110,4 @@ export class CreateServiceInstanceHelper {
         refCount()
       );
   }
-
-  // getServicesForSpace = (spaceGuid: string, cfGuid: string) => {
-  //   const paginationKey = createEntityRelationPaginationKey(serviceEntityType, spaceGuid);
-  //   return getPaginationObservables<APIResource<IService>>(
-  //     {
-  //       store: this.store,
-  //       action: new GetAllServicesForSpace(paginationKey, cfGuid, spaceGuid),
-  //       paginationMonitor: this.paginationMonitorFactory.create(
-  //         paginationKey,
-  //         entityFactory(serviceEntityType)
-  //       )
-  //     },
-  //     true
-  //   ).entities$.pipe(
-  //     filter(p => !!p),
-  //     publishReplay(1),
-  //     refCount()
-  //   );
-  // }
-
 }
