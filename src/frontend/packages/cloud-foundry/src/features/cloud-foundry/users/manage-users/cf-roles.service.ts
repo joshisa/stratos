@@ -20,9 +20,7 @@ import {
 import { IOrganization, ISpace } from '../../../../../../core/src/core/cf-api.types';
 import { CurrentUserPermissionsChecker } from '../../../../../../core/src/core/current-user-permissions.checker';
 import { CurrentUserPermissionsService } from '../../../../../../core/src/core/current-user-permissions.service';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { endpointSchemaKey } from '../../../../../../store/src/helpers/entity-factory';
-import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
 import {
   selectUsersRolesCf,
   selectUsersRolesPicked,
@@ -91,8 +89,6 @@ export class CfRolesService {
   constructor(
     private store: Store<CFAppState>,
     private cfUserService: CfUserService,
-    private entityServiceFactory: EntityServiceFactory,
-    private paginationMonitorFactory: PaginationMonitorFactory,
     private userPerms: CurrentUserPermissionsService,
   ) {
     this.existingRoles$ = this.store.select(selectUsersRolesPicked).pipe(

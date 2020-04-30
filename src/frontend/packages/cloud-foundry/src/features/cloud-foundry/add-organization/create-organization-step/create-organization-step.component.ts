@@ -46,7 +46,7 @@ export class CreateOrganizationStepComponent implements OnInit, OnDestroy {
 
   constructor(
     private store: Store<CFAppState>,
-    private activatedRoute: ActivatedRoute,
+    activatedRoute: ActivatedRoute,
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
     this.cfGuid = activatedRoute.snapshot.params.endpointId;

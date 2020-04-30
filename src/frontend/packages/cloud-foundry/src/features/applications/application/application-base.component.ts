@@ -8,7 +8,6 @@ import {
 } from '../../../../../core/src/shared/components/application-state/application-state.service';
 import { APP_GUID, CF_GUID, ENTITY_SERVICE } from '../../../../../core/src/shared/entity.tokens';
 import { EntityServiceFactory } from '../../../../../store/src/entity-service-factory.service';
-import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
 import { ApplicationService, createGetApplicationAction } from '../application.service';
 import { ApplicationEnvVarsHelper } from './application-tabs-base/tabs/build-tab/application-env-vars.service';
 
@@ -18,7 +17,6 @@ export function applicationServiceFactory(
   store: Store<CFAppState>,
   appStateService: ApplicationStateService,
   appEnvVarsService: ApplicationEnvVarsHelper,
-  paginationMonitorFactory: PaginationMonitorFactory,
 ) {
   return new ApplicationService(
     cfId,
@@ -26,7 +24,6 @@ export function applicationServiceFactory(
     store,
     appStateService,
     appEnvVarsService,
-    paginationMonitorFactory,
   );
 }
 
@@ -76,7 +73,6 @@ export function getGuids(type?: string) {
         Store,
         ApplicationStateService,
         ApplicationEnvVarsHelper,
-        PaginationMonitorFactory
       ]
     },
     {

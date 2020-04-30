@@ -20,7 +20,6 @@ import { RouterNav } from '../../../../../store/src/actions/router.actions';
 import { GeneralEntityAppState } from '../../../../../store/src/app-state';
 import { entityCatalog } from '../../../../../store/src/entity-catalog/entity-catalog';
 import { EntityMonitor } from '../../../../../store/src/monitors/entity-monitor';
-import { EntityMonitorFactory } from '../../../../../store/src/monitors/entity-monitor.factory.service';
 import { PaginationMonitor } from '../../../../../store/src/monitors/pagination-monitor';
 import { PaginationMonitorFactory } from '../../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../../store/src/reducers/api-request-reducer/types';
@@ -171,7 +170,6 @@ export class ApplicationDeleteComponent<T> {
     private store: Store<GeneralEntityAppState>,
     private applicationService: ApplicationService,
     private paginationMonitorFactory: PaginationMonitorFactory,
-    private entityMonitorFactory: EntityMonitorFactory,
     private datePipe: DatePipe
   ) {
     this.setupAppMonitor();
@@ -219,23 +217,17 @@ export class ApplicationDeleteComponent<T> {
   }
 
   public getApplicationMonitor() {
-    return this.entityMonitorFactory.create<APIResource<IApp>>(
-      this.applicationService.appGuid,
-      {
-        entityType: applicationEntityType,
-        endpointType: CF_ENDPOINT_TYPE
-      }
-    );
+    return cfEntityCatalog.application.store.getEntityMonitor(this.applicationService.appGuid);
   }
+
   /**
    * Builds the related entities actions and monitors to monitor the state of the entities.
    */
   public buildRelatedEntitiesActionMonitors() {
     const { appGuid, cfGuid } = this.applicationService;
     const instanceAction = AppServiceBindingDataSource.createGetAllServiceBindings(appGuid, cfGuid);
-    const instancePaginationKey = instanceAction.paginationKey;
     const instanceMonitor = this.paginationMonitorFactory.create<APIResource<IServiceBinding>>(
-      instancePaginationKey,
+      instanceAction.paginationKey,
       instanceAction.entity[0],
       instanceAction.flattenPagination
     );

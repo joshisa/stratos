@@ -9,7 +9,6 @@ import { AssociateSpaceQuota } from '../../../../../../cloud-foundry/src/actions
 import { UpdateSpace } from '../../../../../../cloud-foundry/src/actions/space.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
-import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import { AddEditSpaceStepBase } from '../../add-edit-space-step-base';
@@ -36,11 +35,10 @@ export class EditSpaceStepComponent extends AddEditSpaceStepBase implements OnDe
   constructor(
     store: Store<CFAppState>,
     activatedRoute: ActivatedRoute,
-    paginationMonitorFactory: PaginationMonitorFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
     private cfSpaceService: CloudFoundrySpaceService,
   ) {
-    super(store, activatedRoute, paginationMonitorFactory, activeRouteCfOrgSpace);
+    super(store, activatedRoute, activeRouteCfOrgSpace);
     this.spaceGuid = activatedRoute.snapshot.params.spaceId;
     this.editSpaceForm = new FormGroup({
       spaceName: new FormControl('', this.spaceNameTakenValidator()),

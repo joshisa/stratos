@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { BehaviorSubject, combineLatest as observableCombineLatest, Observable, of as observableOf } from 'rxjs';
 import { combineLatest, filter, first, map, publishReplay, refCount, switchMap } from 'rxjs/operators';
 
@@ -14,9 +13,7 @@ import {
 } from '../../../../core/src/core/cf-api-svc.types';
 import { getIdFromRoute } from '../../../../core/src/core/utils.service';
 import { EntityService } from '../../../../store/src/entity-service';
-import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { APIResource } from '../../../../store/src/types/api.types';
-import { CFAppState } from '../../cf-app-state';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
 import { serviceBrokerEntityType, servicePlanVisibilityEntityType } from '../../cf-entity-types';
 import { createEntityRelationPaginationKey } from '../../entity-relations/entity-relations.types';
@@ -54,9 +51,7 @@ export class ServicesService {
   initialised$ = new BehaviorSubject(false);
 
   constructor(
-    private store: Store<CFAppState>,
     public activatedRoute: ActivatedRoute,
-    private paginationMonitorFactory: PaginationMonitorFactory
   ) {
 
     this.cfGuid = getIdFromRoute(activatedRoute, 'endpointId');
@@ -78,7 +73,7 @@ export class ServicesService {
     return cfEntityCatalog.servicePlanVisibility.store.getPaginationService(this.cfGuid, paginationKey, {}).entities$
   }
   private getServiceInstances = () => {
-    return getServiceInstancesInCf(this.cfGuid, this.store, this.paginationMonitorFactory);
+    return getServiceInstancesInCf(this.cfGuid);
   }
 
   private getServiceBrokers = () => {

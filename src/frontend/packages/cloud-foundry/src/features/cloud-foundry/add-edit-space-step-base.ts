@@ -10,7 +10,6 @@ import { createEntityRelationPaginationKey } from '../../../../cloud-foundry/src
 import { ISpaceQuotaDefinition } from '../../../../core/src/core/cf-api.types';
 import { StepOnNextResult } from '../../../../core/src/shared/components/stepper/step/step.component';
 import { getPaginationKey } from '../../../../store/src/actions/pagination.actions';
-import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
 import { ActiveRouteCfOrgSpace } from './cf-page.types';
@@ -28,7 +27,6 @@ export class AddEditSpaceStepBase {
   constructor(
     protected store: Store<CFAppState>,
     protected activatedRoute: ActivatedRoute,
-    protected paginationMonitorFactory: PaginationMonitorFactory,
     protected activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;

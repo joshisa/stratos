@@ -74,7 +74,7 @@ export const isEditServiceInstanceMode = (activatedRoute: ActivatedRoute) => {
   return !!cfId && !!serviceInstanceId;
 };
 
-export const getServiceInstancesInCf = (cfGuid: string, store: Store<CFAppState>, paginationMonitorFactory: PaginationMonitorFactory) => {
+export const getServiceInstancesInCf = (cfGuid: string) => {
   const paginationKey = createEntityRelationPaginationKey(serviceInstancesEntityType, cfGuid);
   return cfEntityCatalog.serviceInstance.store.getPaginationService(cfGuid, paginationKey).entities$;
 };

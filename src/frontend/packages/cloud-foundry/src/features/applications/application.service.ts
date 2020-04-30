@@ -9,10 +9,8 @@ import {
   UpdateApplication,
   UpdateExistingApplication,
 } from '../../../../cloud-foundry/src/actions/application.actions';
-import { GetAllOrganizationDomains } from '../../../../cloud-foundry/src/actions/organization.actions';
 import { CFAppState } from '../../../../cloud-foundry/src/cf-app-state';
 import {
-  appEnvVarsEntityType,
   applicationEntityType,
   domainEntityType,
   organizationEntityType,
@@ -29,10 +27,7 @@ import {
 import { APP_GUID, CF_GUID } from '../../../../core/src/shared/entity.tokens';
 import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
 import { EntityService } from '../../../../store/src/entity-service';
-import { EntityMonitorFactory } from '../../../../store/src/monitors/entity-monitor.factory.service';
-import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { ActionState, rootUpdatingKey } from '../../../../store/src/reducers/api-request-reducer/types';
-import { getPaginationObservables } from '../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import {
   getCurrentPageRequestInfo,
   PaginationObservables,
@@ -42,7 +37,7 @@ import { endpointEntitiesSelector } from '../../../../store/src/selectors/endpoi
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
 import { PaginationEntityState } from '../../../../store/src/types/pagination.types';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
-import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../cf-types';
+import { CF_ENDPOINT_TYPE } from '../../cf-types';
 import { createEntityRelationKey } from '../../entity-relations/entity-relations.types';
 import { AppStat } from '../../store/types/app-metadata.types';
 import {
@@ -84,7 +79,6 @@ export class ApplicationService {
     private store: Store<CFAppState>,
     private appStateService: ApplicationStateService,
     private appEnvVarsService: ApplicationEnvVarsHelper,
-    private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
     this.appEntityService = cfEntityCatalog.application.store.getEntityService(
       appGuid,
@@ -188,12 +182,9 @@ export class ApplicationService {
   }
 
   public getApplicationEnvVarsMonitor() {
-    // TODO: RC REF search for usages, get from entity
-    const factory = new EntityMonitorFactory(this.store);
-    return factory.create<APIResource<IApp>>(
-      this.appGuid,
-      new CFEntityConfig(appEnvVarsEntityType)
-    );
+    return cfEntityCatalog.appEnvVar.store.getEntityMonitor(
+      this.appGuid
+    )
   }
 
   private constructAmalgamatedObservables() {
@@ -236,22 +227,9 @@ export class ApplicationService {
     // In an ideal world we'd get domains inline with the application, however the inline path from app to org domains exceeds max cf depth
     // of 2 (app --> space --> org --> domains).
     this.orgDomains$ = this.appOrg$.pipe(
-      switchMap(org => {
-        const domainsAction = new GetAllOrganizationDomains(org.metadata.guid, this.cfGuid);
-        const paginationMonitor = this.paginationMonitorFactory.create(
-          domainsAction.paginationKey,
-          domainsAction,
-          domainsAction.flattenPagination
-        );
-        return getPaginationObservables<APIResource<IDomain>>(
-          {
-            store: this.store,
-            action: domainsAction,
-            paginationMonitor
-          },
-          true
-        ).entities$;
-      }),
+      switchMap(org =>
+        cfEntityCatalog.domain.store.getOrganizationDomains.getPaginationService(org.metadata.guid, this.cfGuid).entities$
+      ),
       publishReplay(1),
       refCount()
     );

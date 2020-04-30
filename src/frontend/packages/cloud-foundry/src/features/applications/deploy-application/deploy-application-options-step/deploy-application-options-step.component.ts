@@ -7,7 +7,6 @@ import { combineLatest, Observable, of as observableOf, Subscription } from 'rxj
 import { filter, first, map, share, startWith, switchMap } from 'rxjs/operators';
 
 import { SaveAppOverrides } from '../../../../../../cloud-foundry/src/actions/deploy-applications.actions';
-import { GetAllOrganizationDomains } from '../../../../../../cloud-foundry/src/actions/organization.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
 import {
   selectCfDetails,
@@ -17,8 +16,6 @@ import {
 import { OverrideAppDetails, SourceType } from '../../../../../../cloud-foundry/src/store/types/deploy-application.types';
 import { IDomain } from '../../../../../../core/src/core/cf-api.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
-import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
-import { getPaginationObservables } from '../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import {
@@ -51,7 +48,6 @@ export class DeployApplicationOptionsStepComponent implements OnInit, OnDestroy 
   constructor(
     private fb: FormBuilder,
     private store: Store<CFAppState>,
-    private paginationMonitorFactory: PaginationMonitorFactory,
     private appEnvVarsService: ApplicationEnvVarsHelper,
     private activatedRoute: ActivatedRoute
   ) {
@@ -128,21 +124,9 @@ export class DeployApplicationOptionsStepComponent implements OnInit, OnDestroy 
 
     // Create the domains list for the domains drop down
     this.domains$ = cfDetails$.pipe(
-      switchMap(cfDetails => {
-        const action = new GetAllOrganizationDomains(cfDetails.org, cfDetails.cloudFoundry);
-        return getPaginationObservables<APIResource<IDomain>>(
-          {
-            store: this.store,
-            action,
-            paginationMonitor: this.paginationMonitorFactory.create(
-              action.paginationKey,
-              action,
-              action.flattenPagination
-            )
-          },
-          action.flattenPagination
-        ).entities$;
-      }),
+      switchMap(cfDetails =>
+        cfEntityCatalog.domain.store.getOrganizationDomains.getPaginationService(cfDetails.org, cfDetails.cloudFoundry).entities$
+      ),
       // cf push overrides do not support tcp routes (no way to specify port)
       map(domains => domains.filter(domain => domain.entity.router_group_type !== 'tcp')),
       share()

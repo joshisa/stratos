@@ -346,13 +346,10 @@ import { UserPermissionDirective } from './user-permission.directive';
     ApplicationStateService,
     EndpointListHelper,
     EndpointsListConfigService,
-    // CfUserService,
     ConfirmationDialogService,
     EntityMonitorFactory,
     PaginationMonitorFactory,
-    // CloudFoundryService,
     InternalEventMonitorFactory,
-    // ServiceActionHelperService,
     MetricsRangeSelectorService,
     GitSCMService,
     LongRunningOperationsService

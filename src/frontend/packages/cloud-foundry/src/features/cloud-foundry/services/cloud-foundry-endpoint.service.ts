@@ -142,8 +142,6 @@ export class CloudFoundryEndpointService {
     private entityServiceFactory: EntityServiceFactory,
     private cfUserService: CfUserService,
     private pmf: PaginationMonitorFactory,
-    // private endpointService: EndpointsService,
-    // private paginationMonitorFactory: PaginationMonitorFactory
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
 

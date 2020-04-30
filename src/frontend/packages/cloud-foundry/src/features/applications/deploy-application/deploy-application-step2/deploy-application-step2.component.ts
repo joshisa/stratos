@@ -29,7 +29,6 @@ import {
 } from 'rxjs/operators';
 
 import {
-  FetchBranchesForProject,
   ProjectDoesntExist,
   SaveAppDetails,
   SetAppSourceDetails,
@@ -37,7 +36,6 @@ import {
   SetDeployBranch,
 } from '../../../../../../cloud-foundry/src/actions/deploy-applications.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
-import { gitBranchesEntityType, gitCommitEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
 import {
   selectDeployAppState,
   selectDeployBranchName,
@@ -54,10 +52,7 @@ import { GitBranch, GitCommit, GitRepo } from '../../../../../../cloud-foundry/s
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
 import { GitSCM } from '../../../../../../core/src/shared/data-services/scm/scm';
 import { GitSCMService, GitSCMType } from '../../../../../../core/src/shared/data-services/scm/scm.service';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
-import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
-import { getPaginationObservables } from '../../../../../../store/src/reducers/pagination-reducer/pagination-reducer.helper';
-import { CF_ENDPOINT_TYPE, CFEntityConfig } from '../../../../cf-types';
+import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import { ApplicationDeploySourceTypes, DEPLOY_TYPES_IDS } from '../deploy-application-steps.types';
 
 @Component({
@@ -130,10 +125,8 @@ export class DeployApplicationStep2Component
   }
 
   constructor(
-    private entityServiceFactory: EntityServiceFactory,
     private store: Store<CFAppState>,
     private route: ActivatedRoute,
-    private paginationMonitorFactory: PaginationMonitorFactory,
     private scmService: GitSCMService,
     private httpClient: HttpClient,
     private appDeploySourceTypes: ApplicationDeploySourceTypes
@@ -257,21 +250,12 @@ export class DeployApplicationStep2Component
         filter(state => state && !state.checking && !state.error && state.exists),
         distinctUntilChanged((x, y) => x.name === y.name),
         // Convert project name into branches pagination observable
-        switchMap(state => {
-          const fetchBranchesAction = new FetchBranchesForProject(this.scm, state.name);
-          return getPaginationObservables<GitBranch>(
-            {
-              store: this.store,
-              action: fetchBranchesAction,
-              paginationMonitor: this.paginationMonitorFactory.create(
-                fetchBranchesAction.paginationKey,
-                new CFEntityConfig(gitBranchesEntityType),
-                true
-              )
-            },
-            true
-          ).entities$;
-        }),
+        switchMap(state =>
+          cfEntityCatalog.gitBranch.store.getPaginationService(null, null, {
+            scm: this.scm,
+            projectName: state.name
+          }).entities$
+        ),
         // Find the specific branch we're interested inS
         withLatestFrom(deployBranchName$),
         filter(([, branchName]) => !!branchName),
@@ -302,14 +286,19 @@ export class DeployApplicationStep2Component
             // This method to create entity id's should be standardised....
             const repoEntityID = `${this.scm.getType()}-${projectInfo.full_name}`;
             const commitEntityID = `${repoEntityID}-${commitSha}`;
-            const commitEntityService = this.entityServiceFactory.create<GitCommit>(
-              {
-                endpointType: CF_ENDPOINT_TYPE,
-                entityType: gitCommitEntityType,
-                actionMetadata: { projectName: projectInfo.full_name, scm: this.scm, commitSha },
-                entityGuid: commitEntityID,
-              }
-            );
+            const commitEntityService = cfEntityCatalog.gitCommit.store.getEntityService(commitEntityID, null, {
+              projectName: projectInfo.full_name,
+              scm: this.scm, commitSha
+            })
+            // TODO: RC TEST
+            // const commitEntityService = this.entityServiceFactory.create<GitCommit>(
+            //   {
+            //     endpointType: CF_ENDPOINT_TYPE,
+            //     entityType: gitCommitEntityType,
+            //     actionMetadata: { projectName: projectInfo.full_name, scm: this.scm, commitSha },
+            //     entityGuid: commitEntityID,
+            //   }
+            // );
 
             if (this.commitSubscription) {
               this.commitSubscription.unsubscribe();

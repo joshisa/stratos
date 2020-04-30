@@ -7,7 +7,6 @@ import { filter } from 'rxjs/operators';
 
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
-import { PaginationMonitorFactory } from '../../../../../../store/src/monitors/pagination-monitor.factory';
 import { RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
 import { AddEditSpaceStepBase } from '../../add-edit-space-step-base';
@@ -41,10 +40,9 @@ export class CreateSpaceStepComponent extends AddEditSpaceStepBase implements On
   constructor(
     store: Store<CFAppState>,
     activatedRoute: ActivatedRoute,
-    paginationMonitorFactory: PaginationMonitorFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
   ) {
-    super(store, activatedRoute, paginationMonitorFactory, activeRouteCfOrgSpace);
+    super(store, activatedRoute, activeRouteCfOrgSpace);
   }
 
   ngOnInit() {
