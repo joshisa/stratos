@@ -5,15 +5,9 @@ import { Store } from '@ngrx/store';
 import { combineLatest, Observable, of as observableOf } from 'rxjs';
 import { catchError, filter, first, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 
-import { CreateNewApplication } from '../../../../../../cloud-foundry/src/actions/application.actions';
 import { CFAppState } from '../../../../../../cloud-foundry/src/cf-app-state';
-import {
-  applicationEntityType,
-  domainEntityType,
-  organizationEntityType,
-} from '../../../../../../cloud-foundry/src/cf-entity-types';
+import { domainEntityType, organizationEntityType } from '../../../../../../cloud-foundry/src/cf-entity-types';
 import { selectNewAppState } from '../../../../../../cloud-foundry/src/store/effects/create-app-effects';
-import { selectCfRequestInfo } from '../../../../../../cloud-foundry/src/store/selectors/api.selectors';
 import { CreateNewApplicationState } from '../../../../../../cloud-foundry/src/store/types/create-application.types';
 import { IDomain } from '../../../../../../core/src/core/cf-api.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
@@ -92,14 +86,15 @@ export class CreateApplicationStep3Component implements OnInit {
     const { cloudFoundry, space } = cloudFoundryDetails;
     const newAppGuid = name + space;
 
-    this.store.dispatch(new CreateNewApplication(
+    const obs$ = cfEntityCatalog.application.api.create<RequestInfoState>(
       newAppGuid,
       cloudFoundry, {
       name,
       space_guid: space
-    }
-    ));
-    return this.wrapObservable(this.store.select(selectCfRequestInfo(applicationEntityType, newAppGuid)), 'Could not create application');
+    }).pipe(
+      filter(ris => !!ris.response)
+    );
+    return this.wrapObservable(obs$, 'Could not create application');
   }
 
   createRoute(): Observable<RequestInfoState> {
@@ -120,6 +115,8 @@ export class CreateApplicationStep3Component implements OnInit {
           domain_guid: selectedDomainGuid,
           host: hostName
         }
+      ).pipe(
+        filter(ris => !!ris.response)
       )
       return this.wrapObservable(obs$, 'Application created. Could not create route');
     }

@@ -85,7 +85,7 @@ export class GitSCMTabComponent implements OnInit, OnDestroy {
 
         const gitMeta: GitMeta = { projectName: stProject.deploySource.project, scm, commitSha };
         const repoEntityID = `${scmType}-${projectName}`;
-        const commitEntityID = `${repoEntityID}-${commitSha}`; // TODO: RC type should come from action
+        const commitEntityID = `${repoEntityID}-${commitSha}`; // FIXME: Should come from action #4245
         this.gitCommitEntityService = cfEntityCatalog.gitCommit.store.getEntityService(commitEntityID, null, gitMeta)
 
         this.gitBranchEntityService = cfEntityCatalog.gitBranch.store.getEntityService(undefined, undefined, {

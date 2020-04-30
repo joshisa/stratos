@@ -309,7 +309,6 @@ export class ApplicationDeleteComponent<T> {
           if (this.selectedServiceInstances && this.selectedServiceInstances.length) {
             this.selectedServiceInstances.forEach(instance => {
               if (isUserProvidedServiceInstance(instance.entity.service_instance.entity)) {
-                // TODO: RC Is this the correct guid???
                 cfEntityCatalog.userProvidedService.api.remove(instance.entity.service_instance_guid, this.applicationService.cfGuid)
               } else {
                 cfEntityCatalog.serviceInstance.api.remove(instance.entity.service_instance_guid, this.applicationService.cfGuid)

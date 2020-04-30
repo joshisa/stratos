@@ -125,11 +125,13 @@ export class EntityCatalogEntityStoreHelpers {
         rAction.guid,
         {
           schemaKey,
-          startWithNull: true
+          startWithNull: false
         }
       ).entityRequest$ as unknown as Observable<T>;
     };
   }
+
+  // TODO: RC RENAME FILE
 
   static createCoreStore<Y, ABC extends OrchestratedActionBuilders>(
     actionOrchestrator: ActionOrchestrator<ABC>,

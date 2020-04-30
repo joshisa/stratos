@@ -30,22 +30,6 @@ export class AppDeleteServiceInstancesListConfigService extends AppServiceBindin
   allowSelection: boolean;
   obsCache: { [serviceGuid: string]: Observable<RowState> } = {};
 
-  // TODO: RC REMOVE
-  // static createFetchServiceBinding = (cfGuid: string, serviceInstanceGuid: string): FetchAllServiceBindings => {
-  //   const sgEntity = entityCatalog
-  //     .getEntity<IEntityMetadata, null, ServiceBindingActionBuilders>(CF_ENDPOINT_TYPE, serviceBindingEntityType);
-  //   const actionBuilder = sgEntity.actionOrchestrator.getActionBuilder('getMultiple');
-  //   const action = actionBuilder(
-  //     cfGuid,
-  //     createEntityRelationPaginationKey(serviceEntityType, serviceInstanceGuid) + '-count',
-  //   );
-  //   action.initialParams['results-per-page'] = 1;
-  //   action.initialParams.q = [
-  //     new QParam('service_instance_guid', serviceInstanceGuid, QParamJoiners.in).toString(),
-  //   ];
-  //   return action;
-  // }
-
   constructor(
     store: Store<CFAppState>,
     appService: ApplicationService,
