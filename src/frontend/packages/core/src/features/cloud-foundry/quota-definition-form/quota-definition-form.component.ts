@@ -35,8 +35,6 @@ export class QuotaDefinitionFormComponent implements OnInit, OnDestroy {
   allQuotas: string[];
   formGroup: FormGroup;
 
-  // TODO: RC test create quota and quotas should be populated
-
   @Input() quota: IQuotaDefinition;
 
   constructor(

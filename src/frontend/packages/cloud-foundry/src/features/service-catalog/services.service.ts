@@ -57,6 +57,10 @@ export class ServicesService {
     this.cfGuid = getIdFromRoute(activatedRoute, 'endpointId');
     this.serviceGuid = getIdFromRoute(activatedRoute, 'serviceId');
 
+    if (!this.serviceGuid) {
+      return;
+    }
+
     this.serviceEntityService = getCfService(this.serviceGuid, this.cfGuid);
     this.service$ = this.serviceEntityService.waitForEntity$.pipe(
       filter(o => !!o && !!o.entity),

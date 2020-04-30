@@ -145,7 +145,6 @@ export class CloudFoundryEndpointService {
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
 
-    // TODO: RC CI core entity equivilant, plus autoscaler
     this.cfEndpointEntityService = this.entityServiceFactory.create(
       this.cfGuid,
       new GetAllEndpoints()

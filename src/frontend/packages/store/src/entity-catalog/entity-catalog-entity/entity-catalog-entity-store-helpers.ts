@@ -77,7 +77,7 @@ export class EntityCatalogEntityStoreHelpers {
         pAction,
         pAction.flattenPagination
       )
-    }, pAction.flattenPagination);  // TODO: RC REF This isn't always the case.
+    }, pAction.flattenPagination);
   }
 
   static getActionDispatchers<Y, ABC extends OrchestratedActionBuilders>(
@@ -130,8 +130,6 @@ export class EntityCatalogEntityStoreHelpers {
       ).entityRequest$ as unknown as Observable<T>;
     };
   }
-
-  // TODO: RC RENAME FILE
 
   static createCoreStore<Y, ABC extends OrchestratedActionBuilders>(
     actionOrchestrator: ActionOrchestrator<ABC>,

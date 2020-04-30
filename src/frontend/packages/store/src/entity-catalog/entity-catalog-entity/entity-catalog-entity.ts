@@ -29,8 +29,8 @@ import {
   StratosEndpointExtensionDefinition,
 } from '../entity-catalog.types';
 import { ActionBuilderConfigMapper } from './action-builder-config.mapper';
+import { ActionDispatchers, EntityCatalogEntityStoreHelpers } from './entity-catalog-entity-store-helpers';
 import { EntityCatalogEntityStore } from './entity-catalog-entity.types';
-import { ActionDispatchers, EntityCatalogEntityStoreHelpers } from './entity-catalog-TOSORT';
 
 export type KnownActionBuilders<ABC extends OrchestratedActionBuilders> = Pick<ABC, NonOptionalKeys<Pick<ABC, KnownKeys<ABC>>>>
 

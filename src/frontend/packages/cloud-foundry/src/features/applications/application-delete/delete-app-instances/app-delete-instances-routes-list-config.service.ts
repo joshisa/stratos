@@ -64,7 +64,6 @@ export class AppDeleteServiceInstancesListConfigService extends AppServiceBindin
             includeRelations: [],
           }
         )
-        // TODO: RC TEST
         this.obsCache[serviceBinding.entity.service_instance_guid] = fetchTotalResults(
           action,
           store,

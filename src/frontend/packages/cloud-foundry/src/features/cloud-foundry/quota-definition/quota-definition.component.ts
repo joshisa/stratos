@@ -60,7 +60,7 @@ export class QuotaDefinitionComponent extends QuotaDefinitionBaseComponent {
     const quotaGuid$ = this.quotaGuid ? of(this.quotaGuid) : this.org$.pipe(map(org => org.entity.quota_definition_guid));
     const entityInfo$ = quotaGuid$.pipe(
       first(),
-      switchMap(quotaGuid => cfEntityCatalog.quotaDefinition.store.getEntityService(quotaGuid, this.cfGuid).entityObs$)
+      switchMap(quotaGuid => cfEntityCatalog.quotaDefinition.store.getEntityService(quotaGuid, this.cfGuid, {}).entityObs$)
     );
 
     this.quotaDefinition$ = entityInfo$.pipe(

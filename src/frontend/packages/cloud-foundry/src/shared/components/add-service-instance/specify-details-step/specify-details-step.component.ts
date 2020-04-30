@@ -482,18 +482,6 @@ export class SpecifyDetailsStepComponent implements OnDestroy, AfterContentInit 
     );
   }
 
-
-  createBinding = (serviceInstanceGuid: string, cfGuid: string, appGuid: string, params: object) => {
-
-    const guid = `${cfGuid}-${appGuid}-${serviceInstanceGuid}`;
-    // TODO: RC Test
-    return cfEntityCatalog.serviceBinding.api.create<RequestInfoState>(
-      guid,
-      cfGuid,
-      { applicationGuid: appGuid, serviceInstanceGuid, params }
-    )
-  }
-
   addTag(event: MatChipInputEvent): void {
     const input = event.input;
     const value = event.value;

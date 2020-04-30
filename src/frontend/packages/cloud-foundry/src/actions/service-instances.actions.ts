@@ -16,6 +16,7 @@ import {
   spaceEntityType,
 } from '../cf-entity-types';
 import { createEntityRelationKey, EntityInlineParentAction } from '../entity-relations/entity-relations.types';
+import { QParam, QParamJoiners } from '../shared/q-param';
 import { CFStartAction } from './cf-action.types';
 
 export const DELETE_SERVICE_INSTANCE_ACTIONS = getActions('Service Instances', 'Delete Service Instance');
@@ -188,8 +189,11 @@ export class ListServiceBindingsForInstance
     super();
     this.options = new HttpRequest(
       'GET',
-      `service_instances/${serviceInstanceGuid}/service_bindings`
+      `service_bindings`
     );
+    this.initialParams.q = [
+      new QParam('service_instance_guid', serviceInstanceGuid, QParamJoiners.in).toString(),
+    ]
   }
   actions = getActions('Service Instances', 'Get all service bindings for instance');
   entity = [cfEntityFactory(serviceBindingNoBindingsEntityType)];
@@ -200,6 +204,7 @@ export class ListServiceBindingsForInstance
     'results-per-page': 100,
     'order-direction': 'desc',
     'order-direction-field': 'creation',
+    q: []
   };
   flattenPagination = true;
 }

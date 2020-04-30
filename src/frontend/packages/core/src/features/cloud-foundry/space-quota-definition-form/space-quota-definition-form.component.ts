@@ -56,7 +56,6 @@ export class SpaceQuotaDefinitionFormComponent implements OnInit, OnDestroy {
   }
 
   fetchQuotasDefinitions() {
-    // TODO: RC TEST
     this.spaceQuotaDefinitions$ = cfEntityCatalog.spaceQuota.store.getAllInOrganization.getPaginationService(
       this.orgGuid,
       this.cfGuid,

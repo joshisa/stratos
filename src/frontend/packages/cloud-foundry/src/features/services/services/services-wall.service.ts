@@ -18,7 +18,6 @@ export class ServicesWallService {
   }
 
   initServicesObservable = () => {
-    // TODO: RC check type used in services wall datasource
     const paginationKey = createEntityRelationPaginationKey(endpointSchemaKey);
     return cfEntityCatalog.service.store.getPaginationService(null, paginationKey, {}).entities$
   }

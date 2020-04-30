@@ -283,22 +283,13 @@ export class DeployApplicationStep2Component
 
           if (this.isRedeploy) {
             const commitSha = commit || branch.commit.sha;
-            // This method to create entity id's should be standardised....
+            // FIXME: This method to create entity id's should be standardised.... #4245
             const repoEntityID = `${this.scm.getType()}-${projectInfo.full_name}`;
             const commitEntityID = `${repoEntityID}-${commitSha}`;
             const commitEntityService = cfEntityCatalog.gitCommit.store.getEntityService(commitEntityID, null, {
               projectName: projectInfo.full_name,
               scm: this.scm, commitSha
             })
-            // TODO: RC TEST
-            // const commitEntityService = this.entityServiceFactory.create<GitCommit>(
-            //   {
-            //     endpointType: CF_ENDPOINT_TYPE,
-            //     entityType: gitCommitEntityType,
-            //     actionMetadata: { projectName: projectInfo.full_name, scm: this.scm, commitSha },
-            //     entityGuid: commitEntityID,
-            //   }
-            // );
 
             if (this.commitSubscription) {
               this.commitSubscription.unsubscribe();

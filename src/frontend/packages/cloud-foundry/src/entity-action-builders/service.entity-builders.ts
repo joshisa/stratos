@@ -3,8 +3,6 @@ import { GetAllServices, GetService } from '../actions/service.actions';
 import { GetAllServicesForSpace } from '../actions/space.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
-// TODO: RC autoscaler, other endpoints
-
 export interface ServiceActionBuilders extends OrchestratedActionBuilders {
   get: (
     guid,

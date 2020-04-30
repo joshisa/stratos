@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { filter, first, map, switchMap } from 'rxjs/operators';
 
 import { cfEntityCatalog } from '../../../../../../../../cloud-foundry/src/cf-entity-catalog';
@@ -37,32 +37,33 @@ export class TableCellServiceComponent extends TableCellCustom<APIResource<IServ
     this.isUserProvidedServiceInstance =
       this.entityKey === entityCatalog.getEntityKey(CF_ENDPOINT_TYPE, userProvidedServiceInstanceEntityType);
 
-    const service$ = getCfService(this.row.entity.service_guid, this.row.entity.cfGuid).waitForEntity$.pipe(
-      filter(s => !!s),
-    );
+    if (!this.isUserProvidedServiceInstance) {
+      const service$ = getCfService(this.row.entity.service_guid, this.row.entity.cfGuid).waitForEntity$.pipe(
+        filter(s => !!s),
+      );
 
-    this.serviceName$ = service$.pipe(
-      map(s => this.isUserProvidedServiceInstance ? 'User Provided' : getServiceName(s.entity))
-    );
+      this.serviceName$ = service$.pipe(
+        map(s => getServiceName(s.entity))
+      );
 
-    this.serviceUrl$ = service$.pipe(
-      map(service => `/marketplace/${service.entity.entity.cfGuid}/${service.entity.metadata.guid}/summary`)
-    );
+      this.serviceUrl$ = this.isUserProvidedServiceInstance ? of(null) : service$.pipe(
+        map(service => `/marketplace/${service.entity.entity.cfGuid}/${service.entity.metadata.guid}/summary`)
+      );
 
-    this.serviceBrokerName$ = service$.pipe(
-      first(),
-      switchMap(service => {
-        const brokerGuid = service.entity.entity.service_broker_guid;
-        return cfEntityCatalog.serviceBroker.store.getEntityService(brokerGuid, service.entity.entity.cfGuid, {})
-          .waitForEntity$.pipe(
-            map(a => a.entity),
-            filter(res => !!res),
-            map(a => a.entity.name),
-            first()
-          );
-      })
-    );
-
+      this.serviceBrokerName$ = service$.pipe(
+        first(),
+        switchMap(service => {
+          const brokerGuid = service.entity.entity.service_broker_guid;
+          return cfEntityCatalog.serviceBroker.store.getEntityService(brokerGuid, service.entity.entity.cfGuid, {})
+            .waitForEntity$.pipe(
+              map(a => a.entity),
+              filter(res => !!res),
+              map(a => a.entity.name),
+              first()
+            );
+        })
+      );
+    }
   }
 
 }

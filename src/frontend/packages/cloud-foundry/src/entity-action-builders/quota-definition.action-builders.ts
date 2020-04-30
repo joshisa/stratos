@@ -2,10 +2,20 @@ import {
   QuotaFormValues,
 } from '../../../core/src/features/cloud-foundry/quota-definition-form/quota-definition-form.component';
 import { OrchestratedActionBuilders } from '../../../store/src/entity-catalog/action-orchestrator/action-orchestrator';
-import { CreateQuotaDefinition, GetQuotaDefinitions, UpdateQuotaDefinition } from '../actions/quota-definitions.actions';
+import {
+  CreateQuotaDefinition,
+  GetQuotaDefinition,
+  GetQuotaDefinitions,
+  UpdateQuotaDefinition,
+} from '../actions/quota-definitions.actions';
 import { CFBasePipelineRequestActionMeta } from '../cf-entity-generator';
 
 export interface QuotaDefinitionActionBuilder extends OrchestratedActionBuilders {
+  get: (
+    guid: string,
+    endpointGuid: string,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => GetQuotaDefinition;
   create: (
     id: string,
     endpointGuid: string,
@@ -24,6 +34,11 @@ export interface QuotaDefinitionActionBuilder extends OrchestratedActionBuilders
 }
 
 export const quotaDefinitionActionBuilder: QuotaDefinitionActionBuilder = {
+  get: (
+    guid: string,
+    endpointGuid: string,
+    { includeRelations, populateMissing }: CFBasePipelineRequestActionMeta
+  ) => new GetQuotaDefinition(guid, endpointGuid, includeRelations, populateMissing),
   create: (
     id: string,
     endpointGuid: string,
