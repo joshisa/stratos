@@ -44,20 +44,13 @@ export class GithubEffects {
         guid: action.guid
       };
       this.store.dispatch(new StartRequestAction(apiAction, actionType));
-      // const scmType = action.stProject.deploySource.scm || action.stProject.deploySource.type;
-      // const scm = this.scmService.getSCM(scmType as GitSCMType);
       return action.meta.scm.getRepository(this.httpClient, action.meta.projectName).pipe(
         mergeMap(repoDetails => {
           const mappedData = {
             entities: { cfGitRepo: {} },
             result: []
           } as NormalizedResponse;
-          // const id = scmType + '-' + repoDetails.full_name;
           mappedData.entities.cfGitRepo[action.guid] = repoDetails;
-          // mappedData.entities.cfGitRepo[id] = {
-          //   entity: repoDetails,
-          //   metadata: {}
-          // };
           mappedData.result.push(action.guid);
           return [
             new WrapperRequestActionSuccess(mappedData, apiAction, actionType)

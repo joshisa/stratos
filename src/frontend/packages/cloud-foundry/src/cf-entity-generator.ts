@@ -183,10 +183,6 @@ export interface CFBasePipelineRequestActionMeta {
    * Only applicable to collections
    */
   flatten?: boolean;
-  /**
-   * // TODO: RC
-   */
-  overrideSchemaKey?: string;
 }
 
 export function generateCFEntities(): StratosBaseCatalogEntity[] {

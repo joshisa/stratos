@@ -111,7 +111,7 @@ export class CfAppsDataSource extends CFListDataSource<APIResource> {
           if (appState === 'STARTED') {
             actions.push({
               id: appGuid,
-              action: cfEntityCatalog.appStats.actions.getMultiple(app, cfGuid)
+              action: cfEntityCatalog.appStats.actions.getMultiple(appGuid, cfGuid)
             });
           }
         });

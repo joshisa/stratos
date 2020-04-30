@@ -143,9 +143,6 @@ export class DeployAppEffects {
             entities: { [entityKey]: {} },
             result: []
           };
-
-          // const scmType = action.scm.getType();
-          // const id = `${scmType}-${action.projectName}-${branch.name}`; // TODO: RC should come from action guid
           branch.projectId = action.projectName;
           branch.entityId = action.guid;
           mappedData.entities[entityKey][action.guid] = branch;
@@ -219,7 +216,7 @@ export class DeployAppEffects {
     }));
 
   addCommit(entityKey: string, mappedData: NormalizedResponse, scmType: string, projectName: string, commit: GitCommit) {
-    const id = scmType + '-' + projectName + '-' + commit.sha;
+    const id = scmType + '-' + projectName + '-' + commit.sha; // FIXME: get from action, see #4245
     mappedData.entities[entityKey][id] = commit;
     // mappedData.entities[entityKey][id] = {
     //   entity: commit,

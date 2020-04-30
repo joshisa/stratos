@@ -22,8 +22,7 @@ export const gitRepoActionBuilders: GitRepoActionBuilders = {
 
 export interface GitMeta {
   projectName: string;
-  scm: GitSCM; // TODO: RC REMOVE FROM ACTIONS!
-  // scmType: string;
+  scm: GitSCM; // FIXME: Remove from action, see #4245
   commitSha?: string;
   branchName?: string;
 }
@@ -53,13 +52,16 @@ export const gitCommitActionBuilders: GitCommitActionBuildersConfig = {
 };
 
 export interface GitBranchActionBuilders extends OrchestratedActionBuilders {
+  /**
+   * guid & endpointGuid are optional
+   */
   get: (
     guid: string,
     endpointId: string,
     meta: GitMeta
   ) => FetchBranchForProject;
   /**
-   * endpointGuid & paginationKey is optional
+   * endpointGuid & paginationKey are optional
    */
   getMultiple: (
     endpointGuid: string,
