@@ -13,7 +13,6 @@ import {
 } from '../../../../../../../core/src/shared/components/stacked-input-actions/stacked-input-actions.component';
 import { StepOnNextFunction } from '../../../../../../../core/src/shared/components/stepper/step/step.component';
 import { ClearPaginationOfType } from '../../../../../../../store/src/actions/pagination.actions';
-import { EntityServiceFactory } from '../../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../../store/src/types/api.types';
 import { CFAppState } from '../../../../../cf-app-state';
 import { cfEntityCatalog } from '../../../../../cf-entity-catalog';
@@ -45,7 +44,6 @@ export class InviteUsersCreateComponent implements OnInit {
   constructor(
     private store: Store<CFAppState>,
     private activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
-    private entityServiceFactory: EntityServiceFactory,
     private userInviteService: UserInviteService
   ) {
     this.valid$ = this.stepValid.asObservable();

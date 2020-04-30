@@ -4,14 +4,12 @@ import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { filter, first, map, pairwise, tap } from 'rxjs/operators';
 
-import { GetQuotaDefinition } from '../../../../../../cloud-foundry/src/actions/quota-definitions.actions';
 import { cfEntityCatalog } from '../../../../../../cloud-foundry/src/cf-entity-catalog';
 import { ActiveRouteCfOrgSpace } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf-page.types';
 import { getActiveRouteCfOrgSpaceProvider } from '../../../../../../cloud-foundry/src/features/cloud-foundry/cf.helpers';
 import { AppState } from '../../../../../../store/src/app-state';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { APIResource } from '../../../../../../store/src/types/api.types';
-import { IQuotaDefinition } from '../../../../core/cf-api.types';
+import { IOrgQuotaDefinition } from '../../../../core/cf-api.types';
 import { safeUnsubscribe } from '../../../../core/utils.service';
 import { StepOnNextFunction } from '../../../../shared/components/stepper/step/step.component';
 import { QuotaDefinitionFormComponent } from '../../quota-definition-form/quota-definition-form.component';
@@ -29,9 +27,9 @@ export class EditQuotaStepComponent implements OnDestroy {
 
   cfGuid: string;
   quotaGuid: string;
-  quotaDefinition$: Observable<APIResource<IQuotaDefinition>>;
+  quotaDefinition$: Observable<APIResource<IOrgQuotaDefinition>>;
   quotaSubscription: Subscription;
-  quota: IQuotaDefinition;
+  quota: IOrgQuotaDefinition;
 
   @ViewChild('form', { static: false })
   form: QuotaDefinitionFormComponent;
@@ -39,7 +37,6 @@ export class EditQuotaStepComponent implements OnDestroy {
   constructor(
     private store: Store<AppState>,
     private activatedRoute: ActivatedRoute,
-    private entityServiceFactory: EntityServiceFactory,
     activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
   ) {
     this.cfGuid = activeRouteCfOrgSpace.cfGuid;
@@ -49,10 +46,7 @@ export class EditQuotaStepComponent implements OnDestroy {
   }
 
   fetchQuotaDefinition() {
-    this.quotaDefinition$ = this.entityServiceFactory.create<APIResource<IQuotaDefinition>>(
-      this.quotaGuid,
-      new GetQuotaDefinition(this.quotaGuid, this.cfGuid),
-    ).waitForEntity$.pipe(
+    this.quotaDefinition$ = cfEntityCatalog.quotaDefinition.store.getEntityService(this.quotaGuid, this.cfGuid).waitForEntity$.pipe(
       first(),
       map(data => data.entity),
       tap((resource) => this.quota = resource.entity)

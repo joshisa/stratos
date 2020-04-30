@@ -24,7 +24,6 @@ export class CloudFoundryUserProvidedServicesService {
 
   constructor(
     private store: Store<CFAppState>,
-    // private entityServiceFactory: EntityServiceFactory,
     private paginationMonitorFactory: PaginationMonitorFactory,
   ) {
 

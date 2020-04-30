@@ -10,15 +10,12 @@ import { IServiceBinding, IServiceInstance, IUserProvidedServiceInstance } from 
 import { ConfirmationDialogConfig } from '../../../../core/src/shared/components/confirmation-dialog.config';
 import { ConfirmationDialogService } from '../../../../core/src/shared/components/confirmation-dialog.service';
 import { RouterNav, RouterQueryParams } from '../../../../store/src/actions/router.actions';
-import { entityCatalog } from '../../../../store/src/entity-catalog/entity-catalog';
-import { EntityCatalogEntityConfig, IEntityMetadata } from '../../../../store/src/entity-catalog/entity-catalog.types';
-import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
+import { EntityCatalogEntityConfig } from '../../../../store/src/entity-catalog/entity-catalog.types';
 import { ActionState } from '../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource, EntityInfo } from '../../../../store/src/types/api.types';
 import { UpdateServiceInstance } from '../../actions/service-instances.actions';
 import { cfEntityCatalog } from '../../cf-entity-catalog';
 import { CF_ENDPOINT_TYPE } from '../../cf-types';
-import { ServiceInstanceActionBuilders } from '../../entity-action-builders/service-instance.action.builders';
 import {
   SERVICE_INSTANCE_TYPES,
 } from '../components/add-service-instance/add-service-instance-base-step/add-service-instance.types';
@@ -27,15 +24,9 @@ import {
 @Injectable()
 export class ServiceActionHelperService {
 
-  private serviceInstanceEntity = entityCatalog.getEntity<IEntityMetadata, any, ServiceInstanceActionBuilders>(
-    CF_ENDPOINT_TYPE,
-    serviceInstancesEntityType
-  );
-
   constructor(
     private confirmDialog: ConfirmationDialogService,
     private store: Store<CFAppState>,
-    private entityServiceFactory: EntityServiceFactory
   ) { }
 
   detachServiceBinding = (

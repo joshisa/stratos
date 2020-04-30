@@ -16,7 +16,6 @@ import {
 import { getIdFromRoute, safeStringToObj } from '../../../../core/src/core/utils.service';
 import { StratosStatus } from '../../../../core/src/shared/shared.types';
 import { EntityService } from '../../../../store/src/entity-service';
-import { EntityServiceFactory } from '../../../../store/src/entity-service-factory.service';
 import { PaginationMonitorFactory } from '../../../../store/src/monitors/pagination-monitor.factory';
 import { APIResource } from '../../../../store/src/types/api.types';
 import { CFAppState } from '../../cf-app-state';
@@ -218,7 +217,6 @@ export const getCfService = (
 export const getCfServiceInstance = (
   serviceInstanceGuid: string,
   cfGuid: string,
-  entityServiceFactory: EntityServiceFactory,
   includeRelations: string[] = null
 ): EntityService<APIResource<IServiceInstance>> => {
   return cfEntityCatalog.serviceInstance.store.getEntityService(

@@ -11,7 +11,6 @@ import {
 } from '../../../../../core/src/core/cf-api.types';
 import { IHeaderBreadcrumb } from '../../../../../core/src/shared/components/page-header/page-header.types';
 import { AppState } from '../../../../../store/src/app-state';
-import { EntityServiceFactory } from '../../../../../store/src/entity-service-factory.service';
 import { endpointEntitiesSelector } from '../../../../../store/src/selectors/endpoint.selectors';
 import { APIResource } from '../../../../../store/src/types/api.types';
 import { EndpointModel } from '../../../../../store/src/types/endpoint.types';
@@ -31,7 +30,6 @@ export class QuotaDefinitionBaseComponent {
   orgSubscriber: Subscription;
 
   constructor(
-    protected entityServiceFactory: EntityServiceFactory,
     protected store: Store<AppState>,
     protected activeRouteCfOrgSpace: ActiveRouteCfOrgSpace,
     protected activatedRoute: ActivatedRoute,

@@ -15,7 +15,6 @@ import {
   StepOnNextResult,
 } from '../../../../../../core/src/shared/components/stepper/step/step.component';
 import { RouterNav } from '../../../../../../store/src/actions/router.actions';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
@@ -55,7 +54,6 @@ export class AddRoutesComponent implements OnInit, OnDestroy {
   constructor(
     private applicationService: ApplicationService,
     private store: Store<CFAppState>,
-    private entityServiceFactory: EntityServiceFactory,
   ) {
     this.appGuid = applicationService.appGuid;
     this.cfGuid = applicationService.cfGuid;

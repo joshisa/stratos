@@ -18,7 +18,6 @@ import { CreateNewApplicationState } from '../../../../../../cloud-foundry/src/s
 import { IDomain } from '../../../../../../core/src/core/cf-api.types';
 import { StepOnNextFunction } from '../../../../../../core/src/shared/components/stepper/step/step.component';
 import { RouterNav } from '../../../../../../store/src/actions/router.actions';
-import { EntityServiceFactory } from '../../../../../../store/src/entity-service-factory.service';
 import { getDefaultRequestState, RequestInfoState } from '../../../../../../store/src/reducers/api-request-reducer/types';
 import { APIResource } from '../../../../../../store/src/types/api.types';
 import { cfEntityCatalog } from '../../../../cf-entity-catalog';
@@ -38,7 +37,7 @@ export class CreateApplicationStep3Component implements OnInit {
 
   setDomainHost: FormGroup;
 
-  constructor(private store: Store<CFAppState>, private entityServiceFactory: EntityServiceFactory) {
+  constructor(private store: Store<CFAppState>) {
     this.setDomainHost = new FormGroup({
       domain: new FormControl('', [Validators.required]),
       host: new FormControl({ disabled: true }, [Validators.required, Validators.maxLength(63)]),
