@@ -33,6 +33,7 @@ import { CustomizationService } from './core/customizations.types';
 import { DynamicExtensionRoutes } from './core/extension/dynamic-extension-routes';
 import { ExtensionService } from './core/extension/extension-service';
 import { getGitHubAPIURL, GITHUB_API_URL } from './core/github.helpers';
+import { CurrentUserPermissionsService } from './core/permissions/current-user-permissions.service';
 import { UserFavoriteManager } from './core/user-favorite-manager';
 import { AboutModule } from './features/about/about.module';
 import { DashboardModule } from './features/dashboard/dashboard.module';
@@ -110,7 +111,8 @@ export class CustomRouterStateSerializer
     SidePanelService,
     { provide: GITHUB_API_URL, useFactory: getGitHubAPIURL },
     { provide: RouterStateSerializer, useClass: CustomRouterStateSerializer }, // Create action for router navigation
-    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy }
+    { provide: RouteReuseStrategy, useClass: CustomReuseStrategy },
+    CurrentUserPermissionsService
   ],
   bootstrap: [AppComponent]
 })
