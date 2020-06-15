@@ -3,10 +3,16 @@
   "version": 1,
   "newProjectRoot": "src/frontend/packages",
   "projects": {
-    "stratos": {
-      "root": "src/frontend/packages",
-      "sourceRoot": "src/frontend/packages",
+    "stratos-app": {
       "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "src/frontend/packages/stratos-app",
+      "sourceRoot": "src/frontend/packages/stratos-app/src",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
@@ -15,43 +21,51 @@
               "path": "./dist/devkit/build/main.js"
             },
             "indexTransform": "./dist/devkit/build/index.transform.js",
-            "preserveSymlinks": true,
             "outputPath": "dist",
-            "index": "src/frontend/packages/core/src/index.html",
-            "main": "src/frontend/packages/core/src/main.ts",
-            "tsConfig": "src/frontend/packages/core/tsconfig.app.json",
-            "polyfills": "src/frontend/packages/core/src/polyfills.ts",
+            "index": "src/frontend/packages/stratos-app/src/index.html",
+            "main": "src/frontend/packages/stratos-app/src/main.ts",
+            "polyfills": "src/frontend/packages/stratos-app/src/polyfills.ts",
+            "tsConfig": "src/frontend/packages/stratos-app/tsconfig.app.json",
+            "aot": true,
             "assets": [
-              "src/frontend/packages/core/assets",
-              {
-                "glob": "**/*",
-                "input": "custom-src/frontend/assets/custom",
-                "output": "/core/assets/custom"
-              },
-              "src/frontend/packages/core/favicon.ico"
+              "src/frontend/packages/stratos-app/src/favicon.ico",
+              "src/frontend/packages/stratos-app/src/assets"
             ],
             "styles": [
-              "src/frontend/packages/core/src/styles.scss",
-              "src/frontend/packages/cf-autoscaler/src/styles.scss",
-              "node_modules/xterm/css/xterm.css"
+              "src/frontend/packages/stratos-app/src/styles.scss"
             ],
             "scripts": []
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/frontend/packages/stratos-app/src/environments/environment.ts",
+                  "with": "src/frontend/packages/stratos-app/src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/frontend/packages/core/src/environments/environment.ts",
+                  "with": "src/frontend/packages/core/src/environments/environment.prod.ts"
+                }
+              ],
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
-              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
-              "fileReplacements": [
+              "budgets": [
                 {
-                  "replace": "src/frontend/packages/core/src/environments/environment.ts",
-                  "with": "src/frontend/packages/core/src/environments/environment.prod.ts"
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
                 }
               ]
             }
@@ -60,23 +74,22 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "aot": true,
             "sslCert": "dev-ssl/server.crt",
             "proxyConfig": "proxy.conf.js",
             "ssl": true,
             "sslKey": "dev-ssl/server.key",
-            "browserTarget": "stratos:build"
+            "browserTarget": "stratos-app:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "stratos:build:production"
+              "browserTarget": "stratos-app:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "stratos:build"
+            "browserTarget": "stratos-app:build"
           }
         }
       }
@@ -193,7 +206,6 @@
             "tsConfig": "src/frontend/packages/core/tsconfig.spec.json",
             "karmaConfig": "src/frontend/packages/core/karma.conf.js",
             "styles": [
-              "src/frontend/packages/core/src/styles.css"
             ],
             "scripts": [],
             "assets": [
@@ -390,7 +402,7 @@
       }
     }
   },
-  "defaultProject": "stratos",
+  "defaultProject": "stratos-app",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",

@@ -4,8 +4,6 @@ import { NormalModuleReplacementPlugin } from 'webpack';
 
 import { StratosConfig } from '../lib/stratos.config';
 
-const importModuleRegex = /src\/frontend\/packages\/core\/src\/custom-import.module.ts/;
-
 /**
  * Generates the file _custom-import.module.ts containing the code to import
  * the extensions modules discovered from the packages being included.
@@ -24,6 +22,11 @@ export class ExtensionsHandler {
 
     // Generate the module file to import the appropriate extensions
     const dir = path.dirname(options.main);
+
+    // Regex for the source file 'custom-import.module.ts'
+    const cim = path.join(dir, 'custom-import.module.ts');
+    const importModuleRegex =  new RegExp(cim.split(path.sep).join('\\/'));
+
     const overrideFile = path.resolve(path.join(dir, './_custom-import.module.ts'));
 
     fs.writeFileSync(overrideFile, '// This file is auto-generated - DO NOT EDIT\n\n');

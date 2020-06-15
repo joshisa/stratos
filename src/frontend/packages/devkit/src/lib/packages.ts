@@ -127,7 +127,6 @@ export class Packages {
       const pkgInfo: any = {
         dir: pkgDir
       };
-
       this.addPackage(pkgDir, true);
     });
 
@@ -145,7 +144,7 @@ export class Packages {
     }
 
     // Ensure that the theme is last in the list, so that its resources are copied last
-    const index = this.packages.findIndex(pkg => pkg.name === this.theme.name);
+    const index = this.packages.findIndex(pkg => pkg && pkg.name === this.theme.name);
     if (index > -1) {
       const items = this.packages.splice(index, 1);
       this.packages.push(items[0]);
@@ -178,6 +177,8 @@ export class Packages {
         const pkg = this.processPackage(pkgFile, pkgDir);
         this.add(pkg);
       }
+    } else {
+      console.log('Could not load package file for: ' + pkgFile);
     }
   }
 

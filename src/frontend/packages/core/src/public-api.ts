@@ -18,3 +18,7 @@ export * from './shared/shared.module';
 
 // LoginPageComponent
 export { LoginPageComponent } from './features/login/login-page/login-page.component';
+
+// Main App
+export * from './app.module';
+export * from './app.component';

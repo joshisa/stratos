@@ -1,0 +1,8 @@
+// Set font paths so that we get fonts from the core package's assets copied to the dist folder
+$scpro-font-path: '/core/assets/fonts';
+$roboto-font-path: '/core/assets/fonts/roboto';
+$lato-font-path: '/core/assets/fonts/lato';
+$material-icons-font-path: '/core/assets/fonts/iconfont';
+$stratos-icons-font-path: '/core/assets/fonts/stratos';
+
+@import '~@stratosui/core/styles';
