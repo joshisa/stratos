@@ -6,8 +6,6 @@ import { DefaultRouterStateSerializer, RouterStateSerializer, StoreRouterConnect
 import { Store } from '@ngrx/store';
 import { debounceTime, filter, withLatestFrom } from 'rxjs/operators';
 
-import { CfAutoscalerModule } from '../../cf-autoscaler/src/cf-autoscaler.module';
-import { CloudFoundryPackageModule } from '../../cloud-foundry/src/cloud-foundry.module';
 import { SetRecentlyVisitedEntityAction } from '../../store/src/actions/recently-visited.actions';
 import {
   UpdateUserFavoriteMetadataAction,
@@ -90,7 +88,6 @@ export class CustomRouterStateSerializer
   imports: [
     EntityCatalogModule.forFeature(generateStratosEntities),
     RouteModule,
-    CloudFoundryPackageModule,
     AppStoreModule,
     BrowserModule,
     SharedModule,
@@ -103,7 +100,6 @@ export class CustomRouterStateSerializer
     StoreRouterConnectingModule.forRoot({ serializer: DefaultRouterStateSerializer }), // Create action for router navigation
     AboutModule,
     XSRFModule,
-    CfAutoscalerModule
   ],
   providers: [
     CustomizationService,

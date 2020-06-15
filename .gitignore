@@ -96,6 +96,7 @@ src/jetstream/db/dbconf.yml
 
 # Customisation - generated import module
 src/frontend/packages/core/src/_custom-import.module.ts
+src/frontend/packages/stratos-app/src/_custom-import.module.ts
 
 # Prebuild package
 

@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { EffectsModule } from '@ngrx/effects';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { ExtensionService } from 'frontend/packages/core/src/core/extension/extension-service';
 import { of } from 'rxjs';
 
 import { CloudFoundrySharedModule } from '../../cloud-foundry/src/shared/cf-shared.module';
@@ -14,9 +15,9 @@ import { AutoscalerModule } from './core/autoscaler.module';
 import { AutoscalerTabExtensionComponent } from './features/autoscaler-tab-extension/autoscaler-tab-extension.component';
 import { generateASEntities } from './store/autoscaler-entity-generator';
 import { AutoscalerEffects } from './store/autoscaler.effects';
-import { ExtensionService } from 'frontend/packages/core/src/core/extension/extension-service';
 
 // FIXME Work out why we need this and remove it.
+// I don't think this is needed
 const customRoutes: Routes = [
   {
     path: 'autoscaler',

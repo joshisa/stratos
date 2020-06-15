@@ -121,7 +121,6 @@
         }
       }
     },    
-
     "core": {
       "root": "src/frontend/packages/core/",
       "sourceRoot": "src/frontend/packages/core",
@@ -130,29 +129,10 @@
       "schematics": {},
       "architect": {
         "build": {
-          "builder": "@angular-builders/custom-webpack:browser",
+          "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "preserveSymlinks": true,
-            "outputPath": "dist/core",
-            "index": "src/frontend/packages/core/src/index.html",
-            "main": "src/frontend/packages/core/src/main.ts",
-            "polyfills": "src/frontend/packages/core/src/polyfills.ts",
-            "tsConfig": "src/frontend/packages/core/tsconfig.app.json",
-            "assets": [
-              "src/frontend/packages/core/assets",
-              {
-                "glob": "**/*",
-                "input": "custom-src/frontend/assets/custom",
-                "output": "/core/assets/custom"
-              },
-              "src/frontend/packages/core/favicon.ico"
-            ],
-            "styles": [
-              "src/frontend/packages/core/src/styles.scss",
-              "src/frontend/packages/cf-autoscaler/src/styles.scss",
-              "node_modules/xterm/css/xterm.css"
-            ],
-            "scripts": []
+            "tsConfig": "src/frontend/packages/core/tsconfig.lib.json",
+            "project": "src/frontend/packages/core/ng-package.json"
           },
           "configurations": {
             "production": {

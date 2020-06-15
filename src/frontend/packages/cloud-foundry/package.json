@@ -6,7 +6,9 @@
     "@angular/core": "^6.0.0-rc.0 || ^6.0.0"
   },
   "stratos": {
-    "theming": "sass/_all-theme#apply-theme-stratos-cloud-foundry"
+    "theming": "sass/_all-theme#apply-theme-stratos-cloud-foundry",
+    "module": "CloudFoundryPackageModule",
+    "routingModule": "CloudFoundryRouteModule"
   }
 
 }
