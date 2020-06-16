@@ -3,12 +3,9 @@ import { NgModule } from '@angular/core';
 
 import { MDAppModule } from '../../core/src/core/md.module';
 import { SharedModule } from '../../core/src/shared/shared.module';
-import { EntityCatalogModule } from '../../store/src/entity-catalog.module';
+import { EntityCatalogModule } from '../../core/src/store/entity-catalog.module';
 import { generateCFEntities } from './cf-entity-generator';
-import { ApplicationsModule } from './features/applications/applications.module';
-import { CloudFoundryModule } from './features/cloud-foundry/cloud-foundry.module';
-import { ServiceCatalogModule } from './features/service-catalog/service-catalog.module';
-import { ServicesModule } from './features/services/services.module';
+import { ActiveRouteCfOrgSpace } from './features/cloud-foundry/cf-page.types';
 import { CloudFoundrySharedModule } from './shared/cf-shared.module';
 import { CfUserService } from './shared/data-services/cf-user.service';
 import { CloudFoundryService } from './shared/data-services/cloud-foundry.service';
@@ -24,10 +21,6 @@ import { cfCurrentUserPermissionsService } from './user-permissions/cf-user-perm
     CommonModule,
     SharedModule,
     MDAppModule,
-    ApplicationsModule,
-    CloudFoundryModule,
-    ServiceCatalogModule,
-    ServicesModule,
     CloudFoundryStoreModule,
     // FIXME: Ensure that anything lazy loaded is not included here - #3675
     CloudFoundrySharedModule,
@@ -44,6 +37,12 @@ import { cfCurrentUserPermissionsService } from './user-permissions/cf-user-perm
     ServiceActionHelperService,
     LongRunningCfOperationsService,
     CloudFoundryUserProvidedServicesService,
+    // TODO: Needs to be in all of the lazy-load modules
+    {
+      provide: ActiveRouteCfOrgSpace,
+      useValue: {}
+    },
+
   ]
 })
 export class CloudFoundryPackageModule { }

@@ -8,7 +8,5 @@
 
 export * from './cf-api-svc.types';
 
-
-
-export * from './cloud-foundry.module';
+export * from './cloud-foundry-package.module';
 export * from './cloud-foundry.routing.module';
