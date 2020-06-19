@@ -144,3 +144,4 @@ The customization task will insert the appropriate CSS and HTML files into the m
 
 Take a look at the template for the `index.html` file in `src/frontend/packages/core/misc/custom/index.html`. The CSS file is inserted where the marker `/** @@LOADING_CSS@@ **/` is and the HTML file where `<!-- @@LOADING_HTML@@ -->` is.
 
+m
