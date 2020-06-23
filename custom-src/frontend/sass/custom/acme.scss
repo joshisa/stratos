@@ -1,0 +1,109 @@
+// Style overrides
+// Acme Brand primary colour
+//$acme-primary-color: #1A1A1A;
+$acme-primary-color: #000000;
+
+$acme-secondary: #212427;
+$acme-text: #fff;
+$acme-text-gray: #ccc;
+$acme-page-side-nav: #06c;
+$acme-side-nav: $acme-secondary;
+$acme-side-nav-active: #4F5255;
+
+body.stratos {
+  font-family: RedHatText;
+  font-weight: 400;
+}
+
+body.stratos {
+  app-page-subheader {
+    .page-subheader {
+      background-color: #fff;
+      color: #333;
+    }
+  }
+
+  .firehose-filter-panel {
+    background-color: #212427;
+    border-bottom: #ffffff;
+    color: #ffffff;
+  }
+
+  .page-header__divider {
+    color: #333;
+  }
+
+  .page-header__menu-button-icon {
+    background-color: $acme-primary-color;
+    color: $acme-text;
+  }
+
+  .page-side-nav__item {
+    color:  $acme-primary-color; 
+  }
+
+  .page-side-nav__item--active {
+    color: $acme-page-side-nav;
+  }
+
+  .mat-tab-nav-bar.mat-primary.mat-background-primary {
+    .mat-tab-links {
+      background-color: #fff;
+      color: #333;
+    }
+    .mat-tab-link {
+      color: #333;
+    }
+    .mat-ink-bar {
+      background-color: $acme-primary-color;
+    }
+  }
+
+  .stratos-title__logo {
+    width: 160px;
+  }
+
+  .mat-card,
+  .mat-table,
+  .mat-header-row,
+  .mat-header-cell,
+  .mat-expansion-panel-header {
+    font-family: RedHatText,helvetica,arial;
+  }
+  
+  .log-scroller {
+    font-family: RedHatDisplay,"Source Code Pro", monospace;
+  }
+
+  .stratos-title,
+  .user-profile-banner {
+    background-color: #2b353f;
+  }
+
+  .page-header .mat-toolbar.mat-primary {
+    background-color: #000000;
+    color: #ffffff;
+  }
+
+  // Use Acme Side Navigation
+  .side-nav,
+  .side-nav__top {
+    background-color: $acme-primary-color; 
+  }
+
+  .side-nav__item--active:hover {
+    background-color: $acme-side-nav;
+  }
+  .side-nav__item--active,
+  .side-nav__item:hover {
+    background-color: $acme-side-nav-active;
+  }
+
+  .side-nav__items {
+    background-color: $acme-side-nav;
+  }
+  .side-nav__bottom {
+    color: $acme-text-gray;
+    background-color: $acme-side-nav;
+  }
+}

@@ -1,6 +1,29 @@
 $scpro-font-path: '../assets/fonts' !default;
 $roboto-font-path: '../assets/fonts/roboto' !default;
 $lato-font-path: '../assets/fonts/lato' !default;
+$rhdisplay-font-path: '../assets/fonts/RedHatDisplay' !default;
+$rhtext-font-path: '../assets/fonts/RedHatText' !default;
+
+@font-face {
+  font-family: 'RedHatDisplay';
+  font-style: normal;
+  font-weight: 400;
+  src: local('RedHatDisplay'),
+  local('RedHatDisplay-Regular'),
+  url('#{$rhdisplay-font-path}/RedHatDisplay-Regular.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
+@font-face {
+  font-family: 'RedHatText';
+  font-style: normal;
+  font-weight: 700;
+  src: local('RedHatText'),
+  local('RedHatText-Regular'),
+  url('#{$rhtext-font-path}/RedHatText-Regular.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+}
+
 
 // Source Code Pro Regular
 
