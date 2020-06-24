@@ -21,9 +21,11 @@ const AcmeCustomizations: CustomizationsMetadata = {
   ],
   declarations: [
     AcmeLoginComponent,
+    AcmeSupportInfoComponent
   ],
   entryComponents: [
     AcmeLoginComponent,
+    AcmeSupportInfoComponent
   ]
 })
 export class CustomModule {
