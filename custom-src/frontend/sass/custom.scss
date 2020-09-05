@@ -26,10 +26,5 @@ $stratos-theme: mat-light-theme($acme-theme-primary, $acme-theme-primary, $acme-
 // Changes Login Box Background Color
 .stratos .intro .login__card{
   font-family: RedHatText,helvetica,arial;
-  background-color: #2b353f;
-}
-
-// Changes Login Box Default Text Color
-.stratos .intro .acme-login__form .mat-form-field-label {
-  color: #ffffff;
+  background-color: #ffffff;
 }
