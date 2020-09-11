@@ -1,0 +1,12 @@
+title: "IBM Cloud Foundry Migration Runtime Console"
+productVersion: 1.0.0
+packages:
+  include:
+    - '@stratosui/core'
+    - '@stratosui/shared'
+    - '@stratosui/store'
+    - '@stratosui/cloud-foundry'
+    - '@stratosui/cf-autoscaler'
+    - '@stratosui/theme'
+    - '@cfmr/extensions'
+    - '@cfmr/theme'

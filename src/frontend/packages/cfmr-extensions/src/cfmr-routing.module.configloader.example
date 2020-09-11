@@ -1,0 +1,58 @@
+import { Injectable } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { RouterModule, Routes, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { initConfig, RuntimeConfigLoaderModule, RuntimeConfigLoaderService } from 'runtime-config-loader';
+
+var config;
+@Injectable({
+  providedIn: 'root',
+})
+export class OtherService {
+	constructor(private _configSvc: RuntimeConfigLoaderService) {
+		config = this._configSvc.getConfig();
+    console.log('config: ', config);
+	}
+}
+
+var customRoutes: Routes = [{
+  path: 'ocp-console',
+  loadChildren: () => import('./nav-extension/nav-extension.module').then(m => m.NavExtensionModule),
+  resolve: {
+    url: 'externalUrlRedirectResolver'
+  },
+  data: {
+    stratosNavigation: {
+      text: 'OpenShift Dashboard',
+      matIcon: 'openshift',
+      matIconFont: 'stratos-icons'
+    },
+    externalUrl: 'https://openshift.tv',
+  }
+}];
+
+@NgModule({
+  imports: [
+    RuntimeConfigLoaderModule.forRoot({
+      configUrl: './core/assets/config.json' 
+    }),
+    RouterModule.forRoot(customRoutes),
+  ],
+  declarations: [],
+  providers: [
+    OtherService,
+    {
+        provide: 'externalUrlRedirectResolver',
+        useValue: (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) =>
+        {
+            window.location.href = (route.data as any).externalUrl;
+        }
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initConfig,
+      deps: [RuntimeConfigLoaderService],
+      multi: true
+    }
+  ]
+})
+export class CFMRRoutingModule { }

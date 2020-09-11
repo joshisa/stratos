@@ -59,6 +59,7 @@
     "@angular/platform-browser-dynamic": "^9.1.6",
     "@angular/platform-server": "^9.1.6",
     "@angular/router": "^9.1.6",
+    "runtime-config-loader": "^3.0.0",
     "@ngrx/effects": "^9.1.2",
     "@ngrx/router-store": "^9.1.2",
     "@ngrx/store": "^9.1.2",
