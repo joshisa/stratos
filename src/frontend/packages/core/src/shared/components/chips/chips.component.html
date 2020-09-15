@@ -1,5 +1,5 @@
 <span *ngIf="!chips || !chips.length">None</span>
-<mat-chip-list class="app-chips" [ngClass]="{'mat-chip-list__stacked': stacked, 'mat-chip-list__rtl': orientation==='rtl'}" *ngIf="chips && chips.length">
+<mat-chip-list class="app-chips" [ngClass]="{'mat-chip-list__stacked': stacked, 'mat-chip-list__rtl': orientation==='rtl'}" *ngIf="chips && chips.length" aria-label="app-chips">
   <mat-chip class="app-chip" *ngFor="let chip of chips | slice:0:limit" [ngClass]="chip.color ? chip.color : ''">
     <div class="app-chip__container">
       <a *ngIf="!!chip.url; else notALink" [routerLink]="[chip.url.link]" [queryParams]="chip.url.params">{{chip[displayProperty]}}</a>

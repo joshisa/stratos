@@ -97,7 +97,7 @@
           <div class="sort"
             [hidden]="(view$ | async) === 'table' || sortColumns.length < 1 || (isAddingOrSelecting$ | async) || (!(dataSource.isLoadingPage$ | async) && !(hasRowsOrIsFiltering$ | async))">
             <mat-form-field class="list-component__header__right-sort">
-              <mat-select name="sort-field" matInput [(ngModel)]="headerSort.value" shouldPlaceholderFloat="false"
+              <mat-select name="sort-field" aria-label="sort-field" matInput [(ngModel)]="headerSort.value" shouldPlaceholderFloat="false"
                 [disabled]="(disableActions$ | async)"
                 (selectionChange)="updateListSort($event.value, headerSort.direction)">
                 <mat-option *ngFor="let column of sortColumns" [value]="column.columnId">

@@ -42,7 +42,7 @@
 
           <div *ngIf="gitSCMRepo$ | async as gitSCMRepo">
             <div class="gitscm-tab__avatar">
-              <img src={{gitSCMRepo.owner.avatar_url}}>
+              <img src={{gitSCMRepo.owner.avatar_url}} alt="gitSCMRepo-owner-avatar">
             </div>
             <div>
               <app-metadata-item label="Full Name">
@@ -66,7 +66,7 @@
         <mat-card-content>
           <div *ngIf="commit$ | async as commitInfo">
             <div class="gitscm-tab__avatar">
-              <img src={{commitInfo.author.avatar_url}}>
+              <img src={{commitInfo.author.avatar_url}} alt="commitInfo-author-avatar">
             </div>
             <div>
               <app-metadata-item label="Message">{{ commitInfo.commit.message }}</app-metadata-item>

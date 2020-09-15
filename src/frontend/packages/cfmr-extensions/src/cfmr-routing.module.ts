@@ -35,6 +35,8 @@ var customRoutes: Routes = [{
   ],
   declarations: [],
   providers: [
+    SettingsHttpService,
+    { provide: APP_INITIALIZER, useFactory: app_Init, deps: [SettingsHttpService], multi: true },
     {
         provide: 'externalUrlRedirectResolver',
         useValue: (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) =>
@@ -42,8 +44,6 @@ var customRoutes: Routes = [{
             window.location.href = (route.data as any).externalUrl;
         }
     },
-    SettingsHttpService,
-    { provide: APP_INITIALIZER, useFactory: app_Init, deps: [SettingsHttpService], multi: true },
   ]
 })
 export class CFMRRoutingModule { 

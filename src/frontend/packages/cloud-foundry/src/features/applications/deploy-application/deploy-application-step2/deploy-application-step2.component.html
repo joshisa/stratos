@@ -30,7 +30,7 @@
               </div>
               <div *ngIf="projectInfo$ | async as projectInfo" class="deploy-step2-form__project-info-group">
                 <div>
-                  <img src="{{projectInfo.owner.avatar_url}}">
+                  <img src="{{projectInfo.owner.avatar_url}}" alt="project-info-owner-avatar">
                 </div>
                 <div src="description">
                   <div>
@@ -55,7 +55,7 @@
             <div *ngIf="isRedeploy && commitInfo"
               class="deploy-step2-form__project-info-group deploy-step2-form__commit">
               <div>
-                <img src="{{commitInfo.author.avatar_url}}">
+                <img src="{{commitInfo.author.avatar_url}}" alt="commitInfo-author-avatar">
               </div>
               <div src="description">
                 <div>

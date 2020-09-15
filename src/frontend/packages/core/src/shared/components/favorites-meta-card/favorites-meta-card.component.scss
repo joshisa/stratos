@@ -10,7 +10,6 @@
     font-size: 13px;
     line-height: $type-height;
     margin-top: -($type-height - 2px);
-    opacity: .6;
   }
   &__missing {
     align-items: center;
@@ -83,12 +82,12 @@
   }
   &__label {
     font-size: 10px;
-    opacity: .6;
+    opacity: 1.0;
   }
 }
 
 .subtle-text {
-  opacity: .6;
+  opacity: 1.0;
 }
 
 

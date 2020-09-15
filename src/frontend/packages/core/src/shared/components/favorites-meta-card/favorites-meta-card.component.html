@@ -4,7 +4,7 @@
   <app-meta-card-title class="fav-meta-card__header">
     <div class="fav-meta-card__header">
       <div *ngIf="!compact" class="fav-meta-card__logo-panel">
-        <img class="fav-meta-card__logo" *ngIf="icon.logoUrl" [src]="icon.logoUrl" />
+        <img class="fav-meta-card__logo" *ngIf="icon.logoUrl" [src]="icon.logoUrl" alt="icon-logo" />
       </div>
       <div *ngIf="compact" class="fav-meta-card__icon-panel">
         <mat-icon class="fav-meta-card__icon" *ngIf="icon.icon && !icon.logoUrl" [fontSet]="icon.iconFont">{{ icon.icon }}</mat-icon>

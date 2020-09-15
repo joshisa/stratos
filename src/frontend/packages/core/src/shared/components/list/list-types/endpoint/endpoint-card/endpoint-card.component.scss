@@ -9,14 +9,14 @@
   display: block;
   height: 100%;
   &--disconnected {
-    opacity: .6;
+    opacity: .7;
     transition: opacity .25s;
     &:hover {
       opacity: 1;
     }
   }
   &--checking {
-    opacity: .6;
+    opacity: .7;
   }
   &--no-link {
     cursor: default;
@@ -42,7 +42,7 @@
     &-subtext {
       font-size: 14px;
       margin-top: 4px;
-      opacity: .6;
+      opacity: .7;
     }
     &-text {
       display: flex;
