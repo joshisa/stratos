@@ -115,7 +115,7 @@ export class SteppersComponent implements OnInit, AfterContentInit, OnDestroy {
     if (this.currentIndex < this.steps.length) {
       const step = this.steps[this.currentIndex];
       step.busy = true;
-      const obs$ = step.onNext();
+      const obs$ = step.onNext(this.currentIndex, step);
       if (!(obs$ instanceof Observable)) {
         return;
       }
@@ -126,7 +126,7 @@ export class SteppersComponent implements OnInit, AfterContentInit, OnDestroy {
           console.warn('Stepper failed: ', err);
           return observableOf({
             success: false,
-            message: 'Failed',
+            message: err || 'Failed',
             redirectPayload: null,
             redirect: false,
             data: {},
