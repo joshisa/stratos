@@ -1,0 +1,52 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2 as base-build
+ARG project
+ARG branch
+ARG commit
+
+ENV USER=stratos
+ENV PATH=$PATH:/node-v12.13.0-linux-x64/bin
+RUN useradd -ms /bin/bash stratos && \
+    mkdir -p /home/stratos && \
+    chown -R stratos /home/stratos && \
+    chgrp -R users /home/stratos && \
+    mkdir -p /usr/dist && \
+    chown stratos /usr/dist && \
+    chgrp users /usr/dist
+USER stratos    
+WORKDIR /home/stratos
+
+COPY --chown=stratos:users . /usr/src/app
+WORKDIR /usr/src/app
+ENV PATH="${PATH}:/usr/src/app/node_modules/.bin"
+
+# Build front-end
+RUN npm install && \
+    npm run build && \
+    mkdir -p /usr/dist && \
+    cp -R dist/* /usr/dist
+
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2 as prod-build
+
+# Update image
+RUN true \
+    && microdnf clean all \
+    && microdnf update --nodocs \
+    && microdnf clean all \
+    && true
+
+RUN microdnf -y install --nodocs \
+  httpd wget tar \
+  && microdnf clean all
+
+RUN cd / && wget https://nodejs.org/dist/v12.13.0/node-v12.13.0-linux-x64.tar.xz && \
+    pwd \
+    ls -al \
+    tar -xf node-v12.13.0-linux-x64.tar.xz
+LABEL maintainer="IBM"
+
+COPY  deploy/containers/nginx/conf/nginx.k8s.conf /etc/nginx/nginx.conf.tmpl
+COPY --from=base-build /usr/dist /usr/share/nginx/html
+COPY deploy/containers/nginx/run-nginx.sh/ /run-nginx.sh
+EXPOSE 80 443
+CMD [ "/run-nginx.sh" ]
