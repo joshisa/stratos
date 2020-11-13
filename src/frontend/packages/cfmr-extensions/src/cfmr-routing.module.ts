@@ -41,7 +41,23 @@ var customRoutes: Routes = [{
         provide: 'externalUrlRedirectResolver',
         useValue: (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) =>
         {
-            window.location.href = (route.data as any).externalUrl;
+            // Define a set of safe domains for redirection
+            var safedomains:string[]; 
+            safedomains = ["www.openshift.com"];
+
+            // Parse the defined url in the data set
+            var redirectURL = new URL((route.data as any).externalUrl);
+
+            // Validate that the defined url redirect is limited to the safe domain array set
+            if (safedomains.includes(redirectURL.hostname)) 
+            {
+                // Safe to redirect
+                window.location.href = (route.data as any).externalUrl;
+            }
+            else
+            {
+                console.log("Defined data.externalUrl (" + (route.data as any).externalUrl + ") provided for ocp-console redirect is to a domain not contained within the existing safe domain list");
+            }
         }
     },
   ]
