@@ -1,0 +1,10 @@
+<div *ngIf="commit.author" class="github-commit-author__core-author">
+  <a *ngIf="commit.author.html_url" href="{{commit.author.html_url}}" target="_blank">{{commit.commit.author.name}}</a>
+  <span *ngIf="!commit.author.html_url">{{commit.commit.author.name}}</span>
+<<<<<<< HEAD:src/frontend/packages/cloud-foundry/src/shared/components/github-commit-author/github-commit-author.component.html
+  <img *ngIf="showAvatar" src="{{commit.author.avatar_url}}" alt="github-commit-author-avatar">
+</div>
+=======
+  <img *ngIf="showAvatar && commit.author.avatar_url" src="{{commit.author.avatar_url}}">
+</div>
+>>>>>>> upstream/master:src/frontend/packages/git/src/shared/components/github-commit-author/github-commit-author.component.html
