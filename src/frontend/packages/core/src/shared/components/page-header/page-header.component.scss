@@ -99,12 +99,8 @@ $bottom-index: $top-index - 1;
     height: 20vh;
   }
   &__divider {
-<<<<<<< HEAD
-    opacity: .7;
-=======
     cursor: default;
     opacity: .3;
->>>>>>> upstream/master
     padding: 0 10px 0 5px;
   }
   &__menu-button {
